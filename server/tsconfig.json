@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "target": "ES2022",
+        "module": "commonjs",
+        "lib": ["ES2022"],
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "strictPropertyInitialization": false,
+        "skipLibCheck": true,
+        "outDir": "./dist",
+        "rootDir": ".",
+        "baseUrl": "./src",
+        "paths": {
+            "@errors/*": ["models/errors/*"],
+            "@daos/*": ["models/daos/*"],
+            "@dtos/*": ["models/dtos/*"],
+            "@repositories/*": ["repositories/*"],
+            "@controllers/*": ["controllers/*"],
+            "@middlewares/*": ["middlewares/*"],
+            "@services/*": ["services/*"],
+            "@database": ["database/index.ts"],
+            "@config": ["config/index.ts"],
+            "@utils/*": ["utils/*"],
+            "@app": ["app.ts"],
+            "@test/*": ["../test/*"]
+        }
+    } ,
+    "include": ["src", "test"]   
+}
