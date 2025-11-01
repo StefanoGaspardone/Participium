@@ -28,6 +28,12 @@
             "@app": ["app.ts"],
             "@test/*": ["../test/*"]
         }
-    } ,
-    "include": ["src", "test"]   
+    },
+    "include": ["src/**/*", "src/**/*.d.ts", "test"],
+    "exclude": [
+        "node_modules"
+    ],
+    "files": [
+        "src/types/express.d.ts"
+    ]
 }
