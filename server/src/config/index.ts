@@ -5,7 +5,7 @@ export const CONFIG = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     DATABASE: {
         TYPE: process.env.DB_TYPE || 'postgres',
-        HOST: process.env.DB_HOST || 'localhost',
+        HOST: process.env.DB_HOST || 'db.sbeiphaapjtocgdhfeyy.supabase.co',
         PORT: parseInt(process.env.DB_PORT ?? '5432'),
         USERNAME: process.env.DB_USERNAME || 'postgres',
         PASSWORD: process.env.DB_PASSWORD || 'postgres',
