@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn,  } from "typeorm";
-import { MunicipalityRoleDAO } from "./MunicipalityRoleDAO";
+import { MunicipalityRoleDAO } from "@daos/MunicipalityRoleDAO";
 import { IsEnum, IsNotEmpty, ValidateIf, Validator } from "class-validator";
-import { ReportDAO } from "./ReportDAO";
+import { ReportDAO } from "@daos/ReportDAO";
 
 export enum UserType {
     CITIZEN = 'CITIZEN',

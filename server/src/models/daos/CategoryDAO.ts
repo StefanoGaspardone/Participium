@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { ReportDAO } from "./ReportDAO";
-import { MunicipalityRoleDAO } from "./MunicipalityRoleDAO";
+import { ReportDAO } from "@daos/ReportDAO";
+import { MunicipalityRoleDAO } from "@daos/MunicipalityRoleDAO";
 
 @Entity({ name: 'categories' })
 export class CategoryDAO {
