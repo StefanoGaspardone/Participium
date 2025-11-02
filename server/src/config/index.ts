@@ -12,10 +12,11 @@ export const CONFIG = {
         NAME: process.env.DB_NAME || 'participium_db',
         ENTITIES: [__dirname + '/../models/daos/*.{ts,js}'],
     },
-    SWAGGER_V1_FILE_PATH: '../../docs/swagger.yaml',
+    SWAGGER_FILE_PATH: '../../docs/swagger.yaml',
     ROUTES: {
         SWAGGER: `${BASE_URL}/docs`,
-        CATEGORY: `${BASE_URL}/categories`,
+        CATEGORIES: `${BASE_URL}/categories`,
+        UPLOADS: `${BASE_URL}/uploads`,
     },
     LOG: {
         LEVEL: process.env.LOG_LEVEL || 'info',
@@ -23,4 +24,11 @@ export const CONFIG = {
         ERROR_FILE: process.env.ERROR_LOG_FILE || 'error.log',
         COMBINED_FILE: process.env.COMBINED_LOG_FILE || 'combined.log',
     },
+    CLOUDINARY: {
+        CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || 'dhzr4djkx',
+        API_KEY: process.env.CLOUDINARY_API_KEY || '345159419611275',
+        API_SECRET: process.env.CLOUDINARY_API_SECRET || 'Ni4c_gMnqrAUhoYj0GFtuRpCAm4',
+        DEFAULT_FOLDER: process.env.CLOUDINARY_DEFAULT_FOLDER || 'participium',
+        UPLOAD_PRESET: process.env.CLOUDINARY_UPLOAD_PRESET || 'participium_preset',
+    }
 }
