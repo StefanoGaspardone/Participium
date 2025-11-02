@@ -1,4 +1,4 @@
-import { UserDAO, UserType } from "@daos/UserDAO";
+import { UserDAO, UserType } from '@daos/UserDAO';
 
 export interface UserDTO {
     id: number;

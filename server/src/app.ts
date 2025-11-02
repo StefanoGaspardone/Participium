@@ -5,6 +5,7 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import * as OpenApiValidator from 'express-openapi-validator';
 import { errorHandler } from '@middlewares/errorMiddleware';
+import { categoryRouter } from 'routes/category.routes';
 
 export const app = express();
 
@@ -14,7 +15,7 @@ app.use(cors({
     credentials: true,
 }));
 
-// app.use(CONFIG.ROUTES.SWAGGER, swaggerUi.serve, swaggerUi.setup(YAML.load(CONFIG.SWAGGER_V1_FILE_PATH))); now gives error since the swagger.yaml is empty
+// app.use(CONFIG.ROUTES.SWAGGER, swaggerUi.serve, swaggerUi.setup(YAML.load(CONFIG.SWAGGER_V1_FILE_PATH))); // now arises error since the swagger.yaml is empty
 
 // app.use(
 //     OpenApiValidator.middleware({
@@ -24,6 +25,6 @@ app.use(cors({
 //     })
 // );
 
-// app.use(<path>, <router>)
+app.use(CONFIG.ROUTES.CATEGORY, categoryRouter);
 
 app.use(errorHandler);

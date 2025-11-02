@@ -15,6 +15,7 @@ export const CONFIG = {
     SWAGGER_V1_FILE_PATH: '../../docs/swagger.yaml',
     ROUTES: {
         SWAGGER: `${BASE_URL}/docs`,
+        CATEGORY: `${BASE_URL}/categories`,
     },
     LOG: {
         LEVEL: process.env.LOG_LEVEL || 'info',

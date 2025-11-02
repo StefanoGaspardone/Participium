@@ -1,7 +1,7 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CategoryDAO } from '@daos/CategoryDAO';
-import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf } from "class-validator";
-import { UserDAO } from "@daos/UserDAO";
+import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf } from 'class-validator';
+import { UserDAO } from '@daos/UserDAO';
 
 export enum ReportStatus {
     PendingApproval = 'PendingApproval', 
