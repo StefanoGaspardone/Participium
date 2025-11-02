@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { CategoryDAO } from '@daos/CategoryDAO';
-import { ArrayMaxSize, ArrayMinSize, IsEnum, ValidateIf } from "class-validator";
+import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf } from "class-validator";
 import { UserDAO } from "@daos/UserDAO";
 
 export enum ReportStatus {
@@ -18,9 +18,11 @@ export class ReportDAO {
     id: number;
 
     @Column({ type: 'varchar' })
+    @IsString()
     title: string;  
 
     @Column({ type: 'varchar' })
+    @IsString()
     description: string;
 
     @ManyToOne(() => CategoryDAO, category => category.reports)
@@ -30,6 +32,7 @@ export class ReportDAO {
     @Column('text', { array: true })
     @ArrayMinSize(1)
     @ArrayMaxSize(3)
+    @IsUrl({}, { each: true })
     images: string[];
 
     @Column({ type: 'varchar', default: ReportStatus.PendingApproval })
@@ -37,10 +40,12 @@ export class ReportDAO {
     status: ReportStatus;
 
     @Column({ default: false })
+    @IsBoolean()
     anonymous: boolean;
 
     @Column({ type: 'varchar', nullable: true })
     @ValidateIf(o => o.status === ReportStatus.Rejected)
+    @IsNotEmpty({ message: 'Rejected description cannot be empty for a rejected report' })
     rejectedDescription: string;
 
     @ManyToOne(() => UserDAO, user => user.createdReports)
@@ -49,6 +54,7 @@ export class ReportDAO {
 
     @ManyToOne(() => UserDAO, user => user.assignedReports)
     @JoinColumn({ name: 'assigned_to_id' })
+    @ValidateIf(o => [ReportStatus.Assigned, ReportStatus.InProgress, ReportStatus.Resolved, ReportStatus.Rejected, ReportStatus.Suspended].includes(o.status))
     assignedTo: UserDAO;
 
     @CreateDateColumn({ type: 'timestamptz' })

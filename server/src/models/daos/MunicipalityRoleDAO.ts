@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { UserDAO } from "@daos/UserDAO";
 import { CategoryDAO } from "@daos/CategoryDAO";
+import { IsString } from "class-validator";
 
 @Entity({ name: 'municipality_roles' })
 export class MunicipalityRoleDAO {
@@ -8,6 +9,7 @@ export class MunicipalityRoleDAO {
     id: number;
 
     @Column({ unique: true, type: 'varchar' })
+    @IsString()
     name: string;
 
     @OneToMany(() => UserDAO, user => user.municipalityRole)

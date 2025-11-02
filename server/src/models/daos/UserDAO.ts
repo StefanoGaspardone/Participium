@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn,  } from "typeorm";
 import { MunicipalityRoleDAO } from "@daos/MunicipalityRoleDAO";
-import { IsEnum, IsNotEmpty, ValidateIf, Validator } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf, Validator } from "class-validator";
 import { ReportDAO } from "@daos/ReportDAO";
 
 export enum UserType {
@@ -15,24 +15,30 @@ export class UserDAO {
     id: number;
 
     @Column({ type: 'varchar' })
+    @IsString()
     firstName: string;
 
     @Column({ type: 'varchar' })
+    @IsString()
     lastName: string;
 
     @Column({ unique: true, type: 'varchar' })
+    @IsEmail()
     email: string;
 
     @Column({ unique: true, type: 'varchar' })
+    @IsString()
     username: string;
 
     @Column({ type: 'varchar' })
     passwordHash: string;
 
     @Column({ nullable: true, type: 'varchar' })
+    @IsUrl()
     image: string;
 
     @Column({ unique: true, nullable: true, type: 'varchar' })
+    @IsString()
     telegramUsername: string;
 
     @Column({ type: 'varchar' })
