@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { ArrayMaxSize, ArrayMinSize, IsEnum, ValidateIf } from "class-validator";
 import { UserDAO } from "@daos/UserDAO";
@@ -24,6 +24,7 @@ export class ReportDAO {
     description: string;
 
     @ManyToOne(() => CategoryDAO, category => category.reports)
+    @JoinColumn({ name: 'category_id' })
     category: CategoryDAO;
 
     @Column('text', { array: true })
@@ -43,9 +44,11 @@ export class ReportDAO {
     rejectedDescription: string;
 
     @ManyToOne(() => UserDAO, user => user.createdReports)
+    @JoinColumn({ name: 'created_by_id' })
     createdBy: UserDAO;
 
     @ManyToOne(() => UserDAO, user => user.assignedReports)
+    @JoinColumn({ name: 'assigned_to_id' })
     assignedTo: UserDAO;
 
     @CreateDateColumn({ type: 'timestamptz' })

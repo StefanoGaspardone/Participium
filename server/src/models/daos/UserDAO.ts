@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn,  } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn,  } from "typeorm";
 import { MunicipalityRoleDAO } from "@daos/MunicipalityRoleDAO";
 import { IsEnum, IsNotEmpty, ValidateIf, Validator } from "class-validator";
 import { ReportDAO } from "@daos/ReportDAO";
@@ -43,6 +43,7 @@ export class UserDAO {
     createdAt: Date;
 
     @ManyToOne(() => MunicipalityRoleDAO, municipalityRole => municipalityRole.users, { nullable: true })
+    @JoinColumn({ name: 'municipality_role_id' })
     @ValidateIf(o => o.userType === UserType.OFFICER)
     @IsNotEmpty({ message: 'Municipality role cannot be empty for a municipality officer' })
     municipalityRole: MunicipalityRoleDAO;

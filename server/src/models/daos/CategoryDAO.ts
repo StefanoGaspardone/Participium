@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ReportDAO } from "@daos/ReportDAO";
 import { MunicipalityRoleDAO } from "@daos/MunicipalityRoleDAO";
 
@@ -14,5 +14,6 @@ export class CategoryDAO {
     reports: ReportDAO[];
 
     @ManyToOne(() => MunicipalityRoleDAO, municipalityRole => municipalityRole.categories)
+    @JoinColumn({ name: 'municipality_role_id' })
     municipalityRole: MunicipalityRoleDAO;
 }
