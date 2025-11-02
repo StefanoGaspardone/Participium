@@ -1,7 +1,7 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { UserDAO } from "@daos/UserDAO";
-import { CategoryDAO } from "@daos/CategoryDAO";
-import { IsString } from "class-validator";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { UserDAO } from '@daos/UserDAO';
+import { CategoryDAO } from '@daos/CategoryDAO';
+import { IsString } from 'class-validator';
 
 @Entity({ name: 'municipality_roles' })
 export class MunicipalityRoleDAO {
