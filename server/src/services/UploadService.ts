@@ -2,7 +2,7 @@ import { getCloudinaryConfig, signParams } from '@utils/cloudinary'
 
 export class UploadService {
 
-    sign = async (): Promise<{}> => {
+    sign = async (): Promise<any> => {
         const { cloudName, apiKey, apiSecret, uploadPreset, defaultFolder } = getCloudinaryConfig();
         const timestamp = Math.floor(Date.now() / 1000);
 

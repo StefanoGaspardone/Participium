@@ -6,7 +6,8 @@ import YAML from 'yamljs';
 import * as OpenApiValidator from 'express-openapi-validator';
 import { errorHandler } from '@middlewares/errorMiddleware';
 import { categoryRouter } from 'routes/category.routes';
-import { uploadRouter } from 'routes/upload.routes';
+import { uploadRouter } from '@routes/upload.routes';
+import { reportRouter } from '@routes/report.routes';
 
 export const app = express();
 
@@ -28,5 +29,6 @@ app.use(cors({
 
 app.use(CONFIG.ROUTES.CATEGORIES, categoryRouter);
 app.use(CONFIG.ROUTES.UPLOADS, uploadRouter);
+app.use(CONFIG.ROUTES.REPORTS, reportRouter);
 
 app.use(errorHandler);
