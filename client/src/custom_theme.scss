@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+$blu-savoia: #0057A0;
+$giallo-torino: #FFCD00;
+
+.font-regal {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; // Un peso grassetto è adatto per un logo
+}
+
+$primary: $blu-savoia;
+$warning: $giallo-torino;
+
+@import "bootstrap/scss/bootstrap";
+
+// (Opzionale) Puoi aggiungere qui altri stili globali
