@@ -13,6 +13,7 @@ type Props = {
 export default function CustomNavbar({ isLoggedIn, setIsLoggedIn }: Props) {
 
   const handleLogout = () => {
+    // add logic to "remove" session/cookies ecc..
     setIsLoggedIn(false);
   };
 

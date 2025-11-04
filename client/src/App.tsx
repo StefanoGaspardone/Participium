@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import HomePage from "./components/Homepage";
 import LoginPage from "./components/LoginPage";
 import RegisterPage from "./components/RegisterPage";
+import UploadReport from "./components/UploadReportPage";
 import "./App.css";
 import "./custom_theme.scss";
 
@@ -31,6 +32,10 @@ function App() {
         />
         <Route path="/register" element={<RegisterPage />} />
         {/* Aggiungi qui altre rotte, es. /profile */}
+        <Route path="/uploadReport" element={<UploadReport selected={selected}
+              setSelected={setSelected}
+              isLoggedIn={isLoggedIn}
+              setIsLoggedIn={setIsLoggedIn} /> } />
       </Routes> 
     </>
   );
