@@ -35,11 +35,11 @@ export class UserDAO {
 
     @Column({ nullable: true, type: 'varchar' })
     @IsUrl()
-    image: string;
+    image: string | undefined;
 
     @Column({ unique: true, nullable: true, type: 'varchar' })
     @IsString()
-    telegramUsername: string;
+    telegramUsername: string | undefined;
 
     @Column({ type: 'varchar' })
     @IsEnum(UserType)

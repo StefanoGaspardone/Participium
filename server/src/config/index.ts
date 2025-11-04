@@ -16,6 +16,7 @@ export const CONFIG = {
     ROUTES: {
         SWAGGER: `${BASE_URL}/docs`,
         CATEGORY: `${BASE_URL}/categories`,
+        USER: `${BASE_URL}/users`,
     },
     LOG: {
         LEVEL: process.env.LOG_LEVEL || 'info',

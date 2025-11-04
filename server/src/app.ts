@@ -6,6 +6,7 @@ import YAML from 'yamljs';
 import * as OpenApiValidator from 'express-openapi-validator';
 import { errorHandler } from '@middlewares/errorMiddleware';
 import { categoryRouter } from 'routes/category.routes';
+import {userRouter} from "./routes/user.routes";
 
 export const app = express();
 
@@ -26,5 +27,6 @@ app.use(cors({
 // );
 
 app.use(CONFIG.ROUTES.CATEGORY, categoryRouter);
+app.use(CONFIG.ROUTES.USER, userRouter);
 
 app.use(errorHandler);

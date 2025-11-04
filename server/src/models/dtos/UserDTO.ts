@@ -1,4 +1,15 @@
 import { UserDAO, UserType } from '@daos/UserDAO';
+import {
+    IsEmail,
+    IsEnum,
+    IsInt,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    IsUrl,
+    MinLength,
+    ValidateIf
+} from 'class-validator';
 
 export interface UserDTO {
     id: number;
@@ -13,7 +24,7 @@ export interface UserDTO {
     createdAt: Date;
 }
 
-export const createUserDTO = (user: UserDAO): UserDTO => {
+export const CreateUserDTO = (user: UserDAO): UserDTO => {
     return {
         id: user.id,
         firstName: user.firstName,
@@ -26,4 +37,18 @@ export const createUserDTO = (user: UserDAO): UserDTO => {
         municipalityRole: user.municipalityRole.name,
         createdAt: new Date(user.createdAt),
     } as UserDTO;
+}
+
+export interface UserSignUpDTO {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    username: string;
+    password: string;
+    image?: string;
+    telegramUsername?: string;
+    userType: UserType;
+    municipalityRole?: string;
+    createdAt: Date;
 }
