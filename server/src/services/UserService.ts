@@ -1,6 +1,7 @@
 import {userRepository, UserRepository} from "@repositories/UserRepository";
 import {UserDTO, UserSignUpDTO, CreateUserDTO} from "@dtos/UserDTO";
 import {UserDAO, UserType} from "@daos/UserDAO";
+import * as bcrypt from "bcryptjs";
 
 export class UserService {
 
@@ -27,18 +28,22 @@ export class UserService {
         user.image = payload.image;
         user.telegramUsername = payload.telegramUsername;
 
-        //TODO hash password
-        user.passwordHash = payload.password;
-
-        //TODO assign municipalityRole if userType is MUNICIPALITY_MEMBER
+        const salt = await bcrypt.genSalt(10);
+        user.passwordHash = await bcrypt.hash(payload.password, salt);
 
         try {
             return this.userRepo.signUpUser(user);
         } catch (error) {
             throw error;
         }
+    }
 
-
+    login = async (email: string, password: string): Promise<UserDAO | null> => {
+        try {
+            return this.userRepo.login(email, password);
+        }catch (error) {
+            throw error;
+        }
     }
 }
 

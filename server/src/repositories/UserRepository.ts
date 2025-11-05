@@ -1,6 +1,7 @@
 import { AppDataSource } from '@database';
 import { Repository } from 'typeorm';
 import {UserDAO} from "@daos/UserDAO";
+import * as bcrypt from "bcryptjs";
 
 export class UserRepository {
 
@@ -16,6 +17,16 @@ export class UserRepository {
 
     signUpUser = async (user: UserDAO): Promise<UserDAO> => {
         return this.repo.save(user);
+    }
+
+    login = async (email: string, password: string): Promise<UserDAO | null> => {
+        const user = await this.repo.findOneBy({ email });
+        if (user) {
+            const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+            if(isPasswordValid)
+                return user;
+        }
+        return null;
     }
 }
 

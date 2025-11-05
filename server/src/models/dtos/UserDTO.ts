@@ -34,8 +34,9 @@ export const CreateUserDTO = (user: UserDAO): UserDTO => {
         image: user.image,
         telegramUsername: user.telegramUsername,
         userType: user.userType,
-        municipalityRole: user.municipalityRole.name,
+        municipalityRole: user.municipalityRole? user.municipalityRole.name : null,
         createdAt: new Date(user.createdAt),
+        passwordHash: user.passwordHash
     } as UserDTO;
 }
 
