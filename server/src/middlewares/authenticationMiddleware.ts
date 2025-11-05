@@ -1,11 +1,41 @@
-import { NextFunction, Request, Response } from 'express';
+import {NextFunction, Request, Response} from "express";
+import * as jwt from "jsonwebtoken";
+import {JwtPayload} from "jsonwebtoken";
+import {UserType} from "@daos/UserDAO";
+import {jwtSecret} from "@app";
 
-// export const isAuthenticated = (allowedRoles: UserRole[] = []) => {
-//     return async (req: Request, res: Response, next: NextFunction) => {
-//         try {
+// Definisci la struttura del tuo payload
+interface UserPayload extends JwtPayload {
+    userId: number;
+    role: UserType;
+}
 
-//         } catch(error) {
-//             next(error);
-//         }
-//     }
-// }
+// Estendi l'interfaccia Request per includere il payload dell'utente
+interface AuthRequest extends Request {
+    token?: string | jwt.JwtPayload;
+}
+
+export const authMiddleware = (allowedRoles: string[]) => {
+    return (req: AuthRequest, res: Response, next: NextFunction) => {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({ message: "Denied access. Please insert token." });
+        }
+
+        const token = authHeader.split(" ")[1];
+        try {
+            // Verifica il token
+            req.token = jwt.verify(token, jwtSecret) as UserPayload; // to add fields to request if needed
+            const userRole = req.token.role;
+            if (userRole && !allowedRoles.includes(userRole)) {
+                return res.status(403).json({
+                    message: "Accesso negato. Permessi insufficienti."
+                });
+            }
+
+            next(); // Passa al controller successivo
+        } catch (error) {
+            return res.status(401).json({ message: "Token non valido." });
+        }
+    };
+};

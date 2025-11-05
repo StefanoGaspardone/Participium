@@ -18,6 +18,8 @@ export const CONFIG = {
         CATEGORIES: `${BASE_URL}/categories`,
         UPLOADS: `${BASE_URL}/uploads`,
         REPORTS: `${BASE_URL}/reports`,
+        CATEGORY: `${BASE_URL}/categories`,
+        USER: `${BASE_URL}/users`,
     },
     LOG: {
         LEVEL: process.env.LOG_LEVEL || 'info',
