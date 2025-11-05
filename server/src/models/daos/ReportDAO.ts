@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CategoryDAO } from '@daos/CategoryDAO';
-import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString, IsUrl, Max, Min, ValidateIf } from 'class-validator';
 import { UserDAO } from '@daos/UserDAO';
 
 export enum ReportStatus {
@@ -34,6 +34,18 @@ export class ReportDAO {
     @ArrayMaxSize(3)
     @IsUrl({}, { each: true })
     images: string[];
+
+    @Column('decimal', { precision: 10, scale: 8 })
+    @IsNumber()
+    @Min(-90)
+    @Max(90)
+    lat: number;
+
+    @Column('decimal', { precision: 10, scale: 8 })
+    @IsNumber()
+    @Min(-180)
+    @Max(180)
+    long: number;
 
     @Column({ type: 'varchar', default: ReportStatus.PendingApproval })
     @IsEnum(ReportStatus)

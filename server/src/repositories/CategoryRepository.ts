@@ -13,6 +13,10 @@ export class CategoryRepository {
     findAllCategories = async (): Promise<CategoryDAO[]> => {
         return this.repo.find();
     }
+
+    findCategoryById = async (id: number): Promise<CategoryDAO | null> => {
+        return this.repo.findOne({ where: { id } });
+    }
 }
 
 export const categoryRepository = new CategoryRepository();

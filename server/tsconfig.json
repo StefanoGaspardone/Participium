@@ -21,6 +21,7 @@
             "@repositories/*": ["repositories/*"],
             "@controllers/*": ["controllers/*"],
             "@middlewares/*": ["middlewares/*"],
+            "@routes/*": ["routes/*"],
             "@services/*": ["services/*"],
             "@database": ["database/index.ts"],
             "@config": ["config/index.ts"],

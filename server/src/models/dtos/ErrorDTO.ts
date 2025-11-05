@@ -6,6 +6,7 @@ export interface ErrorDTO {
     code: number;
     name?: string;
     message?: string;
+    errors?: Record<string, string | string[]>;
 }
 
 export function ErrorDTOFromJSON(json: any): ErrorDTO {
@@ -24,12 +25,13 @@ export function ErrorDTOToJSON(dto: ErrorDTO): any {
     return {
         code: dto.code,
         name: dto.name,
-        message: dto.message
+        message: dto.message,
+        errors: dto.errors
     };
 }
 
-export const createErrorDTO = (code: number, message?: string, name?: string): ErrorDTO => {
-    return removeNullAttributes({ code, name, message }) as ErrorDTO;
+export const createErrorDTO = (code: number, message?: string, name?: string, errors?: Record<string, string | string[]>): ErrorDTO => {
+    return removeNullAttributes({ code, name, message, errors }) as ErrorDTO;
 }
 
 export const createAppError = (err: any): ErrorDTO => {
@@ -38,7 +40,7 @@ export const createAppError = (err: any): ErrorDTO => {
     logError(err);
     logError(`Error: ${err?.message}\nStacktrace:\n${err?.stack || 'No stacktrace available'}`);
 
-    if(err instanceof AppError || (err.status && typeof err.status === 'number')) modelError = createErrorDTO(err.status, err.message, err.name);
+    if(err instanceof AppError || (err.status && typeof err.status === 'number')) modelError = createErrorDTO(err.status, err.message, err.name, err.errors);
 
     return modelError;
 }
