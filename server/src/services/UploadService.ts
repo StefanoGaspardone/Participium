@@ -6,7 +6,9 @@ export class UploadService {
         const { cloudName, apiKey, apiSecret, uploadPreset, defaultFolder } = getCloudinaryConfig();
         const timestamp = Math.floor(Date.now() / 1000);
 
-        const paramsToSign: Record<string, string | number> = { timestamp, defaultFolder };
+        const paramsToSign: Record<string, string | number> = { timestamp };
+        
+        if(defaultFolder) paramsToSign.folder = defaultFolder;
         if(uploadPreset) paramsToSign.upload_preset = uploadPreset;
 
         const signature = signParams(paramsToSign, apiSecret);

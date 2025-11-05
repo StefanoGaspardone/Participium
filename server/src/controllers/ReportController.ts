@@ -16,6 +16,7 @@ export class ReportController {
         try {
             const { payload } = req.body;
             const userId = req.user?.id;
+            console.log('User ID: ', userId);
 
             const errors: Record<string, string> = {};
             if(typeof payload.title !== 'string') errors.title = 'Title must be a non-empty string';
