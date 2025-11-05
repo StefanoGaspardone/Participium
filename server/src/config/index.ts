@@ -31,5 +31,11 @@ export const CONFIG = {
         API_SECRET: process.env.CLOUDINARY_API_SECRET || 'Ni4c_gMnqrAUhoYj0GFtuRpCAm4',
         DEFAULT_FOLDER: process.env.CLOUDINARY_DEFAULT_FOLDER || 'participium',
         UPLOAD_PRESET: process.env.CLOUDINARY_UPLOAD_PRESET || 'participium_preset',
+    },
+    TURIN: {
+        MIN_LAT: parseFloat(process.env.TURIN_MIN_LAT || '45.000'),
+        MAX_LAT: parseFloat(process.env.TURIN_MAX_LAT || '45.150'),
+        MIN_LONG: parseFloat(process.env.TURIN_MIN_LONG || '7.550'),
+        MAX_LONG: parseFloat(process.env.TURIN_MAX_LONG || '7.800'),
     }
 }

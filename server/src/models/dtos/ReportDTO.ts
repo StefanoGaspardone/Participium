@@ -8,6 +8,8 @@ export interface ReportDTO {
     description: string;
     category: CategoryDTO;
     images: string[];
+    lat: number;
+    long: number;
     status: ReportStatus;
     anonymous?: boolean;
     rejectedDescription?: string | null;
@@ -20,8 +22,9 @@ export interface CreateReportDTO {
     description: string;
     categoryId: number;
     images: string[];
+    lat: number;
+    long: number;
     anonymous: boolean;
-    createdAt: Date;
 }
 
 export const createReportDTO = (report: ReportDAO): ReportDTO => {

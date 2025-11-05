@@ -28,7 +28,7 @@ export class ReportService {
         report.images = inputData.images;
         report.status = ReportStatus.PendingApproval;
         report.anonymous = inputData.anonymous || false;
-        report.createdAt = new Date(inputData.createdAt);
+        report.createdAt = new Date();
         
         const user = new UserDAO();
         user.id = userId;
