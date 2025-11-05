@@ -25,7 +25,7 @@ export class UserController {
         try {
             const {payload} = req.body;
             const newUser = await this.userService.signUpUser(payload);
-            res.status(201).json({ user: newUser });
+            res.status(201).json({ });
         } catch(error) {
             //TODO handle specific errors (e.g., duplicate email)
             next(error);
