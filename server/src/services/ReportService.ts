@@ -16,16 +16,14 @@ export class ReportService {
     }
 
     createReport = async (userId: number, inputData: CreateReportDTO): Promise<void> => {
-        // TODO validation
-        
         const category = await this.categoryRepo.findCategoryById(inputData.categoryId);
         if(!category) throw new NotFoundError(`Category ${inputData.categoryId} not found`);
 
         const report = new ReportDAO();
-        report.title = inputData.title;
-        report.description = inputData.description;
+        report.title = inputData.title.trim();
+        report.description = inputData.description.trim();
         report.category = category;
-        report.images = inputData.images;
+        report.images = inputData.images.map(image => image.trim());
         report.status = ReportStatus.PendingApproval;
         report.anonymous = inputData.anonymous || false;
         report.createdAt = new Date();
