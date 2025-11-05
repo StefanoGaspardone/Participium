@@ -1,0 +1,61 @@
+/* Upload Report specific styles */
+
+.auto-textarea {
+  resize: none;
+  overflow: hidden;
+}
+
+.image-tile {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  background: #f9f9f9;
+}
+
+.image-tile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-remove-btn {
+  position: absolute !important; /* override bootstrap positioning constraints */
+  top: 6px;
+  right: 6px;
+  border-radius: 50% !important;
+  border: 1px solid #ccc !important;
+  line-height: 1 !important;
+  padding: 0.25rem 0.25rem !important;
+}
+
+.add-image-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  border: 2px dashed #bdbdbd;
+  color: #757575;
+  background: #fafafa;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.submit-disabled {
+  opacity: 0.5 !important;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

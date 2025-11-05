@@ -3,6 +3,7 @@ import ReportList from "./ReportList";
 import CustomNavbar from "./CustomNavbar";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Container, Row, Col } from "react-bootstrap";
 
 type Coord = { lat: number; lng: number } | null;
 
@@ -35,18 +36,22 @@ export default function HomePage({
   return (
     <>
       <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-      <div className="content">
-        <Map selected={selected} setSelected={setSelected} />
-        <ReportList />
-      </div>
-      <button
-        type="button"
-        className="center-action-button"
-        aria-label="Create new report"
-        onClick={() => navigate("/uploadReport")}
-      >
-        + UPLOAD NEW REPORT
-      </button>
+      <Container fluid className="content">
+        <Row className="h-100 g-0 bg-primary">
+          <Col xs={12} md={8} lg={9} className="h-100">
+            <Map selected={selected} setSelected={setSelected} />
+          </Col>
+          <Col md={4} lg={3} className="d-none d-md-block h-100">
+            <ReportList />
+          </Col>
+        </Row>
+      </Container>
+      {isLoggedIn && (
+        <button type = "button" className = "center-action-button" aria-label = "Create new report" onClick = { () => navigate("/reports/new") }>
+          + UPLOAD NEW REPORT
+        </button>
+      )}
+      
     </>
   );
 }
