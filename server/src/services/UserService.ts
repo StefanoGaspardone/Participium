@@ -17,8 +17,6 @@ export class UserService {
     }
 
     signUpUser = async (payload: UserSignUpDTO): Promise<UserDAO> => {
-        //TODO validate payload
-        console.log("inside service");
         const user = new UserDAO();
         user.firstName = payload.firstName;
         user.lastName = payload.lastName;

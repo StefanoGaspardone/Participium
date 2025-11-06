@@ -3,6 +3,9 @@ import {UserService, userService} from "@services/UserService";
 import {UserSignUpDTO} from '@dtos/UserDTO';
 import * as jwt from "jsonwebtoken";
 import {jwtSecret} from "@app";
+import {BadRequestError} from "@errors/BadRequestError";
+import {ConflictError} from "@errors/ConflictError";
+import {QueryFailedError} from "typeorm";
 
 export class UserController {
 
@@ -21,13 +24,25 @@ export class UserController {
         }
     }
 
-    signUpUser =async (req: Request<{}, {}, { payload: UserSignUpDTO }>, res: Response, next: NextFunction) => {
+    signUpUser =async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const {payload} = req.body;
+            if(!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName || !req.body.username) {
+                throw new BadRequestError("Missing one or more required fields: email, password, firstName, lastName, username");
+            }
+            const payload = {} as UserSignUpDTO;
+            payload.email = req.body.email;
+            payload.password = req.body.password;
+            payload.firstName = req.body.firstName;
+            payload.lastName = req.body.lastName;
+            payload.username = req.body.username;
+            payload.image = req.body.image;
+            payload.telegramUsername = req.body.telegramUsername;
             const newUser = await this.userService.signUpUser(payload);
-            res.status(201).json({ });
+            res.status(201).json({message: 'User created'});
         } catch(error) {
-            //TODO handle specific errors (e.g., duplicate email)
+            if (error instanceof QueryFailedError && (error as any).code === '23505') {
+                return next(new ConflictError('Email or username already exists'));
+            }
             next(error);
         }
     }

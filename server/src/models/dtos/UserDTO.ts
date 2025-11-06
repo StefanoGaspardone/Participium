@@ -49,7 +49,4 @@ export interface UserSignUpDTO {
     password: string;
     image?: string;
     telegramUsername?: string;
-    userType: UserType;
-    municipalityRole?: string;
-    createdAt: Date;
 }
