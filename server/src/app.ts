@@ -9,7 +9,6 @@ import { categoryRouter } from 'routes/category.routes';
 import { uploadRouter } from '@routes/upload.routes';
 import { reportRouter } from '@routes/report.routes';
 import {userRouter} from "./routes/user.routes";
-import * as dotenv from 'dotenv';
 
 export const app = express();
 
@@ -41,8 +40,7 @@ if (!jwtSecretEnv) {
 app.use(CONFIG.ROUTES.CATEGORIES, categoryRouter);
 app.use(CONFIG.ROUTES.UPLOADS, uploadRouter);
 app.use(CONFIG.ROUTES.REPORTS, reportRouter);
-app.use(CONFIG.ROUTES.CATEGORY, categoryRouter);
-app.use(CONFIG.ROUTES.USER, userRouter);
+app.use(CONFIG.ROUTES.USERS, userRouter);
 
 app.use(errorHandler);
 
