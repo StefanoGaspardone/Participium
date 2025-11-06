@@ -7,7 +7,8 @@
 		"start": "ts-node -r tsconfig-paths/register src/index.ts",
 		"dev": "nodemon -r tsconfig-paths/register --exec ts-node src/index.ts",
 		"build": "tsc",
-		"test": "jest --coverage"
+		"test": "jest --coverage",
+		"populate-db": "ts-node -r tsconfig-paths/register src/scripts/populate-db.ts"
 	},
 	"keywords": [],
 	"type": "commonjs",

@@ -24,6 +24,8 @@ export class ReportService {
         report.description = inputData.description.trim();
         report.category = category;
         report.images = inputData.images.map(image => image.trim());
+        report.lat = inputData.lat;
+        report.long = inputData.long;
         report.status = ReportStatus.PendingApproval;
         report.anonymous = inputData.anonymous || false;
         report.createdAt = new Date();
