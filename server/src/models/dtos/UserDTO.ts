@@ -24,7 +24,7 @@ export interface UserDTO {
     createdAt: Date;
 }
 
-export const CreateUserDTO = (user: UserDAO): UserDTO => {
+export const MapUserDAOtoDTO = (user: UserDAO): UserDTO => {
     return {
         id: user.id,
         firstName: user.firstName,
@@ -40,13 +40,25 @@ export const CreateUserDTO = (user: UserDAO): UserDTO => {
     } as UserDTO;
 }
 
-export interface UserSignUpDTO {
+export interface NewUserDTO {
     id: number;
     firstName: string;
     lastName: string;
     email: string;
     username: string;
     password: string;
+    image?: string;
+    telegramUsername?: string;
+}
+
+export interface NewMunicipalityUserDTO {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    username: string;
+    password: string;
+    municipalityRole: string;
     image?: string;
     telegramUsername?: string;
 }

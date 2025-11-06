@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from 'express';
 import {UserService, userService} from "@services/UserService";
-import {UserSignUpDTO} from '@dtos/UserDTO';
+import {NewMunicipalityUserDTO, NewUserDTO} from '@dtos/UserDTO';
 import * as jwt from "jsonwebtoken";
 import {jwtSecret} from "@app";
 import {BadRequestError} from "@errors/BadRequestError";
@@ -29,7 +29,7 @@ export class UserController {
             if(!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName || !req.body.username) {
                 throw new BadRequestError("Missing one or more required fields: email, password, firstName, lastName, username");
             }
-            const payload = {} as UserSignUpDTO;
+            const payload = {} as NewUserDTO;
             payload.email = req.body.email;
             payload.password = req.body.password;
             payload.firstName = req.body.firstName;
@@ -66,7 +66,24 @@ export class UserController {
     }
 
     createMunicipalityUser = async (req: Request, res: Response, next: NextFunction) => {
-        res.status(501).json({ message: 'Not implemented' });
+        try {
+            if(!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName || !req.body.username || !req.body.municipalityRole) {
+                throw new BadRequestError("Missing one or more required fields: email, password, firstName, lastName, username, municipalityRole");
+            }
+            const payload = {} as NewMunicipalityUserDTO;
+            payload.email = req.body.email;
+            payload.password = req.body.password;
+            payload.firstName = req.body.firstName;
+            payload.lastName = req.body.lastName;
+            payload.username = req.body.username;
+            payload.image = req.body.image;
+            payload.telegramUsername = req.body.telegramUsername;
+            payload.municipalityRole = req.body.municipalityRole;
+            const user = await this.userService.createMunicipalityUser(req.body);
+            res.status(201).json({ message: 'Municipality user created' });
+        }catch(error) {
+            next(error);
+        }
     }
 }
 

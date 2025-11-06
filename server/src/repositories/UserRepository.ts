@@ -15,7 +15,7 @@ export class UserRepository {
         return this.repo.find();
     }
 
-    signUpUser = async (user: UserDAO): Promise<UserDAO> => {
+    createNewUser = async (user: UserDAO): Promise<UserDAO> => {
         return this.repo.save(user);
     }
 
