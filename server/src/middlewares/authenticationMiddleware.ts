@@ -35,7 +35,10 @@ export const authMiddleware = (allowedRoles: string[]) => {
 
             next(); // Passa al controller successivo
         } catch (error) {
-            return res.status(401).json({ message: "Token non valido." });
+            if (error instanceof jwt.JsonWebTokenError) {
+                throw new UnauthorizedError("Denied access. Invalid token.");
+            }
+            next(error)
         }
     };
 };

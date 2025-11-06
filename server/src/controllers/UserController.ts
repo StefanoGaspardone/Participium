@@ -64,6 +64,10 @@ export class UserController {
             next(error);
         }
     }
+
+    createMunicipalityUser = async (req: Request, res: Response, next: NextFunction) => {
+        res.status(501).json({ message: 'Not implemented' });
+    }
 }
 
 export const userController = new UserController();
