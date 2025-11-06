@@ -19,10 +19,11 @@ app.use(cors({
 }));
 
 // app.use(CONFIG.ROUTES.SWAGGER, swaggerUi.serve, swaggerUi.setup(YAML.load(CONFIG.SWAGGER_FILE_PATH))); // now arises error since the swagger.yaml is empty
+
 // check if JWT_SECRET is an env variable
 //dotenv.config();
-const jwtSecretEnv = process.env.JWT_SECRET;
-if (!jwtSecretEnv) {
+const jwtSecretEnv = CONFIG.JWT_SECRET;
+if(!jwtSecretEnv) {
     console.error("ERROR: JWT_SECRET is not defined as env variable.");
     process.exit(1);
 }

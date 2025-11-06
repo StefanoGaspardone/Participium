@@ -40,4 +40,5 @@ export const CONFIG = {
     MIN_LONG: parseFloat(process.env.TURIN_MIN_LONG || "7.550"),
     MAX_LONG: parseFloat(process.env.TURIN_MAX_LONG || "7.800"),
   },
+  JWT_SECRET: process.env.JWT_SECRET || 'powerPuffGirls'
 };
