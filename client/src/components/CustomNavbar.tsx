@@ -4,6 +4,7 @@ import { Navbar, Nav, Container, Button } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   isLoggedIn: boolean;
@@ -12,9 +13,12 @@ type Props = {
 
 export default function CustomNavbar({ isLoggedIn, setIsLoggedIn }: Props) {
 
+  const navigate = useNavigate();
+
   const handleLogout = () => {
-    // add logic to "remove" session/cookies ecc..
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
+    navigate("/");
   };
 
   return (

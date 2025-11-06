@@ -1,29 +1,46 @@
-// src/pages/LoginPage.tsx
 import React, { useState } from "react";
 import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../api/api"; // importa la funzione API
 
 type Props = {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export default function LoginPage({ setIsLoggedIn }: Props) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // --- Inizio Logica Mock (senza backend) ---
-    // Simula un login se l'utente inserisce qualsiasi cosa
-    if (username && password) {
-      console.log("Login simulato:", { username, password });
-      setIsLoggedIn(true);
-      navigate("/"); // Reindirizza alla homepage
-    } else {
-      alert("Per favore, inserisci username e password.");
+
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
     }
-    // --- Fine Logica Mock ---
+
+    setLoading(true);
+
+    try {
+      const res = await loginUser({
+        email: email.trim(),
+        password: password.trim(),
+      });
+
+      localStorage.setItem("token", res.token);
+
+      setIsLoggedIn(true);
+      alert("Login successful!");
+      navigate("/");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      alert(error.message || "Invalid credentials or server error.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,11 +49,20 @@ export default function LoginPage({ setIsLoggedIn }: Props) {
         <Row className="justify-content-md-center">
           <Col md={6} lg={4}>
             <Card>
-              <Button className="w-100" variant="secondary" onClick={() => {navigate("/")}}> Go back to Homepage </Button>
+              <Button
+                className="w-100"
+                variant="secondary"
+                onClick={() => {
+                  navigate("/");
+                }}
+              >
+                Go back to Homepage
+              </Button>
             </Card>
           </Col>
         </Row>
       </Container>
+
       <Container className="mt-5">
         <Row className="justify-content-md-center">
           <Col md={6} lg={4}>
@@ -45,12 +71,13 @@ export default function LoginPage({ setIsLoggedIn }: Props) {
                 <Card.Title className="text-center mb-4">Login</Card.Title>
                 <Form onSubmit={handleSubmit}>
                   <Form.Group className="mb-3" controlId="formBasicUsername">
-                    <Form.Label>Username</Form.Label>
+                    <Form.Label>Email or Username</Form.Label>
                     <Form.Control
                       type="text"
-                      placeholder="Enter username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Enter email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
                     />
                   </Form.Group>
 
@@ -61,13 +88,20 @@ export default function LoginPage({ setIsLoggedIn }: Props) {
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      required
                     />
                   </Form.Group>
 
-                  <Button variant="primary" type="submit" className="w-100">
-                    Login
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    className="w-100"
+                    disabled={loading}
+                  >
+                    {loading ? "Logging in..." : "Login"}
                   </Button>
                 </Form>
+
                 <div className="mt-3 text-center">
                   You don't have an account?{" "}
                   <Link to="/register">Register</Link>

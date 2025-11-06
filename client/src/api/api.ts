@@ -13,6 +13,21 @@ export interface CreateReportPayload {
 	anonymous: boolean;
 }
 
+export interface RegisterPayload {
+	email: string;
+	password: string;
+	firstName: string;
+	lastName: string;
+	username: string;
+	image?: string | null;
+	telegramUsername?: string | null;
+}
+
+export interface LoginPayload {
+	email: string;
+	password: string;
+}
+
 type CategoriesResponse = { 
     categories: Category[] 
 };
@@ -91,3 +106,53 @@ export const uploadImages = async (image: File): Promise<string> => {
     if(!url) throw new Error('Cloudinary did not return a URL');
 	return url;
 }
+
+export const registerUser = async (payload: RegisterPayload): Promise<{ message: string }> => {
+	const res = await fetch(`${BASE_URL}/users/signup`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) {
+		throw await toApiError(res);
+	}
+
+	return res.json();
+};
+
+export const loginUser = async (payload: LoginPayload): Promise<{ token: string }> => {
+	const res = await fetch(`${BASE_URL}/users/login`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) {
+		throw await toApiError(res);
+	}
+
+	return res.json();
+};
+
+export const createEmployee = async (payload: {
+	firstName: string;
+	lastName: string;
+	email: string;
+	password: string;
+	role: string;
+	categoryId?: number;
+}): Promise<{ message: string }> => {
+	const res = await fetch(`${BASE_URL}/employees`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) {
+		const text = await res.text().catch(() => "");
+		throw new Error(`Failed to create employee: ${res.status} ${text}`);
+	}
+
+	return res.json();
+};

@@ -12,6 +12,7 @@
   "dependencies": {
     "@maptiler/leaflet-maptilersdk": "^4.1.1",
     "bootstrap": "^5.3.8",
+    "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.552.0",
     "react": "^19.1.1",
