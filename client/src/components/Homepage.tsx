@@ -4,6 +4,7 @@ import CustomNavbar from "./CustomNavbar";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
+import { useAuth } from "../hooks/useAuth";
 
 type Coord = { lat: number; lng: number } | null;
 
@@ -20,6 +21,10 @@ export default function HomePage({
   isLoggedIn,
   setIsLoggedIn,
 }: Props) {
+
+  const { user, isAuthenticated } = useAuth();
+
+
   useEffect(() => {
     const nav = document.querySelector(".navbar");
     if (nav instanceof HTMLElement) {
@@ -46,12 +51,12 @@ export default function HomePage({
           </Col>
         </Row>
       </Container>
-      {isLoggedIn && (
-        <button type = "button" className = "center-action-button" aria-label = "Create new report" onClick = { () => navigate("/reports/new") }>
+      {isLoggedIn && user?.role === 'CITIZEN' && (
+        <button type="button" className="center-action-button" aria-label="Create new report" onClick={() => navigate("/reports/new")}>
           + UPLOAD NEW REPORT
         </button>
       )}
-      
+
     </>
   );
 }

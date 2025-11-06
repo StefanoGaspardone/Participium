@@ -6,6 +6,7 @@ import RegisterPage from "./components/RegisterPage";
 import UploadReport from "./components/UploadReportPage";
 import "./App.css";
 import "./custom_theme.scss";
+import AdminHomepage from "./components/AdminHomepage";
 
 function App() {
   // selected and setSelected are the two parameters (as props) that have to be passed to the Map component
@@ -26,6 +27,20 @@ function App() {
             />
           }
         />
+        <Route
+          path="/admin"
+          element={
+            isLoggedIn ? (
+              <AdminHomepage
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
+              />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
         <Route
           path="/login"
           element={<LoginPage setIsLoggedIn={setIsLoggedIn} />}
