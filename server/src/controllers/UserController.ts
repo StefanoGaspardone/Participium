@@ -50,7 +50,7 @@ export class UserController {
     loginUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             if (!req.body.email || !req.body.password) {
-                return res.status(400).json({ message: 'Email and password are required' });
+                throw new BadRequestError("Email and password are required");
             }
             const user = await this.userService.login(req.body.email, req.body.password);
             if (!user) {
