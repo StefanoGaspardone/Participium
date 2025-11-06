@@ -145,7 +145,10 @@ export const createEmployee = async (payload: {
 }): Promise<{ message: string }> => {
 	const res = await fetch(`${BASE_URL}/employees`, {
 		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		headers: { 
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${localStorage.getItem('token')}`
+		},
 		body: JSON.stringify(payload),
 	});
 
