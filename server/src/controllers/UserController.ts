@@ -67,8 +67,8 @@ export class UserController {
 
     createMunicipalityUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            if(!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName || !req.body.username || !req.body.municipalityRole) {
-                throw new BadRequestError("Missing one or more required fields: email, password, firstName, lastName, username, municipalityRole");
+            if(!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName || !req.body.username || !req.body.municipalityRoleId) {
+                throw new BadRequestError("Missing one or more required fields: email, password, firstName, lastName, username, municipalityRoleId");
             }
             const payload = {} as NewMunicipalityUserDTO;
             payload.email = req.body.email;
@@ -78,7 +78,7 @@ export class UserController {
             payload.username = req.body.username;
             payload.image = req.body.image;
             payload.telegramUsername = req.body.telegramUsername;
-            payload.municipalityRole = req.body.municipalityRole;
+            payload.municipalityRoleId = req.body.municipalityRoleId;
             const user = await this.userService.createMunicipalityUser(req.body);
             res.status(201).json({ message: 'Municipality user created' });
         }catch(error) {

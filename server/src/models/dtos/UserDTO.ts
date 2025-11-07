@@ -58,7 +58,7 @@ export interface NewMunicipalityUserDTO {
     email: string;
     username: string;
     password: string;
-    municipalityRole: string;
+    municipalityRoleId: number;
     image?: string;
     telegramUsername?: string;
 }

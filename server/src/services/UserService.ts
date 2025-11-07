@@ -62,7 +62,7 @@ export class UserService {
             const salt = await bcrypt.genSalt(10);
             user.passwordHash = await bcrypt.hash(payload.password, salt);
 
-            const munRole = await this.municipalityRoleRepo.findRoleByName(payload.municipalityRole);
+            const munRole = await this.municipalityRoleRepo.findRoleById(payload.municipalityRoleId);
 
             if(!munRole) {
                 throw new BadRequestError("Invalid municipality role");

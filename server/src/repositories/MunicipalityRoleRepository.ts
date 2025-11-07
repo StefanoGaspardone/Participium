@@ -10,8 +10,8 @@ export class MunicipalityRoleRepository {
         this.repo = AppDataSource.getRepository(MunicipalityRoleDAO);
     }
 
-    findRoleByName = async (name: string): Promise<MunicipalityRoleDAO | null> => {
-        return this.repo.findOneBy({ name });
+    findRoleById = async (id: number): Promise<MunicipalityRoleDAO | null> => {
+        return this.repo.findOneBy({ id });
     }
 
     findAllRoles = async (): Promise<MunicipalityRoleDAO[]> => {
