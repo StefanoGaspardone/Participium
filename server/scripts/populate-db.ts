@@ -4,6 +4,8 @@ import { AppDataSource, initializeDatabase, closeDatabase } from '@database';
 import { MunicipalityRoleDAO } from '@daos/MunicipalityRoleDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { logInfo, logError } from '@utils/logger';
+import {UserType} from "@daos/UserDAO";
+import * as bcrypt from "bcryptjs";
 
 const ROLES: string[] = [
     'Public Services Division',
@@ -12,6 +14,11 @@ const ROLES: string[] = [
     'Infrastructure Division',
     'General Services Division',
 ];
+
+const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType }> = [
+    { username: 'admin', email: 'admin@gmail.com', firstName: 'Admin', lastName: 'Admin', password: 'admin', userType: UserType.ADMINISTRATOR },
+    { username: 'user', email: 'user@gmail.com', firstName: 'user', lastName: 'user', password: 'user', userType: UserType.CITIZEN }
+    ];
 
 const CATEGORIES: Array<{ name: string; municipalityRole: string }> = [
     { name: 'Water Supply - Drinking Water', municipalityRole: 'Public Services Division' },
@@ -24,6 +31,29 @@ const CATEGORIES: Array<{ name: string; municipalityRole: string }> = [
     { name: 'Public Green Areas and Playgrounds', municipalityRole: 'Green Areas, Parks and Animal Welfare Division' },
     { name: 'Other', municipalityRole: 'General Services Division' },
 ];
+
+async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType }>) {
+    const repo = AppDataSource.getRepository('UserDAO');
+
+    for(const { username, email, password, firstName, lastName, userType } of users) {
+        const trimmedUsername = username.trim();
+        const trimmedEmail = email.trim();
+        if(!trimmedUsername || !trimmedEmail) continue;
+
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        let user = await repo.findOne({ where: { username: trimmedUsername } });
+        if(!user) {
+            user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType });
+            user = await repo.save(user);
+
+            logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
+        } else {
+            logInfo(`[populate-db] User already exists: ${trimmedUsername} (id=${user.id})`);
+        }
+    }
+}
 
 async function upsertRoles(roleNames: string[]) {
     const repo = AppDataSource.getRepository(MunicipalityRoleDAO);
@@ -87,6 +117,8 @@ async function main() {
 
         const rolesByName = await upsertRoles(ROLES);
         await upsertCategories(CATEGORIES, rolesByName);
+
+        await  upsertUsers(USERS);
 
         logInfo('[populate-db] Done.');
     } catch(err) {
