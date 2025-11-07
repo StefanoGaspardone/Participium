@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: postgres
+      POSTGRES_DB: test_postgres
     restart: always
     volumes:
       - postgres_data_test:/var/lib/postgresql/test_data
