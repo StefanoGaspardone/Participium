@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 
 interface TokenPayload {
-    userId: string;
+    userId: number;
     role: string;
     exp: number;
     iat: number;
 }
 
 interface UserData {
-    id: string;
+    id: number;
     firstName?: string;
     lastName?: string;
     email?: string;

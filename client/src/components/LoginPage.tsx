@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../api/api"; // importa la funzione API
+import { useAuth } from "../hooks/useAuth";
+import { jwtDecode } from "jwt-decode";
 
 type Props = {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
@@ -11,6 +13,7 @@ export default function LoginPage({ setIsLoggedIn }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { reloadAuth } = useAuth();
 
   const navigate = useNavigate();
 
@@ -30,14 +33,22 @@ export default function LoginPage({ setIsLoggedIn }: Props) {
         password: password.trim(),
       });
 
-      localStorage.setItem("token", res.token);
+  // Persist token and refresh auth state
+  localStorage.setItem("token", res.token);
+  reloadAuth();
 
-      setIsLoggedIn(true);
-      alert("Login successful!");
-      navigate("/");
-    } catch (error: any) {
+  setIsLoggedIn(true);
+  alert("Login successful!");
+
+  // Navigate based on role decoded from the fresh token to avoid stale user state
+  type Payload = { userId: number; role: string };
+  const decoded = jwtDecode<Payload>(res.token);
+  if (decoded.role === 'ADMINISTRATOR') navigate('/admin');
+  else navigate("/");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Invalid credentials or server error.';
       console.error("Login error:", error);
-      alert(error.message || "Invalid credentials or server error.");
+      alert(message);
     } finally {
       setLoading(false);
     }

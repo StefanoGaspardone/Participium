@@ -79,7 +79,7 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn }: Props) {
         }
     };
 
-    if (user?.role !== "ADMIN") {
+    if (user?.role !== "ADMINISTRATOR") {
         return (
             <>
                 <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />

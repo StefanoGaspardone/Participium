@@ -7,12 +7,15 @@ import UploadReport from "./components/UploadReportPage";
 import "./App.css";
 import "./custom_theme.scss";
 import AdminHomepage from "./components/AdminHomepage";
+import { useAuth } from "./hooks/useAuth";
 
 function App() {
   // selected and setSelected are the two parameters (as props) that have to be passed to the Map component
   // selected contains fields "lat" and "lng" and setSelected allow to update their values
   const [selected, setSelected] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const { user } = useAuth();
+
   return (
     <>
       <Routes>
@@ -30,7 +33,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            isLoggedIn ? (
+            isLoggedIn && user?.role === 'ADMINISTRATOR' ? (
               <AdminHomepage
                 isLoggedIn={isLoggedIn}
                 setIsLoggedIn={setIsLoggedIn}
