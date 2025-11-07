@@ -93,6 +93,7 @@ export default function UploadReport({ selected, setSelected, isLoggedIn, setIsL
 			};
 			await createReport(payload);
 			
+			alert("Report successfully created!");
 			navigate('/');
 		} catch(err: unknown) {
 			if(isApiError(err)) {

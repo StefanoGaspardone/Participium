@@ -13,8 +13,8 @@ interface UserPayload extends JwtPayload {
 }
 
 // Estendi l'interfaccia Request per includere il payload dell'utente
-interface AuthRequest extends Request {
-    token?: string | jwt.JwtPayload;
+export interface AuthRequest extends Request {
+    token?: UserPayload;
 }
 
 export const authMiddleware = (allowedRoles: string[]) => {
@@ -28,6 +28,8 @@ export const authMiddleware = (allowedRoles: string[]) => {
         try {
             // Verifica il token
             req.token = jwt.verify(token, jwtSecret) as UserPayload; // to add fields to request if needed
+            (req as any).user = { id: req.token.userId, userType: req.token.role };
+            
             const userRole = req.token.role;
             if (userRole && !allowedRoles.includes(userRole)) {
                 throw new InsufficientRightsError("Denied access. Insufficient permissions.");

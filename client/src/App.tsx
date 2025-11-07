@@ -50,7 +50,7 @@ function App() {
         <Route path="/reports/new" element={ isLoggedIn ?  <UploadReport selected={selected}
               setSelected={setSelected}
               isLoggedIn={isLoggedIn}
-              setIsLoggedIn={setIsLoggedIn} /> : <Navigate to = '/'/> } />
+              setIsLoggedIn={setIsLoggedIn} /> : <Navigate to = '/login'/> } />
       </Routes> 
     </>
   );

@@ -2,7 +2,8 @@ import { CONFIG } from '@config';
 import { CreateReportDTO } from '@dtos/ReportDTO';
 import { BadRequestError } from '@errors/BadRequestError';
 import { reportService, ReportService } from '@services/ReportService';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
+import type { AuthRequest } from '@middlewares/authenticationMiddleware';
 
 export class ReportController {
 
@@ -12,11 +13,10 @@ export class ReportController {
         this.reportService = reportService;
     }
 
-    createReport = async (req: Request<{}, {}, { payload: CreateReportDTO }>, res: Response, next: NextFunction) => {
+    createReport = async (req: AuthRequest & { body: { payload: CreateReportDTO } }, res: Response, next: NextFunction) => {
         try {
             const { payload } = req.body;
-            const userId = req.user?.id;
-            console.log('User ID: ', userId);
+            const userId = req.token?.userId;
 
             const errors: Record<string, string> = {};
             if(typeof payload.title !== 'string') errors.title = 'Title must be a non-empty string';
