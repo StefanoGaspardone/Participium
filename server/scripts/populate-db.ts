@@ -18,7 +18,7 @@ const ROLES: string[] = [
 const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType }> = [
     { username: 'admin', email: 'admin@gmail.com', firstName: 'Admin', lastName: 'Admin', password: 'admin', userType: UserType.ADMINISTRATOR },
     { username: 'user', email: 'user@gmail.com', firstName: 'user', lastName: 'user', password: 'user', userType: UserType.CITIZEN }
-    ];
+];
 
 const CATEGORIES: Array<{ name: string; municipalityRole: string }> = [
     { name: 'Water Supply - Drinking Water', municipalityRole: 'Public Services Division' },

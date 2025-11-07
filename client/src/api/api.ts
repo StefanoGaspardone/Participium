@@ -33,7 +33,12 @@ type CategoriesResponse = {
 };
 
 export const getCategories = async (): Promise<Category[]> => {
-	const res = await fetch(`${BASE_URL}/categories`, { method: 'GET' });
+	const res = await fetch(`${BASE_URL}/categories`, { 
+		method: 'GET',
+		headers: {
+			"Authorization": `Bearer ${localStorage.getItem('token')}`
+		}
+	});
 	if(!res.ok) {
 		const text = await res.text().catch(() => '');
 		throw new Error(`Failed to fetch categories: ${res.status} ${text}`);
@@ -46,7 +51,10 @@ export const getCategories = async (): Promise<Category[]> => {
 export const createReport = async (payload: CreateReportPayload): Promise<{ message: string }> => {
 	const res = await fetch(`${BASE_URL}/reports`, {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
+		headers: { 
+			'Content-Type': 'application/json',
+			"Authorization": `Bearer ${localStorage.getItem('token')}`
+		},
 		body: JSON.stringify({ payload }),
 	});
 
