@@ -12,7 +12,7 @@ export class UserRepository {
     }
 
     findAllUsers = async (): Promise<UserDAO[]> => {
-        return this.repo.find();
+        return this.repo.find({relations: ["municipalityRole"]});
     }
 
     createNewUser = async (user: UserDAO): Promise<UserDAO> => {

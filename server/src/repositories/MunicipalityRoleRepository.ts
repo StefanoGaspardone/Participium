@@ -13,6 +13,10 @@ export class MunicipalityRoleRepository {
     findRoleByName = async (name: string): Promise<MunicipalityRoleDAO | null> => {
         return this.repo.findOneBy({ name });
     }
+
+    findAllRoles = async (): Promise<MunicipalityRoleDAO[]> => {
+        return this.repo.find({relations: ['categories']});  // add 'users' relation if needed, remember to update MunicipalityRoleDTO
+    }
 }
 
 export const municipalityRoleRepository = new MunicipalityRoleRepository();

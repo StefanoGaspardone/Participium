@@ -1,10 +1,10 @@
 import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 import { CategoryDTO, createCategoryDTO } from "@dtos/CategoryDTO";
-import { createUserDTO, UserDTO } from "@dtos/UserDTO";
+import { UserDTO, MapUserDAOtoDTO } from "@dtos/UserDTO";
 
 export interface ReportDTO {
     id: number;
-    title: string;  
+    title: string;
     description: string;
     category: CategoryDTO;
     images: string[];
@@ -18,7 +18,7 @@ export interface ReportDTO {
 }
 
 export interface CreateReportDTO {
-    title: string;  
+    title: string;
     description: string;
     categoryId: number;
     images: string[];
@@ -37,7 +37,7 @@ export const createReportDTO = (report: ReportDAO): ReportDTO => {
         status: report.status,
         anonymous: report.anonymous,
         rejectedDescription: report.rejectedDescription || null,
-        createdBy: createUserDTO(report.createdBy),
+        createdBy: MapUserDAOtoDTO(report.createdBy),
         createdAt: new Date(report.createdAt),
     } as ReportDTO;
 }
