@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { registerUser, type RegisterPayload, uploadImages } from "../api/api";
 
 export default function RegisterPage() {
     const [name, setName] = useState("");
@@ -9,26 +10,42 @@ export default function RegisterPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [telegram, setTelegram] = useState("");
-    // const [profilePic, setProfilePic] = useState<File | null>(null);
+    const [profilePic, setProfilePic] = useState<File | null>(null);
+    const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // --- Begin mock logic (no backend) ---
-        // Simulate a registration
-        console.log("Simulated registration:", {
-            name,
-            surname,
-            username,
-            email,
-            password,
-            telegram,
-            // profilePic,
-        });
-        alert("Registration completed! You can now log in.");
-        navigate("/login"); // Redirect to login page
-        // --- End mock logic ---
+        setLoading(true);
+
+        try {
+            let imageUrl: string | null = null;
+
+            if (profilePic) {
+                imageUrl = await uploadImages(profilePic);
+            }
+
+            const payload: RegisterPayload = {
+                email: email.trim(),
+                password: password.trim(),
+                firstName: name.trim(),
+                lastName: surname.trim(),
+                username: username.trim(),
+                image: imageUrl,
+                telegramUsername: telegram.trim() || null,
+            };
+
+            await registerUser(payload);
+
+            alert("Registration completed successfully!");
+            navigate("/login");
+        } catch (err: any) {
+            console.error("Registration error:", err);
+            alert(err.message || "Registration failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -39,7 +56,6 @@ export default function RegisterPage() {
                         <Card.Body>
                             <Card.Title className="text-center mb-4">Register</Card.Title>
                             <Form onSubmit={handleSubmit}>
-                                {/* Required fields */}
                                 <Row>
                                     <Col md={6}>
                                         <Form.Group className="mb-3" controlId="formName">
@@ -117,12 +133,15 @@ export default function RegisterPage() {
                                     <Form.Label>Profile Picture (Optional)</Form.Label>
                                     <Form.Control
                                         type="file"
-                                    // onChange={(e) => setProfilePic(e.target.files[0])}
+                                        accept="image/*"
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                            setProfilePic(e.target.files ? e.target.files[0] : null)
+                                        }
                                     />
                                 </Form.Group>
 
-                                <Button variant="primary" type="submit" className="w-100 mt-3">
-                                    Register
+                                <Button variant="primary" type="submit" className="w-100 mt-3" disabled={loading}>
+                                    {loading ? "Registering..." : "Register"}
                                 </Button>
                             </Form>
                             <div className="mt-3 text-center">

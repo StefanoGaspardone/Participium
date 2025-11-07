@@ -9,7 +9,6 @@ import { categoryRouter } from 'routes/category.routes';
 import { uploadRouter } from '@routes/upload.routes';
 import { reportRouter } from '@routes/report.routes';
 import {userRouter} from "./routes/user.routes";
-import * as dotenv from 'dotenv';
 
 export const app = express();
 
@@ -20,10 +19,11 @@ app.use(cors({
 }));
 
 // app.use(CONFIG.ROUTES.SWAGGER, swaggerUi.serve, swaggerUi.setup(YAML.load(CONFIG.SWAGGER_FILE_PATH))); // now arises error since the swagger.yaml is empty
+
 // check if JWT_SECRET is an env variable
 //dotenv.config();
-const jwtSecretEnv = process.env.JWT_SECRET;
-if (!jwtSecretEnv) {
+const jwtSecretEnv = CONFIG.JWT_SECRET;
+if(!jwtSecretEnv) {
     console.error("ERROR: JWT_SECRET is not defined as env variable.");
     process.exit(1);
 }
@@ -41,8 +41,7 @@ if (!jwtSecretEnv) {
 app.use(CONFIG.ROUTES.CATEGORIES, categoryRouter);
 app.use(CONFIG.ROUTES.UPLOADS, uploadRouter);
 app.use(CONFIG.ROUTES.REPORTS, reportRouter);
-app.use(CONFIG.ROUTES.CATEGORY, categoryRouter);
-app.use(CONFIG.ROUTES.USER, userRouter);
+app.use(CONFIG.ROUTES.USERS, userRouter);
 
 app.use(errorHandler);
 
