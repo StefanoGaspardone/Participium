@@ -1,22 +1,22 @@
-import {municipalityRoleService, MunicipalityRoleService} from "@services/MunicipalityRoleService";
+import {officeService, OfficeService} from "@services/OfficeService";
 import { Request, Response, NextFunction } from 'express';
 
-export class MunicipalityRoleController {
+export class OfficeController {
 
-    private municipalityService: MunicipalityRoleService;
+    private officeService: OfficeService;
 
     constructor() {
-        this.municipalityService = municipalityRoleService;
+        this.officeService = officeService;
     }
 
-    findAllRoles = async (req: Request, res: Response, next: NextFunction) => {
+    findAllOffices = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const roles = await this.municipalityService.findAllMunicipalityRoles();
-            res.status(200).json(roles);
+            const offices = await this.officeService.findAllOffices();
+            res.status(200).json(offices);
         } catch(error) {
             next(error);
         }
     }
 }
 
-export const municipalityRoleController = new MunicipalityRoleController();
+export const officeController = new OfficeController();

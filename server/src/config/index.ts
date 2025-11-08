@@ -19,7 +19,7 @@ export const CONFIG = {
     UPLOADS: `${BASE_URL}/uploads`,
     REPORTS: `${BASE_URL}/reports`,
     USERS: `${BASE_URL}/users`,
-    MUNICIPALITYROLES: `${BASE_URL}/municipality-roles`,
+    OFFICES: `${BASE_URL}/offices`,
   },
   LOG: {
     LEVEL: process.env.LOG_LEVEL || "info",

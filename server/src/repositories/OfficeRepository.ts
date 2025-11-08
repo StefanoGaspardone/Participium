@@ -1,22 +1,22 @@
 import {Repository} from "typeorm";
 import {AppDataSource} from "@database";
-import {OfficeRoleDAO} from "@daos/OfficeRoleDAO";
+import {OfficeDAO} from "@daos/OfficeDAO";
 
-export class OfficeRoleRepository {
+export class OfficeRepository {
 
-    private repo: Repository<OfficeRoleDAO>;
+    private repo: Repository<OfficeDAO>;
 
     constructor() {
-        this.repo = AppDataSource.getRepository(OfficeRoleDAO);
+        this.repo = AppDataSource.getRepository(OfficeDAO);
     }
 
-    findRoleById = async (id: number): Promise<OfficeRoleDAO | null> => {
+    findOfficeById = async (id: number): Promise<OfficeDAO | null> => {
         return this.repo.findOneBy({ id });
     }
 
-    findAllRoles = async (): Promise<OfficeRoleDAO[]> => {
-        return this.repo.find({relations: ['categories']});  // add 'users' relation if needed, in case remember to update OfficeRoleDTO
+    findAllOffices = async (): Promise<OfficeDAO[]> => {
+        return this.repo.find();  // add {relations: ['categories', 'users']} if needed, in case remember to update OfficeRoleDTO
     }
 }
 
-export const municipalityRoleRepository = new OfficeRoleRepository();
+export const officeRepository = new OfficeRepository();

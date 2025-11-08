@@ -3,14 +3,14 @@ import {MapUserDAOtoDTO, UserDTO} from "@dtos/UserDTO";
 import {CategoryDTO, createCategoryDTO} from "@dtos/CategoryDTO";
 
 
-export class OfficeRoleDTO {
+export class OfficeDTO {
     id: number;
     name: string;
 //    categories: CategoryDTO[];
 //    users: UserDTO[];
 }
 
-export const mapRolesDAOtoDTO = (role: OfficeDAO): OfficeRoleDTO => {
+export const mapOfficeDAOtoDTO = (role: OfficeDAO): OfficeDTO => {
     return {
         id: role.id,
         name: role.name,
