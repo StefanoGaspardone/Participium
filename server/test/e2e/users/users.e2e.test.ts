@@ -72,6 +72,6 @@ describe("Users e2e tests : Login and Registration", () => {
     };
     const res = await request(app).post("/api/users/login").send(credentials);
     expect(res.status).toBe(401);
-    expect(res).not.toHaveProperty("token");
+    expect(res.body).not.toHaveProperty("token");
   });
 });
