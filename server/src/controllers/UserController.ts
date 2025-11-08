@@ -2,7 +2,7 @@ import {NextFunction, Request, Response} from 'express';
 import {UserService, userService} from "@services/UserService";
 import {NewMunicipalityUserDTO, NewUserDTO} from '@dtos/UserDTO';
 import * as jwt from "jsonwebtoken";
-import {jwtSecret} from "@app";
+import { CONFIG } from "@config";
 import {BadRequestError} from "@errors/BadRequestError";
 import {ConflictError} from "@errors/ConflictError";
 import {QueryFailedError} from "typeorm";
@@ -57,7 +57,7 @@ export class UserController {
                 return res.status(401).json({ message: 'Invalid email or password' });
             }else {
                 const payload = { userId: user.id, role: user.userType };
-                const token = jwt.sign(payload, jwtSecret, { expiresIn: "1h" });
+                const token = jwt.sign(payload, CONFIG.JWT_SECRET, { expiresIn: "1h" });
                 res.status(200).json({ message: 'Login successful', token });
             }
         } catch(error) {
