@@ -4,7 +4,7 @@
  * - populates some predefined roles and users
  * - tears down the datasource after tests
  */
-import { initializeTestDatasource, closeTestDataSource, populateTestData } from '../setup/test-datasource';
+import { initializeTestDatasource, closeTestDataSource, populateTestData, emptyTestData } from '../setup/test-datasource';
 
 export default {
 	async beforeAll() {
@@ -14,7 +14,8 @@ export default {
 	},
 
 	async afterAll() {
-		// close DB connection
+		// clear data and close DB connection
+        await emptyTestData();
 		await closeTestDataSource();
 	}
 };
