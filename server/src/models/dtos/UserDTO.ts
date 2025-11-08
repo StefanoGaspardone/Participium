@@ -20,7 +20,7 @@ export interface UserDTO {
     image?: string | null;
     telegramUsername?: string | null;
     userType: UserType;
-    municipalityRole?: string | null;
+    office?: string | null;
     createdAt: Date;
 }
 
@@ -34,7 +34,7 @@ export const MapUserDAOtoDTO = (user: UserDAO): UserDTO => {
         image: user.image,
         telegramUsername: user.telegramUsername,
         userType: user.userType,
-        municipalityRole: user.municipalityRole? user.municipalityRole.name : null,
+        office: user.office? user.office.name : null,
         createdAt: new Date(user.createdAt),
         passwordHash: user.passwordHash
     } as UserDTO;
@@ -58,7 +58,7 @@ export interface NewMunicipalityUserDTO {
     email: string;
     username: string;
     password: string;
-    municipalityRoleId: number;
+    userType: UserType;
+    officeId?: number;
     image?: string;
-    telegramUsername?: string;
 }

@@ -34,7 +34,7 @@ export async function closeTestDataSource() {
 }
 
 // Populate some predefined roles and users (reused from scripts/populate-db.ts)
-import { MunicipalityRoleDAO } from "@daos/MunicipalityRoleDAO";
+import { OfficeDAO } from "@daos/OfficeDAO";
 import { UserType, UserDAO } from "@daos/UserDAO";
 
 const ROLES: string[] = [
@@ -77,7 +77,7 @@ export async function populateTestData() {
     await initializeTestDatasource();
   }
 
-  const roleRepo = AppDataSource.getRepository(MunicipalityRoleDAO);
+  const roleRepo = AppDataSource.getRepository(OfficeDAO);
   const userRepo = AppDataSource.getRepository(UserDAO);
 
   const roleMap = new Map<string, any>();

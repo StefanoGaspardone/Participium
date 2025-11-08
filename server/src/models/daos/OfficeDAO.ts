@@ -4,7 +4,7 @@ import { CategoryDAO } from '@daos/CategoryDAO';
 import { IsString } from 'class-validator';
 
 @Entity({ name: 'office_roles' })
-export class OfficeRoleDAO {
+export class OfficeDAO {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -12,9 +12,9 @@ export class OfficeRoleDAO {
     @IsString()
     name: string;
 
-    @OneToMany(() => UserDAO, user => user.officeRole)
+    @OneToMany(() => UserDAO, user => user.office)
     users: UserDAO[];
 
-    @OneToMany(() => CategoryDAO, category => category.municipalityRole)
+    @OneToMany(() => CategoryDAO, category => category.office)
     categories: CategoryDAO[];
 }

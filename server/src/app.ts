@@ -9,7 +9,7 @@ import { categoryRouter } from '@routes/category.routes';
 import { uploadRouter } from '@routes/upload.routes';
 import { reportRouter } from '@routes/report.routes';
 import {userRouter} from "@routes/user.routes";
-import {municipalityRoleRouter} from "@routes/municipalityRole.routes";
+import {officeRouter} from "@routes/office.routes";
 
 export const app = express();
 
@@ -43,7 +43,7 @@ app.use(CONFIG.ROUTES.CATEGORIES, categoryRouter);
 app.use(CONFIG.ROUTES.UPLOADS, uploadRouter);
 app.use(CONFIG.ROUTES.REPORTS, reportRouter);
 app.use(CONFIG.ROUTES.USERS, userRouter);
-app.use(CONFIG.ROUTES.MUNICIPALITYROLES, municipalityRoleRouter);
+app.use(CONFIG.ROUTES.OFFICES, officeRouter);
 
 app.use(errorHandler);
 

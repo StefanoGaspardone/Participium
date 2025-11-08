@@ -1,18 +1,18 @@
-import {municipalityRoleRepository, OfficeRepository} from "@repositories/OfficeRepository";
-import {mapRolesDAOtoDTO, OfficeRoleDTO} from "@dtos/OfficeRoleDTO";
+import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
+import {mapOfficeDAOtoDTO, OfficeDTO} from "@dtos/OfficeDTO";
 
-export class MunicipalityRoleService {
+export class OfficeService {
 
-    private municipalityRepo: OfficeRepository;
+    private officeRepo: OfficeRepository;
 
     constructor() {
-        this.municipalityRepo = municipalityRoleRepository;
+        this.officeRepo = officeRepository;
     }
 
-    findAllMunicipalityRoles = async (): Promise<OfficeRoleDTO[]> => {
-        const roles = await this.municipalityRepo.findAllRoles();
-        return roles.map(mapRolesDAOtoDTO);
+    findAllOffices = async (): Promise<OfficeDTO[]> => {
+        const offices = await this.officeRepo.findAllOffices();
+        return offices.map(mapOfficeDAOtoDTO);
     }
 }
 
-export const municipalityRoleService = new MunicipalityRoleService();
+export const officeService = new OfficeService();

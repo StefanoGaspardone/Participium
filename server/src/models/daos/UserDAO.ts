@@ -1,12 +1,14 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn,  } from 'typeorm';
-import { MunicipalityRoleDAO } from '@daos/MunicipalityRoleDAO';
+import { OfficeDAO } from '@daos/OfficeDAO';
 import { IsEmail, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf, Validator } from 'class-validator';
 import { ReportDAO } from '@daos/ReportDAO';
 
 export enum UserType {
     CITIZEN = 'CITIZEN',
     ADMINISTRATOR = 'ADMINISTRATOR',
-    OFFICER = 'OFFICER'
+    PUBLIC_RELATION_OFFICER = 'PUBLIC_RELATION_OFFICER',
+    MUNICIPAL_ADMINISTRATOR = 'MUNICIPAL_ADMINISTRATOR',
+    TECHNICAL_STAFF_MEMBER = 'TECHNICAL_STAFF_MEMBER',
 }
 
 @Entity({ name: 'users' })
@@ -48,17 +50,17 @@ export class UserDAO {
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
 
-    @ManyToOne(() => MunicipalityRoleDAO, municipalityRole => municipalityRole.users, { nullable: true })
-    @JoinColumn({ name: 'municipality_role_id' })
-    @ValidateIf(o => o.userType === UserType.OFFICER)
-    @IsNotEmpty({ message: 'Municipality role cannot be empty for a municipality officer' })
-    municipalityRole: MunicipalityRoleDAO;
+    @ManyToOne(() => OfficeDAO, office => office.users, { nullable: true })
+    @JoinColumn({ name: 'office_id' })
+    @ValidateIf(o => o.userType === UserType.TECHNICAL_STAFF_MEMBER)
+    @IsNotEmpty({ message: 'Office cannot be empty for a technical staff member' })
+    office: OfficeDAO;
 
     @OneToMany(() => ReportDAO, report => report.createdBy)
     @ValidateIf(o => o.userType === UserType.CITIZEN)
     createdReports: ReportDAO[];
 
     @OneToMany(() => ReportDAO, report => report.assignedTo)
-    @ValidateIf(o => o.userType === UserType.OFFICER)
+    @ValidateIf(o => o.userType === UserType.TECHNICAL_STAFF_MEMBER)
     assignedReports: ReportDAO[];
 }

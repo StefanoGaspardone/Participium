@@ -6,6 +6,7 @@ import { CONFIG } from "@config";
 import {BadRequestError} from "@errors/BadRequestError";
 import {ConflictError} from "@errors/ConflictError";
 import {QueryFailedError} from "typeorm";
+import {UserType} from "@daos/UserDAO";
 
 export class UserController {
 
@@ -67,8 +68,14 @@ export class UserController {
 
     createMunicipalityUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            if(!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName || !req.body.username || !req.body.municipalityRoleId) {
-                throw new BadRequestError("Missing one or more required fields: email, password, firstName, lastName, username, municipalityRoleId");
+            if(!req.body.email || !req.body.password || !req.body.firstName || !req.body.lastName || !req.body.username || !req.body.userType) {
+                throw new BadRequestError("Missing one or more required fields: email, password, firstName, lastName, username, userType");
+            }
+            if(req.body.userType == UserType.TECHNICAL_STAFF_MEMBER && !req.body.officeId) {
+                throw new BadRequestError("Missing office id");
+            }
+            if(!Object.values(UserType).includes(req.body.userType)) {
+                throw new BadRequestError("User type is invalid");
             }
             const payload = {} as NewMunicipalityUserDTO;
             payload.email = req.body.email;
@@ -77,11 +84,14 @@ export class UserController {
             payload.lastName = req.body.lastName;
             payload.username = req.body.username;
             payload.image = req.body.image;
-            payload.telegramUsername = req.body.telegramUsername;
-            payload.municipalityRoleId = req.body.municipalityRoleId;
+            payload.userType = req.body.userType;
+            payload.officeId = req.body.officeId;
             const user = await this.userService.createMunicipalityUser(req.body);
             res.status(201).json({ message: 'Municipality user created' });
         }catch(error) {
+            if (error instanceof QueryFailedError && (error as any).code === '23505') {
+                return next(new ConflictError('Email or username already exists'));
+            }
             next(error);
         }
     }

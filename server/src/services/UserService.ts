@@ -1,18 +1,18 @@
 import {userRepository, UserRepository} from "@repositories/UserRepository";
-import {UserDTO, NewUserDTO, MapUserDAOtoDTO, NewMunicipalityUserDTO} from "@dtos/UserDTO";
+import {MapUserDAOtoDTO, NewMunicipalityUserDTO, NewUserDTO, UserDTO} from "@dtos/UserDTO";
 import {UserDAO, UserType} from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
-import {municipalityRoleRepository, MunicipalityRoleRepository} from "@repositories/MunicipalityRoleRepository";
+import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
 
 export class UserService {
 
     private userRepo: UserRepository;
-    private municipalityRoleRepo: MunicipalityRoleRepository;
+    private officeRepo: OfficeRepository;
 
     constructor() {
         this.userRepo = userRepository;
-        this.municipalityRoleRepo = municipalityRoleRepository;
+        this.officeRepo = officeRepository;
     }
 
     findAllUsers = async (): Promise<UserDTO[]> => {
@@ -55,19 +55,19 @@ export class UserService {
             user.lastName = payload.lastName;
             user.email = payload.email;
             user.username = payload.username;
-            user.userType = UserType.OFFICER;
+            user.userType = payload.userType;
+            if(payload.userType == UserType.TECHNICAL_STAFF_MEMBER && payload.officeId){
+                const office = await this.officeRepo.findOfficeById(payload.officeId);
+                if(!office){
+                    throw new BadRequestError("office not found.");
+                }
+                user.office = office;
+            }
             user.image = payload.image;
-            user.telegramUsername = payload.telegramUsername;
 
             const salt = await bcrypt.genSalt(10);
             user.passwordHash = await bcrypt.hash(payload.password, salt);
 
-            const munRole = await this.municipalityRoleRepo.findRoleById(payload.municipalityRoleId);
-
-            if(!munRole) {
-                throw new BadRequestError("Invalid municipality role");
-            }
-            user.municipalityRole = munRole;
             return this.userRepo.createNewUser(user);
         }catch (error) {
             throw error;
