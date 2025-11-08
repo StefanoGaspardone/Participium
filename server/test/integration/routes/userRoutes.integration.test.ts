@@ -1,7 +1,7 @@
 import { initializeTestDatasource, emptyTestData, closeTestDataSource } from '@test/setup/test-datasource';
 import { app } from '@app';
 import request from 'supertest';
-import { MunicipalityRoleDAO } from '@daos/MunicipalityRoleDAO';
+import { OfficeDAO } from '@daos/OfficeDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import * as bcrypt from 'bcryptjs';
 
@@ -10,9 +10,10 @@ describe('User routes integration tests', () => {
 
   beforeAll(async () => {
     const AppDataSource = await initializeTestDatasource();
+    // ensure clean DB for this suite and create role and users locally
+    await emptyTestData();
 
-    // create role and users locally
-    const roleRepo = AppDataSource.getRepository(MunicipalityRoleDAO);
+    const roleRepo = AppDataSource.getRepository(OfficeDAO);
     const userRepo = AppDataSource.getRepository(UserDAO);
 
     const role = roleRepo.create({ name: 'SelfTest Role' });
@@ -83,7 +84,8 @@ describe('User routes integration tests', () => {
       firstName: 'Muni',
       lastName: 'One',
       username: 'selfmuni1',
-      municipalityRoleId: roleId,
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      officeId: roleId,
     };
     const res = await request(app).post('/api/users/createMunicipalityUser').send(payload);
     expect(res.status).toBe(401);
@@ -100,7 +102,8 @@ describe('User routes integration tests', () => {
       firstName: 'Muni',
       lastName: 'Two',
       username: 'selfmuni2',
-      municipalityRoleId: roleId,
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      officeId: roleId,
     };
 
     const res = await request(app)
@@ -122,7 +125,8 @@ describe('User routes integration tests', () => {
       firstName: 'Muni',
       lastName: 'Three',
       username: 'selfmuni3',
-      municipalityRoleId: roleId,
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      officeId: roleId,
     };
 
     const res = await request(app)
