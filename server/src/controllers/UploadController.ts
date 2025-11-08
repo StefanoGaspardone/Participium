@@ -1,4 +1,4 @@
-import { uploadService, UploadService } from '@services/uploadService';
+import { uploadService, UploadService } from '@services/UploadService';
 import { Request, Response, NextFunction } from 'express';
 
 export class UploadController {

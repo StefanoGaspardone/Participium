@@ -1,6 +1,6 @@
 import { UserService } from "@services/UserService";
 import { UserDAO } from "@daos/UserDAO";
-import { UserSignUpDTO } from "@dtos/UserDTO";
+import { NewUserDTO } from "@dtos/UserDTO";
 
 describe("UserService (mock)", () => {
   it("signUpUser should hash password and call repo.signUpUser", async () => {
@@ -15,7 +15,7 @@ describe("UserService (mock)", () => {
     // inject fake repo
     // @ts-ignore
     service["userRepo"] = {
-      signUpUser: signUpMock,
+      createNewUser : signUpMock,
       findAllUsers: findAllMock,
       login: loginMock,
     };
@@ -26,7 +26,7 @@ describe("UserService (mock)", () => {
       email: "svc@mock",
       username: "svc",
       password: "secretpw",
-    } as UserSignUpDTO;
+    } as NewUserDTO;
 
     const saved = await service.signUpUser(payload);
     expect(signUpMock).toHaveBeenCalled();
@@ -42,7 +42,7 @@ describe("UserService (mock)", () => {
     const fakeUser = { id: 3, email: "a@b" } as any;
     // @ts-ignore
     service["userRepo"] = {
-      signUpUser: jest.fn(),
+      createNewUser: jest.fn(),
       findAllUsers: jest.fn(),
       login: jest.fn().mockResolvedValue(fakeUser),
     };
@@ -69,7 +69,7 @@ describe("UserService (mock)", () => {
 
     // @ts-ignore
     service["userRepo"] = {
-      signUpUser: jest.fn(),
+      createNewUser: jest.fn(),
       findAllUsers: jest.fn().mockResolvedValue([dao]),
       login: jest.fn(),
     };
@@ -83,7 +83,7 @@ describe("UserService (mock)", () => {
     const service = new UserService();
     // @ts-ignore
     service["userRepo"] = {
-      signUpUser: jest.fn(),
+      createNewUser: jest.fn(),
       findAllUsers: jest.fn(),
       login: jest.fn().mockRejectedValue(new Error("repo failure")),
     };
@@ -101,7 +101,7 @@ describe("UserService (mock)", () => {
     // inject fake repo
     // @ts-ignore
     service["userRepo"] = {
-      signUpUser: signUpMock,
+      createNewUser: signUpMock,
       findAllUsers: findAllMock,
       login: loginMock,
     };
@@ -112,7 +112,7 @@ describe("UserService (mock)", () => {
       email: "svc@mock",
       username: "svc",
       password: "secretpw",
-    } as UserSignUpDTO;
+    } as NewUserDTO;
 
     await expect(service.signUpUser(payload)).rejects.toThrow("repo failure");
   });

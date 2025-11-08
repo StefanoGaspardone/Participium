@@ -9,6 +9,7 @@ export const AppDataSource = new DataSource({
   port: Number(process.env.DB_PORT) || CONFIG.DATABASE.PORT,
   username: process.env.DB_USERNAME || CONFIG.DATABASE.USERNAME,
   password: process.env.DB_PASSWORD || CONFIG.DATABASE.PASSWORD,
+  database: process.env.DB_NAME || CONFIG.DATABASE.NAME,
   synchronize: true,
   entities: CONFIG.DATABASE.ENTITIES,
   logging: false
@@ -16,10 +17,6 @@ export const AppDataSource = new DataSource({
 
 export const initializeDatabase = async () => {
   try {
-    console.log(`host == ${process.env.DB_HOST}; port: ${Number(process.env.DB_PORT)}; ,
-  username: ${process.env.DB_USERNAME},
-  password: ${process.env.DB_PASSWORD},
-  entities: ${CONFIG.DATABASE.ENTITIES} `);
     await AppDataSource.initialize();
     logInfo("[DB INIT] Database initialize and connected");
   } catch (error: any) {

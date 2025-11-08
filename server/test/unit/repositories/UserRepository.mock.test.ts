@@ -28,7 +28,7 @@ describe("UserRepository (mock)", () => {
     u.passwordHash = "hashed";
     u.createdAt = new Date();
 
-    const saved = await repo.signUpUser(u);
+    const saved = await repo.createNewUser(u);
     expect(fakeRepo.save).toHaveBeenCalled();
     expect(saved.id).toBeDefined();
   });

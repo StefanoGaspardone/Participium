@@ -5,10 +5,10 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import * as OpenApiValidator from 'express-openapi-validator';
 import { errorHandler } from '@middlewares/errorMiddleware';
-import { categoryRouter } from 'routes/category.routes';
+import { categoryRouter } from '@routes/category.routes';
 import { uploadRouter } from '@routes/upload.routes';
 import { reportRouter } from '@routes/report.routes';
-import {userRouter} from "./routes/user.routes";
+import {userRouter} from "@routes/user.routes";
 import {municipalityRoleRouter} from "@routes/municipalityRole.routes";
 
 export const app = express();
