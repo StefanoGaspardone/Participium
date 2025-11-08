@@ -1,5 +1,5 @@
 import { initializeTestDatasource, emptyTestData, closeTestDataSource } from '@test/setup/test-datasource';
-import { OfficeDAO } from '@daos/OfficeDAO';
+import { MunicipalityRoleDAO } from '@daos/MunicipalityRoleDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import * as bcrypt from 'bcryptjs';
 
@@ -8,11 +8,9 @@ let userController: any;
 describe('UserController integration tests', () => {
   beforeAll(async () => {
     const AppDataSource = await initializeTestDatasource();
-    // ensure clean DB for this suite and create required test data locally (role + admin + user)
-    await emptyTestData();
 
     // create required test data locally (role + admin + user)
-    const roleRepo = AppDataSource.getRepository(OfficeDAO);
+    const roleRepo = AppDataSource.getRepository(MunicipalityRoleDAO);
     const userRepo = AppDataSource.getRepository(UserDAO);
 
     const role = roleRepo.create({ name: 'Test Role' });

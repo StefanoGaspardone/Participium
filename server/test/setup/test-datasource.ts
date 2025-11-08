@@ -121,6 +121,6 @@ export async function emptyTestData() {
     await initializeTestDatasource();
   }
   await AppDataSource.query(
-    'TRUNCATE TABLE "reports", "users", "categories", "office_roles" RESTART IDENTITY CASCADE;'
+    'TRUNCATE TABLE "reports", "users", "categories", "municipality_roles" RESTART IDENTITY CASCADE;'
   );
 }
