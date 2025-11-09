@@ -76,7 +76,7 @@ export default function HomePage({
 
   return (
     <>
-      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} user={user} setUser={setUser} />
       <Container fluid className="content">
         <Row className="h-100 g-0 bg-primary">
           <Col xs={12} md={8} lg={9} className="h-100">

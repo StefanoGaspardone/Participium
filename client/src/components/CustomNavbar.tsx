@@ -6,18 +6,37 @@ import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { useNavigate } from "react-router-dom";
 
+interface UserData {
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  username?: string;
+  image?: string;
+  telegramUsername?: string;
+  role: string;
+  category?: string;
+}
+
 type Props = {
   isLoggedIn: boolean;
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+  user?: UserData | null;
+  setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
 };
 
-export default function CustomNavbar({ isLoggedIn, setIsLoggedIn }: Props) {
-
+export default function CustomNavbar({
+  isLoggedIn,
+  setIsLoggedIn,
+  //user,
+  setUser,
+}: Props) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
+    setUser(null);
     navigate("/");
   };
 
@@ -25,10 +44,13 @@ export default function CustomNavbar({ isLoggedIn, setIsLoggedIn }: Props) {
     <Navbar bg="primary" variant="dark" expand="lg" sticky="top">
       <Container fluid>
         <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
-          <img src={logo} height={40} className="d-inline-block align-top me-2" alt="Logo" />
-          <span className="text-warning font-regal fs-3">
-            Participium
-          </span>
+          <img
+            src={logo}
+            height={40}
+            className="d-inline-block align-top me-2"
+            alt="Logo"
+          />
+          <span className="text-warning font-regal fs-3">Participium</span>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -48,7 +70,10 @@ export default function CustomNavbar({ isLoggedIn, setIsLoggedIn }: Props) {
                 </Button>
               </>
             ) : (
-              <Link to="/login" className="btn btn-warning"> Login </Link>
+              <Link to="/login" className="btn btn-warning">
+                {" "}
+                Login{" "}
+              </Link>
             )}
           </Nav>
         </Navbar.Collapse>

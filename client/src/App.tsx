@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./components/Homepage";
 import LoginPage from "./components/LoginPage";
@@ -30,7 +30,7 @@ function App() {
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   useAuth(user, setUser);
-
+  
   return (
     <>
       <Routes>

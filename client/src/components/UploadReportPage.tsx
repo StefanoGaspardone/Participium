@@ -43,7 +43,7 @@ export default function UploadReport({
   setSelected,
   isLoggedIn,
   setIsLoggedIn,
-  user,
+  // user,
   setUser,
 }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -67,7 +67,6 @@ export default function UploadReport({
           setIsLoggedIn(false);
           setUser(null);
         } else {
-          console.log("REFRESH BUT LOST");
           const data = res.data;
           const userId = data?.userId;
           const role = data?.role;
@@ -189,7 +188,7 @@ export default function UploadReport({
 
   return (
     <>
-      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setUser={setUser}/>
       <main className="upload-container">
         <section className="upload-form">
           <Button

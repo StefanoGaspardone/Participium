@@ -53,7 +53,6 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
             setIsLoggedIn(false);
             setUser(null);
           } else {
-            console.log("REFRESH BUT LOST");
             const data = res.data;
             const userId = data?.userId;
             const role = data?.role;
@@ -122,7 +121,7 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
   if (user?.role !== "ADMINISTRATOR") {
     return (
       <>
-        <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setUser={setUser} />
         <Container className="mt-5">
           <Alert variant="danger" className="text-center">
             Access denied: this page is reserved for administrators only.
@@ -134,7 +133,7 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
 
   return (
     <>
-      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setUser={setUser} />
       <Container className="mt-5">
         <h2 className="text-center mb-4">
           Welcome, Admin {user?.firstName ?? ""} {user?.lastName ?? ""}
