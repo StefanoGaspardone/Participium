@@ -35,14 +35,31 @@ export async function closeTestDataSource() {
 
 // Populate some predefined roles and users (reused from scripts/populate-db.ts)
 import { OfficeDAO } from "@daos/OfficeDAO";
+import { CategoryDAO } from "@daos/CategoryDAO";
 import { UserType, UserDAO } from "@daos/UserDAO";
 
-const ROLES: string[] = [
-  "Public Services Division",
-  "Environmental Quality Division",
-  "Green Areas, Parks and Animal Welfare Division",
-  "Infrastructure Division",
-  "General Services Division",
+// Canonical offices and categories used for tests. Defining them here keeps
+// the test datasource self-contained and avoids requiring the external
+// populate script to be imported by tests. These mirror the project's
+// `scripts/populate-db.ts` canonical lists and are safe to adjust for tests.
+const OFFICES = [
+  'Public Services Division',
+  'Environmental Quality Division',
+  'Green Areas, Parks and Animal Welfare Division',
+  'Infrastructure Division',
+  'General Services Division',
+];
+
+const CATEGORIES: Array<{ name: string; office: string }> = [
+  { name: 'Water Supply - Drinking Water', office: 'Public Services Division' },
+  { name: 'Architectural Barriers', office: 'Infrastructure Division' },
+  { name: 'Sewer System', office: 'Public Services Division' },
+  { name: 'Public Lighting', office: 'Infrastructure Division' },
+  { name: 'Waste', office: 'Public Services Division' },
+  { name: 'Road Signs and Traffic Lights', office: 'Infrastructure Division' },
+  { name: 'Roads and Urban Furnishings', office: 'Infrastructure Division' },
+  { name: 'Public Green Areas and Playgrounds', office: 'Green Areas, Parks and Animal Welfare Division' },
+  { name: 'Other', office: 'General Services Division' },
 ];
 
 const USERS: Array<{
@@ -79,10 +96,12 @@ export async function populateTestData() {
 
   const roleRepo = AppDataSource.getRepository(OfficeDAO);
   const userRepo = AppDataSource.getRepository(UserDAO);
+  const categoryRepo = AppDataSource.getRepository(CategoryDAO);
 
+  // ensure canonical offices exist (from scripts/populate-db.ts)
   const roleMap = new Map<string, any>();
-  for (const name of ROLES) {
-    const trimmed = name.trim();
+  for (const name of OFFICES) {
+    const trimmed = (name || '').toString().trim();
     if (!trimmed) continue;
     let role = await roleRepo.findOne({ where: { name: trimmed } });
     if (!role) {
@@ -90,6 +109,31 @@ export async function populateTestData() {
       role = await roleRepo.save(role);
     }
     roleMap.set(trimmed, role);
+  }
+
+  // ensure canonical categories exist and are attached to the right office
+  for (const item of CATEGORIES) {
+    const name = (item.name || '').toString().trim();
+    const officeName = (item.office || '').toString().trim();
+    if (!name || !officeName) continue;
+
+    const office = roleMap.get(officeName) || (await roleRepo.findOne({ where: { name: officeName } }));
+    if (!office) {
+      // skip categories whose office is missing; populate-db logs this scenario
+      continue;
+    }
+
+    let cat = await categoryRepo.findOne({ where: { name } });
+    if (!cat) {
+      cat = categoryRepo.create({ name, office });
+      await categoryRepo.save(cat);
+    } else {
+      // if category exists but office differs, update it
+      if (!cat.office || cat.office.id !== office.id) {
+        cat.office = office;
+        await categoryRepo.save(cat);
+      }
+    }
   }
 
   for (const u of USERS) {

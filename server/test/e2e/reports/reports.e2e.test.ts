@@ -2,6 +2,9 @@ import * as f from "@test/e2e/lifecycle";
 import { app } from "@app";
 import request from "supertest";
 import { AppDataSource } from "@database";
+// Tests should prefer using data seeded by the lifecycle (`populateTestData`).
+// We'll pick the first existing category created by the lifecycle and use its
+// office for assertions. The test will fail early if no category exists.
 import { OfficeDAO } from "@daos/OfficeDAO";
 import { CategoryDAO } from "@daos/CategoryDAO";
 import { ReportDAO } from "@daos/ReportDAO";
@@ -15,23 +18,26 @@ describe("Reports e2e tests", () => {
 		// initialize DB and populate common test users/roles
 		await f.default.beforeAll();
 
-		// create a dedicated office role and category for reports tests
+		// repositories
 		const roleRepo = AppDataSource.getRepository(OfficeDAO);
 		const categoryRepo = AppDataSource.getRepository(CategoryDAO);
 
-		const role = roleRepo.create({ name: "Reports E2E Role" });
-		await roleRepo.save(role);
+		// Use the first seeded office and category from the lifecycle
+		const role = await roleRepo.findOneBy({});
+		const categories = await categoryRepo.find({ relations: ['office'], take: 1 });
+		const category = categories[0];
+		categoryId = category?.id;
 
-		const category = categoryRepo.create({ name: "Potholes E2E", office: role });
-		await categoryRepo.save(category);
-		categoryId = category.id;
-
-		// login as the citizen user created by lifecycle populateTestData()
+		// login as the seeded test user
 		const login = await request(app)
 			.post("/api/users/login")
 			.send({ email: "user@gmail.com", password: "user" });
 		expect(login.status).toBe(200);
 		token = login.body.token as string;
+
+		// sanity: lifecycle must have provided these fixtures
+		expect(role).toBeDefined();
+		expect(categoryId).toBeDefined();
 	});
 
 	afterAll(async () => {
