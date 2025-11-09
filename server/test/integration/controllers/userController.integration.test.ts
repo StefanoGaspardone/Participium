@@ -134,4 +134,20 @@ describe('UserController integration tests', () => {
     expect(body).toHaveProperty('token');
     expect(typeof body.token).toBe('string');
   });
+
+  it('loginUser => missing fields should call next with BadRequestError', async () => {
+    const req: any = { body: { email: 'user@gmail.com' } }; // missing password
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await userController.loginUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+  });
 });

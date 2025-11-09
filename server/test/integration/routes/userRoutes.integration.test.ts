@@ -77,6 +77,24 @@ describe('User routes integration tests', () => {
     expect(typeof res.body.token).toBe('string');
   });
 
+  it('POST /api/users/signup => 400 when missing mandatory fields', async () => {
+    // send only email to trigger missing fields check in controller
+    const payload = { email: 'incomplete@example.com' };
+    const res = await request(app).post('/api/users/signup').send(payload);
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message');
+    expect(String(res.body.message).toLowerCase()).toMatch(/missing|required/);
+  });
+
+  it('POST /api/users/login => 400 when missing mandatory fields', async () => {
+    // missing password should return BadRequest
+    const payload = { email: 'self_user@gmail.com' };
+    const res = await request(app).post('/api/users/login').send(payload);
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message');
+    expect(String(res.body.message)).toMatch(/Email and password are required/);
+  });
+
   it('POST /api/users/createMunicipalityUser => 401 without token', async () => {
     const payload = {
       email: 'self_muni1@example.com',
@@ -89,6 +107,8 @@ describe('User routes integration tests', () => {
     };
     const res = await request(app).post('/api/users/createMunicipalityUser').send(payload);
     expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('message');
+    expect(String(res.body.message).toLowerCase()).toMatch(/denied|token/);
   });
 
   it('POST /api/users/createMunicipalityUser => 201 with admin token', async () => {
@@ -114,6 +134,32 @@ describe('User routes integration tests', () => {
     expect(res.status).toBe(201);
   });
 
+  it('POST /api/users/createMunicipalityUser => 400 with admin token when missing mandatory fields', async () => {
+    const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
+    expect(login.status).toBe(200);
+    const token = login.body.token as string;
+
+    // missing `username` and `userType` should trigger validation error
+    const incomplete = {
+      email: 'self_muni_missing@example.com',
+      password: 'password',
+      firstName: 'Muni',
+      lastName: 'Missing',
+      // username: missing
+      // userType: missing
+      officeId: roleId,
+    };
+
+    const res = await request(app)
+      .post('/api/users/createMunicipalityUser')
+      .set('Authorization', `Bearer ${token}`)
+      .send(incomplete);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message');
+    expect(String(res.body.message).toLowerCase()).toMatch(/missing|required/);
+  });
+
   it('POST /api/users/createMunicipalityUser => 403 with non-admin token', async () => {
     const login = await request(app).post('/api/users/login').send({ email: 'self_user@gmail.com', password: 'user' });
     expect(login.status).toBe(200);
@@ -135,5 +181,7 @@ describe('User routes integration tests', () => {
       .send(payload);
 
     expect(res.status).toBe(403);
+    expect(res.body).toHaveProperty('message');
+    expect(String(res.body.message).toLowerCase()).toMatch(/insufficient|permission/);
   });
 });
