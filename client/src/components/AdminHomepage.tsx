@@ -1,202 +1,242 @@
 import React, { useEffect, useState } from "react";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth";
-import { getCategories, createEmployee } from "../api/api";
+import { getCategories, createEmployee, refreshUser } from "../api/api";
 import CustomNavbar from "./CustomNavbar";
 
 type Props = {
-    isLoggedIn: boolean;
-    setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+  isLoggedIn: boolean;
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+  user: UserData | null;
+  setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
 };
 
 type Category = {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 };
 
-export default function AdminHomepage({ isLoggedIn, setIsLoggedIn }: Props) {
-    const { user } = useAuth();
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loadingCategories, setLoadingCategories] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [successMsg, setSuccessMsg] = useState("");
-    const [form, setForm] = useState({
+interface UserData {
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  username?: string;
+  image?: string;
+  telegramUsername?: string;
+  role: string;
+  category?: string;
+}
+
+export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser }: Props) {
+  useAuth(user, setUser);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    role: "",
+    categoryId: "",
+  });
+
+  useEffect(() => {
+      const handleRefresh = async () => {
+        if (localStorage.getItem("token") !== null) {
+          const res = await refreshUser({
+            token: localStorage.getItem("token")!,
+          });
+          if (res.status != 200) {
+            setIsLoggedIn(false);
+            setUser(null);
+          } else {
+            console.log("REFRESH BUT LOST");
+            const data = res.data;
+            const userId = data?.userId;
+            const role = data?.role;
+            setUser({ id: userId!, role: role! });
+            setIsLoggedIn(true);
+          }
+        }
+      };
+      handleRefresh();
+    }, [setIsLoggedIn, setUser]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await getCategories();
+        setCategories(res);
+      } catch (e) {
+        console.error("Failed to load categories", e);
+        setError("Unable to load categories.");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMsg("");
+    try {
+      const payload = {
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim(),
+        password: form.password.trim(),
+        role: form.role,
+        ...(form.role === "technical office staff member" && {
+          categoryId: Number(form.categoryId),
+        }),
+      };
+      await createEmployee(payload);
+      setSuccessMsg("Employee account created successfully!");
+      setForm({
         firstName: "",
         lastName: "",
         email: "",
         password: "",
         role: "",
         categoryId: "",
-    });
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const res = await getCategories();
-                setCategories(res);
-            } catch (e) {
-                console.error("Failed to load categories", e);
-                setError("Unable to load categories.");
-            } finally {
-                setLoadingCategories(false);
-            }
-        };
-        fetchCategories();
-    }, []);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        setSuccessMsg("");
-        try {
-            const payload = {
-                firstName: form.firstName.trim(),
-                lastName: form.lastName.trim(),
-                email: form.email.trim(),
-                password: form.password.trim(),
-                role: form.role,
-                ...(form.role === "technical office staff member" && {
-                    categoryId: Number(form.categoryId),
-                }),
-            };
-            await createEmployee(payload);
-            setSuccessMsg("Employee account created successfully!");
-            setForm({
-                firstName: "",
-                lastName: "",
-                email: "",
-                password: "",
-                role: "",
-                categoryId: "",
-            });
-        } catch (err: any) {
-            setError(err.message || "Failed to create employee.");
-        }
-    };
-
-    if (user?.role !== "ADMINISTRATOR") {
-        return (
-            <>
-                <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-                <Container className="mt-5">
-                    <Alert variant="danger" className="text-center">
-                        Access denied: this page is reserved for administrators only.
-                    </Alert>
-                </Container>
-            </>
-        );
+      });
+    } catch (err: any) {
+      setError(err.message || "Failed to create employee.");
     }
+  };
 
+  if (user?.role !== "ADMINISTRATOR") {
     return (
-        <>
-            <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-            <Container className="mt-5">
-                <h2 className="text-center mb-4">
-                    Welcome, Admin {user?.firstName ?? ""} {user?.lastName ?? ""}
-                </h2>
-
-                <Card className="p-4 mx-auto" style={{ maxWidth: "600px" }}>
-                    <h4 className="mb-3 text-center">Create Employee Account</h4>
-                    {error && <Alert variant="danger">{error}</Alert>}
-                    {successMsg && <Alert variant="success">{successMsg}</Alert>}
-
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group className="mb-3">
-                            <Form.Label>First Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="firstName"
-                                value={form.firstName}
-                                onChange={handleChange}
-                                required
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Last Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="lastName"
-                                value={form.lastName}
-                                onChange={handleChange}
-                                required
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Email</Form.Label>
-                            <Form.Control
-                                type="email"
-                                name="email"
-                                value={form.email}
-                                onChange={handleChange}
-                                required
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Password</Form.Label>
-                            <Form.Control
-                                type="password"
-                                name="password"
-                                value={form.password}
-                                onChange={handleChange}
-                                required
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Role</Form.Label>
-                            <Form.Select
-                                name="role"
-                                value={form.role}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="">Select role</option>
-                                <option value="municipal public relations officer">
-                                    Municipal Public Relations Officer
-                                </option>
-                                <option value="municipal administrator">
-                                    Municipal Administrator
-                                </option>
-                                <option value="technical office staff member">
-                                    Technical Office Staff Member
-                                </option>
-                            </Form.Select>
-                        </Form.Group>
-
-                        {form.role === "technical office staff member" && (
-                            <Form.Group className="mb-3">
-                                <Form.Label>Office Category</Form.Label>
-                                <Form.Select
-                                    name="categoryId"
-                                    value={form.categoryId}
-                                    onChange={handleChange}
-                                    disabled={loadingCategories}
-                                    required
-                                >
-                                    <option value="">Select a category</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>
-                                            {cat.name}
-                                        </option>
-                                    ))}
-                                </Form.Select>
-                            </Form.Group>
-                        )}
-
-                        <Button variant="primary" type="submit" className="w-100">
-                            Create Account
-                        </Button>
-                    </Form>
-                </Card>
-            </Container>
-        </>
+      <>
+        <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        <Container className="mt-5">
+          <Alert variant="danger" className="text-center">
+            Access denied: this page is reserved for administrators only.
+          </Alert>
+        </Container>
+      </>
     );
+  }
+
+  return (
+    <>
+      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Container className="mt-5">
+        <h2 className="text-center mb-4">
+          Welcome, Admin {user?.firstName ?? ""} {user?.lastName ?? ""}
+        </h2>
+
+        <Card className="p-4 mx-auto" style={{ maxWidth: "600px" }}>
+          <h4 className="mb-3 text-center">Create Employee Account</h4>
+          {error && <Alert variant="danger">{error}</Alert>}
+          {successMsg && <Alert variant="success">{successMsg}</Alert>}
+
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>First Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="firstName"
+                value={form.firstName}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Last Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="lastName"
+                value={form.lastName}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Role</Form.Label>
+              <Form.Select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select role</option>
+                <option value="municipal public relations officer">
+                  Municipal Public Relations Officer
+                </option>
+                <option value="municipal administrator">
+                  Municipal Administrator
+                </option>
+                <option value="technical office staff member">
+                  Technical Office Staff Member
+                </option>
+              </Form.Select>
+            </Form.Group>
+
+            {form.role === "technical office staff member" && (
+              <Form.Group className="mb-3">
+                <Form.Label>Office Category</Form.Label>
+                <Form.Select
+                  name="categoryId"
+                  value={form.categoryId}
+                  onChange={handleChange}
+                  disabled={loadingCategories}
+                  required
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            )}
+
+            <Button variant="primary" type="submit" className="w-100">
+              Create Account
+            </Button>
+          </Form>
+        </Card>
+      </Container>
+    </>
+  );
 }
