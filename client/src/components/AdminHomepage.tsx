@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth";
-import { getCategories, createEmployee, refreshUser } from "../api/api";
+import { getOffices, createEmployee, refreshUser } from "../api/api";
 import CustomNavbar from "./CustomNavbar";
+import type { Office } from "../models/models";
 
 type Props = {
   isLoggedIn: boolean;
@@ -11,27 +12,20 @@ type Props = {
   setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
 };
 
-type Category = {
-  id: number;
-  name: string;
-};
-
 interface UserData {
   id: number;
   firstName?: string;
   lastName?: string;
   email?: string;
   username?: string;
-  image?: string;
-  telegramUsername?: string;
   role: string;
-  category?: string;
+  officeId?: string;
 }
 
 export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser }: Props) {
   useAuth(user, setUser);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [loadingOffices, setLoadingOffices] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState("");
   const [form, setForm] = useState({
@@ -45,39 +39,39 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
   });
 
   useEffect(() => {
-      const handleRefresh = async () => {
-        if (localStorage.getItem("token") !== null) {
-          const res = await refreshUser({
-            token: localStorage.getItem("token")!,
-          });
-          if (res.status != 200) {
-            setIsLoggedIn(false);
-            setUser(null);
-          } else {
-            const data = res.data;
-            const userId = data?.userId;
-            const role = data?.role;
-            setUser({ id: userId!, role: role! });
-            setIsLoggedIn(true);
-          }
+    const handleRefresh = async () => {
+      if (localStorage.getItem("token") !== null) {
+        const res = await refreshUser({
+          token: localStorage.getItem("token")!,
+        });
+        if (res.status != 200) {
+          setIsLoggedIn(false);
+          setUser(null);
+        } else {
+          const data = res.data;
+          const userId = data?.userId;
+          const role = data?.role;
+          setUser({ id: userId!, role: role! });
+          setIsLoggedIn(true);
         }
-      };
-      handleRefresh();
-    }, [setIsLoggedIn, setUser]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await getCategories();
-        setCategories(res);
-      } catch (e) {
-        console.error("Failed to load categories", e);
-        setError("Unable to load categories.");
-      } finally {
-        setLoadingCategories(false);
       }
     };
-    fetchCategories();
+    handleRefresh();
+  }, [setIsLoggedIn, setUser]);
+
+  useEffect(() => {
+    const fetchOffices = async () => {
+      try {
+        const res = await getOffices();
+        setOffices(res);
+      } catch (e) {
+        console.error("Failed to load offices", e);
+        setError("Unable to load offices.");
+      } finally {
+        setLoadingOffices(false);
+      }
+    };
+    fetchOffices();
   }, []);
 
   const handleChange = (
@@ -110,6 +104,7 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
       setForm({
         firstName: "",
         lastName: "",
+        username: "",
         email: "",
         username: "",
         password: "",
@@ -210,12 +205,17 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
                 onChange={handleChange}
                 required
               >
-                <option value="">Select role</option>
-                <option value="PUBLIC_RELATION_OFFICER">
-                  Municipal Public Relations Officer
+                <option value="CITIZEN">
+                  Citizen
+                </option>
+                <option value="ADMINISTRATOR">
+                  Administrator
                 </option>
                 <option value="MUNICIPAL_ADMINISTRATOR">
                   Municipal Administrator
+                </option>
+                <option value="PUBLIC_RELATIONS_OFFICER">
+                  Municipal Public Relations Officer
                 </option>
                 <option value="TECHNICAL_STAFF_MEMBER">
                   Technical Office Staff Member
@@ -230,13 +230,13 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
                   name="officeId"
                   value={form.officeId}
                   onChange={handleChange}
-                  disabled={loadingCategories}
+                  disabled={loadingOffices}
                   required
                 >
-                  <option value="">Select a category</option>
-                  {categories.map((off) => (
-                    <option key={off.id} value={off.id}>
-                      {off.name}
+                  <option value="">Select a technical office</option>
+                  {offices.map((office) => (
+                    <option key={office.id} value={String(office.id)}>
+                      {office.name}
                     </option>
                   ))}
                 </Form.Select>

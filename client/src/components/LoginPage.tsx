@@ -100,8 +100,8 @@ export default function LoginPage({ setIsLoggedIn, user, setUser }: Props) {
               <Card.Body>
                 <Card.Title className="text-center mb-4">Login</Card.Title>
                 <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3" controlId="formBasicUsername">
-                    <Form.Label>Email or Username</Form.Label>
+                  <Form.Group className="mb-3" controlId="formBasicEmail">
+                    <Form.Label>Email</Form.Label>
                     <Form.Control
                       type="text"
                       placeholder="Enter email"
