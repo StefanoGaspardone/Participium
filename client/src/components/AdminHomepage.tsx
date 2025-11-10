@@ -176,17 +176,6 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Username</Form.Label>
-              <Form.Control
-                type="text"
-                name="username"
-                value={form.username}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
