@@ -106,7 +106,6 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
         lastName: "",
         username: "",
         email: "",
-        username: "",
         password: "",
         userType: "",
         officeId: "",
