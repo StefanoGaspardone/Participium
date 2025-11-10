@@ -34,7 +34,7 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
     username: "",
     email: "",
     password: "",
-    role: "",
+    userType: "",
     officeId: "",
   });
 
@@ -94,20 +94,21 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
         username: form.username.trim(),
         email: form.email.trim(),
         password: form.password.trim(),
-        userType: form.role,
-        ...(form.role === "TECHNICAL_STAFF_MEMBER" && {
+        userType: form.userType,
+        ...(form.userType === "TECHNICAL_STAFF_MEMBER" && {
           officeId: Number(form.officeId),
         }),
       };
       await createEmployee(payload);
-      setSuccessMsg("Employee account created successfully!");
+      alert("Employee account created successfully!");
       setForm({
         firstName: "",
         lastName: "",
         username: "",
         email: "",
+        username: "",
         password: "",
-        role: "",
+        userType: "",
         officeId: "",
       });
     } catch (err: any) {
@@ -163,6 +164,16 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
                 required
               />
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Username</Form.Label>
@@ -200,8 +211,8 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
             <Form.Group className="mb-3">
               <Form.Label>Role</Form.Label>
               <Form.Select
-                name="role"
-                value={form.role}
+                name="userType"
+                value={form.userType}
                 onChange={handleChange}
                 required
               >
@@ -223,7 +234,7 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
               </Form.Select>
             </Form.Group>
 
-            {form.role === "TECHNICAL_STAFF_MEMBER" && (
+            {form.userType === "TECHNICAL_STAFF_MEMBER" && (
               <Form.Group className="mb-3">
                 <Form.Label>Office Category</Form.Label>
                 <Form.Select
