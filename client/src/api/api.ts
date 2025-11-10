@@ -152,10 +152,11 @@ export const loginUser = async (
 export const createEmployee = async (payload: {
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
   password: string;
-  role: string;
-  categoryId?: number;
+  userType: string;
+  officeId?: number;
 }): Promise<{ message: string }> => {
   const res = await fetch(`${BASE_URL}/users/employees`, {
     method: "POST",

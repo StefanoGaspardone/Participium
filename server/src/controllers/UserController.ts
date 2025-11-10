@@ -91,6 +91,8 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
+      console.log(req.body);
+
       if (
         !req.body.email ||
         !req.body.password ||
@@ -118,7 +120,6 @@ export class UserController {
       payload.firstName = req.body.firstName;
       payload.lastName = req.body.lastName;
       payload.username = req.body.username;
-      payload.image = req.body.image;
       payload.userType = req.body.userType;
       payload.officeId = req.body.officeId;
       const user = await this.userService.createMunicipalityUser(req.body);

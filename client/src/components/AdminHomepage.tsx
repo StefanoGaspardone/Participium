@@ -37,10 +37,11 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
+    username: "",
     email: "",
     password: "",
-    role: "",
-    categoryId: "",
+    userType: "",
+    officeId: "",
   });
 
   useEffect(() => {
@@ -96,22 +97,24 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
       const payload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
+        username: form.username.trim(),
         email: form.email.trim(),
         password: form.password.trim(),
-        role: form.role,
-        ...(form.role === "technical office staff member" && {
-          categoryId: Number(form.categoryId),
+        userType: form.userType,
+        ...(form.userType === "TECHNICAL_STAFF_MEMBER" && {
+          officeId: Number(form.officeId),
         }),
       };
       await createEmployee(payload);
-      setSuccessMsg("Employee account created successfully!");
+      alert("Employee account created successfully!");
       setForm({
         firstName: "",
         lastName: "",
         email: "",
+        username: "",
         password: "",
-        role: "",
-        categoryId: "",
+        userType: "",
+        officeId: "",
       });
     } catch (err: any) {
       setError(err.message || "Failed to create employee.");
@@ -166,6 +169,16 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
                 required
               />
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
@@ -192,38 +205,38 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
             <Form.Group className="mb-3">
               <Form.Label>Role</Form.Label>
               <Form.Select
-                name="role"
-                value={form.role}
+                name="userType"
+                value={form.userType}
                 onChange={handleChange}
                 required
               >
                 <option value="">Select role</option>
-                <option value="municipal public relations officer">
+                <option value="PUBLIC_RELATION_OFFICER">
                   Municipal Public Relations Officer
                 </option>
-                <option value="municipal administrator">
+                <option value="MUNICIPAL_ADMINISTRATOR">
                   Municipal Administrator
                 </option>
-                <option value="technical office staff member">
+                <option value="TECHNICAL_STAFF_MEMBER">
                   Technical Office Staff Member
                 </option>
               </Form.Select>
             </Form.Group>
 
-            {form.role === "technical office staff member" && (
+            {form.userType === "TECHNICAL_STAFF_MEMBER" && (
               <Form.Group className="mb-3">
                 <Form.Label>Office Category</Form.Label>
                 <Form.Select
-                  name="categoryId"
-                  value={form.categoryId}
+                  name="officeId"
+                  value={form.officeId}
                   onChange={handleChange}
                   disabled={loadingCategories}
                   required
                 >
                   <option value="">Select a category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                  {categories.map((off) => (
+                    <option key={off.id} value={off.id}>
+                      {off.name}
                     </option>
                   ))}
                 </Form.Select>
