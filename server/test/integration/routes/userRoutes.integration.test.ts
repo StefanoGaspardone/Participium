@@ -95,7 +95,7 @@ describe('User routes integration tests', () => {
     expect(String(res.body.message)).toMatch(/Email and password are required/);
   });
 
-  it('POST /api/users/createMunicipalityUser => 401 without token', async () => {
+  it('POST /api/users/employees => 401 without token', async () => {
     const payload = {
       email: 'self_muni1@example.com',
       password: 'password',
@@ -105,13 +105,13 @@ describe('User routes integration tests', () => {
       userType: UserType.TECHNICAL_STAFF_MEMBER,
       officeId: roleId,
     };
-    const res = await request(app).post('/api/users/createMunicipalityUser').send(payload);
+    const res = await request(app).post('/api/users/employees').send(payload);
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('message');
     expect(String(res.body.message).toLowerCase()).toMatch(/denied|token/);
   });
 
-  it('POST /api/users/createMunicipalityUser => 201 with admin token', async () => {
+  it('POST /api/users/employees => 201 with admin token', async () => {
     const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
@@ -127,14 +127,14 @@ describe('User routes integration tests', () => {
     };
 
     const res = await request(app)
-      .post('/api/users/createMunicipalityUser')
+      .post('/api/users/employees')
       .set('Authorization', `Bearer ${token}`)
       .send(payload);
 
     expect(res.status).toBe(201);
   });
 
-  it('POST /api/users/createMunicipalityUser => 400 with admin token when missing mandatory fields', async () => {
+  it('POST /api/users/employees => 400 with admin token when missing mandatory fields', async () => {
     const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
@@ -151,7 +151,7 @@ describe('User routes integration tests', () => {
     };
 
     const res = await request(app)
-      .post('/api/users/createMunicipalityUser')
+      .post('/api/users/employees')
       .set('Authorization', `Bearer ${token}`)
       .send(incomplete);
 
@@ -160,7 +160,7 @@ describe('User routes integration tests', () => {
     expect(String(res.body.message).toLowerCase()).toMatch(/missing|required/);
   });
 
-  it('POST /api/users/createMunicipalityUser => 403 with non-admin token', async () => {
+  it('POST /api/users/employees => 403 with non-admin token', async () => {
     const login = await request(app).post('/api/users/login').send({ email: 'self_user@gmail.com', password: 'user' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
@@ -176,7 +176,7 @@ describe('User routes integration tests', () => {
     };
 
     const res = await request(app)
-      .post('/api/users/createMunicipalityUser')
+      .post('/api/users/employees')
       .set('Authorization', `Bearer ${token}`)
       .send(payload);
 
