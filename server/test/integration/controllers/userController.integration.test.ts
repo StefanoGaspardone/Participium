@@ -150,4 +150,139 @@ describe('UserController integration tests', () => {
     expect(err).toBeDefined();
     expect(err.name).toBe('BadRequestError');
   });
+
+  it('createMunicipalityUser => valid fields', async () => {
+    const req: any = {
+      body: {
+        email: 'self_muni2@example.com',
+        password: 'password',
+        firstName: 'Muni',
+        lastName: 'Two',
+        username: 'selfmuni2',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        officeId: 1,
+      },
+      token: { userId: 1, role: UserType.ADMINISTRATOR },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.createMunicipalityUser(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Municipality user created' });
+  })
+
+  it('createMunicipalityUser => missing fields should call next with BadRequestError', async () => {
+    const req: any = {
+      body: {
+        email: 'self_muni2@example.com',
+      },
+      token: { userId: 1, role: UserType.ADMINISTRATOR },
+    };
+
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await userController.createMunicipalityUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+  })
+
+  it('createMunicipality => conflict when email already exists should call next with ConflictError', async () => {
+    const req: any = {
+      body: {
+        email: 'user@gmail.com',
+        password: 'password',
+        firstName: 'Muni',
+        lastName: 'Two',
+        username: 'selfmuni2',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        officeId: 1,
+      },
+      token: { userId: 1, role: UserType.ADMINISTRATOR },
+    };
+
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+
+    const next = jest.fn();
+
+    await userController.signUpUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('ConflictError');
+  })
+
+  it('createMunicpalityUser => missing office id should call next with BadRequestError', async () => {
+    const req: any = {
+      body: {
+        email: 'self_muni2@example.com',
+        password: 'password',
+        firstName: 'Muni',
+        lastName: 'Two',
+        username: 'selfmuni2',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+      },
+      token: { userId: 1, role: UserType.ADMINISTRATOR },
+    };
+
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await userController.createMunicipalityUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+  })
+
+  it('createMunicpalityUser => invalid user type should call next with BadRequestError', async () => {
+    const req: any = {
+      body: {
+        email: 'self_muni2@example.com',
+        password: 'password',
+        firstName: 'Muni',
+        lastName: 'Two',
+        username: 'selfmuni2',
+        userType: 'UserType1',
+      },
+      token: { userId: 1, role: UserType.ADMINISTRATOR },
+    };
+
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await userController.createMunicipalityUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+  })
 });
