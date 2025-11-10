@@ -1,4 +1,4 @@
-import type { Category } from "../models/models";
+import type { Category, Office } from "../models/models";
 import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
@@ -30,6 +30,10 @@ export interface LoginPayload {
 
 type CategoriesResponse = {
   categories: Category[];
+};
+
+type OfficeResponse = {
+  offices: Office[];
 };
 
 export const getCategories = async (): Promise<Category[]> => {
@@ -152,10 +156,11 @@ export const loginUser = async (
 export const createEmployee = async (payload: {
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
   password: string;
-  role: string;
-  categoryId?: number;
+  userType: string;
+  officeId?: number;
 }): Promise<{ message: string }> => {
   const res = await fetch(`${BASE_URL}/employees`, {
     method: "POST",
@@ -195,4 +200,20 @@ export const refreshUser = async (payload: {
   // parse json body (expected to be { userId: number, role: string })
   const data = await res.json().catch(() => null);
   return { status, data } as { status: number; data: { userId: number; role: string } | null };
+};
+
+export const getOffices = async (): Promise<Office[]> => {
+  const res = await fetch(`${BASE_URL}/offices`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Failed to fetch offices: ${res.status} ${text}`);
+  }
+  const data: OfficeResponse = await res.json();
+  console.log("Offices data:", data);
+  return data.offices;
 };

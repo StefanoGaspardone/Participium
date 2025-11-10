@@ -3,6 +3,11 @@ export interface Category {
 	name: string;
 }
 
+export interface Office {
+	id: number;
+	name: string;
+}
+
 export type FieldErrors = Record<string, string | string[]>;
 
 export class ApiError extends Error {

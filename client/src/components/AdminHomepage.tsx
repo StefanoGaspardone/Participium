@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth";
-import { getCategories, createEmployee, refreshUser } from "../api/api";
+import { getOffices, createEmployee, refreshUser } from "../api/api";
 import CustomNavbar from "./CustomNavbar";
+import type { Office } from "../models/models";
 
 type Props = {
   isLoggedIn: boolean;
@@ -11,72 +12,67 @@ type Props = {
   setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
 };
 
-type Category = {
-  id: number;
-  name: string;
-};
-
 interface UserData {
   id: number;
   firstName?: string;
   lastName?: string;
   email?: string;
   username?: string;
-  image?: string;
-  telegramUsername?: string;
   role: string;
-  category?: string;
+  officeId?: string;
 }
 
 export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser }: Props) {
   useAuth(user, setUser);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [loadingOffices, setLoadingOffices] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState("");
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
+    username: "",
     email: "",
     password: "",
     role: "",
-    categoryId: "",
+    officeId: "",
   });
 
   useEffect(() => {
-      const handleRefresh = async () => {
-        if (localStorage.getItem("token") !== null) {
-          const res = await refreshUser({
-            token: localStorage.getItem("token")!,
-          });
-          if (res.status != 200) {
-            setIsLoggedIn(false);
-            setUser(null);
-          } else {
-            const data = res.data;
-            const userId = data?.userId;
-            const role = data?.role;
-            setUser({ id: userId!, role: role! });
-            setIsLoggedIn(true);
-          }
+    const handleRefresh = async () => {
+      if (localStorage.getItem("token") !== null) {
+        const res = await refreshUser({
+          token: localStorage.getItem("token")!,
+        });
+        if (res.status != 200) {
+          setIsLoggedIn(false);
+          setUser(null);
+        } else {
+          const data = res.data;
+          const userId = data?.userId;
+          const role = data?.role;
+          setUser({ id: userId!, role: role! });
+          setIsLoggedIn(true);
         }
-      };
-      handleRefresh();
-    }, [setIsLoggedIn, setUser]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await getCategories();
-        setCategories(res);
-      } catch (e) {
-        console.error("Failed to load categories", e);
-        setError("Unable to load categories.");
-      } finally {
-        setLoadingCategories(false);
       }
     };
-    fetchCategories();
+    handleRefresh();
+  }, [setIsLoggedIn, setUser]);
+
+  useEffect(() => {
+    const fetchOffices = async () => {
+      try {
+        const res = await getOffices();
+        setOffices(res);
+      } catch (e) {
+        console.error("Failed to load offices", e);
+        setError("Unable to load offices.");
+      } finally {
+        setLoadingOffices(false);
+      }
+    };
+    fetchOffices();
+    console.log("fetched offices:", offices);
   }, []);
 
   const handleChange = (
@@ -96,11 +92,12 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
       const payload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
+        username: form.username.trim(),
         email: form.email.trim(),
         password: form.password.trim(),
-        role: form.role,
-        ...(form.role === "technical office staff member" && {
-          categoryId: Number(form.categoryId),
+        userType: form.role,
+        ...(form.role === "TECHNICAL_STAFF_MEMBER" && {
+          officeId: Number(form.officeId),
         }),
       };
       await createEmployee(payload);
@@ -108,10 +105,11 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
       setForm({
         firstName: "",
         lastName: "",
+        username: "",
         email: "",
         password: "",
         role: "",
-        categoryId: "",
+        officeId: "",
       });
     } catch (err: any) {
       setError(err.message || "Failed to create employee.");
@@ -168,6 +166,17 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
             </Form.Group>
 
             <Form.Group className="mb-3">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
@@ -197,33 +206,38 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
                 onChange={handleChange}
                 required
               >
-                <option value="">Select role</option>
-                <option value="municipal public relations officer">
-                  Municipal Public Relations Officer
+                <option value="CITIZEN">
+                  Citizen
                 </option>
-                <option value="municipal administrator">
+                <option value="ADMINISTRATOR">
+                  Administrator
+                </option>
+                <option value="MUNICIPAL_ADMINISTRATOR">
                   Municipal Administrator
                 </option>
-                <option value="technical office staff member">
+                <option value="PUBLIC_RELATIONS_OFFICER">
+                  Municipal Public Relations Officer
+                </option>
+                <option value="TECHNICAL_STAFF_MEMBER">
                   Technical Office Staff Member
                 </option>
               </Form.Select>
             </Form.Group>
 
-            {form.role === "technical office staff member" && (
+            {form.role === "TECHNICAL_STAFF_MEMBER" && (
               <Form.Group className="mb-3">
                 <Form.Label>Office Category</Form.Label>
                 <Form.Select
-                  name="categoryId"
-                  value={form.categoryId}
+                  name="officeId"
+                  value={form.officeId}
                   onChange={handleChange}
-                  disabled={loadingCategories}
+                  disabled={loadingOffices}
                   required
                 >
-                  <option value="">Select a category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                  <option value="">Select a technical office</option>
+                  {offices.map((office) => (
+                    <option key={office.id} value={String(office.id)}>
+                      {office.name}
                     </option>
                   ))}
                 </Form.Select>
