@@ -72,7 +72,6 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
       }
     };
     fetchOffices();
-    console.log("fetched offices:", offices);
   }, []);
 
   const handleChange = (

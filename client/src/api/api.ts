@@ -162,7 +162,7 @@ export const createEmployee = async (payload: {
   userType: string;
   officeId?: number;
 }): Promise<{ message: string }> => {
-  const res = await fetch(`${BASE_URL}/employees`, {
+  const res = await fetch(`${BASE_URL}/users/createMunicipalityUser`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -197,23 +197,55 @@ export const refreshUser = async (payload: {
     );
   }
   const status = res.status;
-  // parse json body (expected to be { userId: number, role: string })
   const data = await res.json().catch(() => null);
   return { status, data } as { status: number; data: { userId: number; role: string } | null };
 };
 
 export const getOffices = async (): Promise<Office[]> => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("Missing authentication token");
+  }
+
   const res = await fetch(`${BASE_URL}/offices`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
+
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`Failed to fetch offices: ${res.status} ${text}`);
   }
-  const data: OfficeResponse = await res.json();
-  console.log("Offices data:", data);
-  return data.offices;
+
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch (err) {
+    throw new Error("Invalid JSON in /offices response");
+  }
+
+  const officesArray =
+    Array.isArray(data)
+      ? data
+      : Array.isArray((data as any)?.offices)
+        ? (data as any).offices
+        : [];
+
+  if (!Array.isArray(officesArray)) {
+    console.error("Unexpected /offices response format:", data);
+    throw new Error("Unexpected response format from /offices");
+  }
+
+  const offices: Office[] = officesArray.map((office) => ({
+    id: Number(office.id),
+    name: String(office.name),
+    ...(office as any),
+  }));
+
+  return offices;
 };
+
