@@ -117,3 +117,119 @@ describe("UserService (mock)", () => {
     await expect(service.signUpUser(payload)).rejects.toThrow("repo failure");
   });
 });
+
+
+describe("UserService.createMunicipalityUser (mock)", () => {
+  it("should hash password, set office for TECHNICAL_STAFF_MEMBER and call repo.createNewUser", async () => {
+    const service = new UserService();
+
+    const fakeOffice = { id: 2, name: "Main Office" } as any;
+
+    const createMock = jest.fn().mockImplementation(async (u: any) => ({ ...u, id: 5 }));
+
+    // inject fake repos
+    // @ts-ignore
+    service["userRepo"] = {
+      createNewUser: createMock,
+      findAllUsers: jest.fn(),
+      login: jest.fn(),
+    };
+
+    // @ts-ignore
+    service["officeRepo"] = {
+      findOfficeById: jest.fn().mockResolvedValue(fakeOffice),
+    };
+
+    const payload = {
+      firstName: "Mun",
+      lastName: "User",
+      email: "mun@local",
+      username: "mun",
+      password: "s3cret",
+      userType: (await import("@daos/UserDAO")).UserType.TECHNICAL_STAFF_MEMBER,
+      officeId: 2,
+    } as any;
+
+    const saved = await service.createMunicipalityUser(payload);
+
+    expect(createMock).toHaveBeenCalled();
+    const passed = createMock.mock.calls[0][0] as any;
+    // password should be hashed
+    expect(passed.passwordHash).toBeDefined();
+    expect(passed.passwordHash).not.toBe("s3cret");
+    // office should be assigned
+    expect(passed.office).toBeDefined();
+    expect(passed.office).toEqual(fakeOffice);
+    expect(saved.id).toBeDefined();
+  });
+
+  it("should throw BadRequestError when office is not found for TECHNICAL_STAFF_MEMBER", async () => {
+    const service = new UserService();
+
+    const createMock = jest.fn();
+
+    // inject fake repos
+    // @ts-ignore
+    service["userRepo"] = {
+      createNewUser: createMock,
+      findAllUsers: jest.fn(),
+      login: jest.fn(),
+    };
+
+    // @ts-ignore
+    service["officeRepo"] = {
+      findOfficeById: jest.fn().mockResolvedValue(null),
+    };
+
+    const payload = {
+      firstName: "Mun",
+      lastName: "NoOffice",
+      email: "mun2@local",
+      username: "mun2",
+      password: "s3cret",
+      userType: (await import("@daos/UserDAO")).UserType.TECHNICAL_STAFF_MEMBER,
+      officeId: 999,
+    } as any;
+
+    await expect(service.createMunicipalityUser(payload)).rejects.toThrow("office not found.");
+    // ensure createNewUser was not called
+    expect(createMock).not.toHaveBeenCalled();
+  });
+
+  it("should not call officeRepo.findOfficeById when userType is not TECHNICAL_STAFF_MEMBER", async () => {
+    const service = new UserService();
+
+    const createMock = jest.fn().mockImplementation(async (u: any) => ({ ...u, id: 6 }));
+
+    const officeFindMock = jest.fn();
+
+    // inject fake repos
+    // @ts-ignore
+    service["userRepo"] = {
+      createNewUser: createMock,
+      findAllUsers: jest.fn(),
+      login: jest.fn(),
+    };
+
+    // @ts-ignore
+    service["officeRepo"] = {
+      findOfficeById: officeFindMock,
+    };
+
+    const payload = {
+      firstName: "Normal",
+      lastName: "Municipal",
+      email: "normal@local",
+      username: "normal",
+      password: "pass",
+      userType: (await import("@daos/UserDAO")).UserType.CITIZEN, // not TECHNICAL_STAFF_MEMBER
+      officeId: 1,
+    } as any;
+
+    const saved = await service.createMunicipalityUser(payload);
+
+    expect(createMock).toHaveBeenCalled();
+    expect(officeFindMock).not.toHaveBeenCalled();
+    expect(saved.id).toBeDefined();
+  });
+});

@@ -134,6 +134,55 @@ describe('User routes integration tests', () => {
     expect(res.status).toBe(201);
   });
 
+  it('POST /api/users/employees => 409 with admin token when email already exists', async () => {
+    const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
+    expect(login.status).toBe(200);
+    const token = login.body.token as string;
+
+    const payload = {
+      email: 'self_user@gmail.com', // already exists
+      password: 'password',
+      firstName: 'Dup',
+      lastName: 'User',
+      username: 'dupuser',
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      officeId: roleId,
+    };
+
+    const res = await request(app)
+      .post('/api/users/employees')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload);
+
+    expect(res.status).toBe(409);
+    expect(res.body).toHaveProperty('message');
+  });
+
+  it('POST /api/users/employees => 400 when office not found for TECHNICAL_STAFF_MEMBER', async () => {
+    const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
+    expect(login.status).toBe(200);
+    const token = login.body.token as string;
+
+    const payload = {
+      email: 'no_office@example.com',
+      password: 'password',
+      firstName: 'NoOffice',
+      lastName: 'User',
+      username: 'nooffice',
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      officeId: 99999, // non-existing
+    };
+
+    const res = await request(app)
+      .post('/api/users/employees')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message');
+    expect(String(res.body.message).toLowerCase()).toMatch(/office not found/);
+  });
+
   it('POST /api/users/employees => 400 with admin token when missing mandatory fields', async () => {
     const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
     expect(login.status).toBe(200);
