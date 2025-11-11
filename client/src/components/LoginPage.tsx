@@ -30,6 +30,7 @@ export default function LoginPage() {
       });
 
       setUserFromToken(res.token);
+      alert("Login successful!");
     } catch (error) {
       const message =
         error instanceof Error
