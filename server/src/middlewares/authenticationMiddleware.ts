@@ -5,13 +5,12 @@ import {UserType} from "@daos/UserDAO";
 import {jwtSecret} from "@app";
 import {UnauthorizedError} from "@errors/UnauthorizedError";
 import {InsufficientRightsError} from "@errors/InsufficientRightsError";
+import { UserDTO } from "@dtos/UserDTO";
 
 // Definisci la struttura del tuo payload
 // Payload can be either legacy { userId, role } or new { user }
 interface UserPayload extends JwtPayload {
-    userId?: number;
-    role?: UserType;
-    user?: any;
+    user?: UserDTO;
 }
 
 // Estendi l'interfaccia Request per includere il payload dell'utente
@@ -33,7 +32,7 @@ export const authMiddleware = (allowedRoles: string[]) => {
             const decoded = jwt.verify(token, jwtSecret) as UserPayload;
             req.token = decoded;
 
-            const userRole = decoded.user?.userType ?? decoded.user?.role ?? decoded.role;
+            const userRole = decoded.user?.userType;
             if (userRole && !allowedRoles.includes(userRole)) {
                 throw new InsufficientRightsError("Denied access. Insufficient permissions.");
             }
