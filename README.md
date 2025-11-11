@@ -55,15 +55,15 @@ of Turin performs a preliminary verification, marking the report as either accep
 The possible report statuses are: _Pending Approval_, _Assigned_, _In Progress_, _Suspended_, _Rejected_, _Resolved_
 
 - After approval, accepted reports move to the _Assigned_ state, and they are sent to the competent
-technical office depending on the problem category.
+  technical office depending on the problem category.
 - Once the intervention is scheduled, the status changes to _In Progress_, indicating resolution has
-started.
+  started.
 - In some cases, for organizational or technical reasons, the report may be set to _Suspended_, awaiting
-further evaluation or resources.
+  further evaluation or resources.
 - When the problem is resolved, the specific technical office updates the status to _Resolved_ and closes
-the report. The technicall office staff member can add comments
+  the report. The technicall office staff member can add comments
 - In case of rejection, an explanation from the Municipality Organization Office is mandatory (see next
-section).
+  section).
 
 ### Citizen Updates
 
@@ -71,18 +71,18 @@ To strengthen trust between citizens and institutions, citizens can be updated a
 various channels:
 
 - At each status change, the citizen receives notification in the platform with the corresponding
-update.
+  update.
 - Municipal operators working on reports can also send messages to the citizens in the platform, to
-which the citizen can reply.
+  which the citizen can reply.
 - Each time a citizen receives a platform notification, he/she also receives an email (unless disabled in
-their configuration panel, where citizens can also upload a personal photo and their Telegram
-username).
+  their configuration panel, where citizens can also upload a personal photo and their Telegram
+  username).
 
 After approval, accepted reports immediately become visible on the Participium portal. They appear both:
 
 - On an interactive map of Turin, geolocated at the point indicated by the citizen.
 - In a summary table, which allows filtering and sorting by category, status, or period of time. The data
-from the table (in case, filtered) can be downloaded as a csv file.
+  from the table (in case, filtered) can be downloaded as a csv file.
 
 In both views, the reporterʼs name is shown (“anonymous” if that option was chosen), along with the report
 title. Clicking the title opens the full description (with pictures).
@@ -92,9 +92,9 @@ title. Clicking the title opens the full description (with pictures).
 The system allows the display of both public and private statistics.
 
 - _Public statistics_ (visible on the site) include the number of reports by category and trends by day,
-week, or month. They are visible also to unregistered users.
+  week, or month. They are visible also to unregistered users.
 - _Private statistics_ (for administrators only), in addition to public ones, also include charts and tables
-about:
+  about:
   - number of reports by status
   - number of reports by type
   - number of reports by type and status
@@ -132,53 +132,53 @@ git clone https://github.com/StefanoGaspardone/Participium.git
 
 - Navigate to the server folder
 
-    ```bash
-    cd server
-    ```
+  ```bash
+  cd server
+  ```
 
 - Install dependencies
 
-    ```bash
-    npm install
-    ```
+  ```bash
+  npm install
+  ```
 
 - Run the docker database container
 
-    ```bash
-    cd docker/postgres
-    docker-compose up -d
-    ```
+  ```bash
+  cd docker/postgres
+  docker-compose up -d
+  ```
 
-    Make sure to have Docker Desktop installed and running before executing the command.
+  Make sure to have Docker Desktop installed and running before executing the command.
 
 - Run the server
 
-    ```bash
-    npm run dev
-    ```
+  ```bash
+  npm run dev
+  ```
 
-    The server will be running at <http://localhost:3000>.
+  The server will be running at <http://localhost:3000>.
 
-    A swagger documentation is available at <http://localhost:3000/api/docs>.
+  A swagger documentation is available at <http://localhost:3000/api/docs>.
 
 ### Run The Frontend
 
 - Navigate to the client folder
 
-    ```bash
-    cd client
-    ```
+  ```bash
+  cd client
+  ```
 
 - Install dependencies
 
-    ```bash
-    npm install
-    ```
+  ```bash
+  npm install
+  ```
 
 - Run the client
 
-    ```bash
-    npm run dev
-    ```
+  ```bash
+  npm run dev
+  ```
 
-    The client will be running at <http://localhost:5173>.
+  The client will be running at <http://localhost:5173>.
