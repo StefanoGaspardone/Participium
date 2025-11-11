@@ -12,8 +12,8 @@
 - [How To Run](#how-to-run)
   - [Dependencies](#dependencies)
   - [Clone The Repository](#clone-the-repository)
-  - [Run The Server](#run-the-server)
-  - [Run The Client](#run-the-client)
+  - [Run The Backend](#run-the-backend)
+  - [Run The Frontend](#run-the-frontend)
 
 ## Overview
 
@@ -128,7 +128,7 @@ Finally, any citizen who has provided their Telegram username can communicate wi
 git clone https://github.com/StefanoGaspardone/Participium.git
 ```
 
-### Run The Server
+### Run The Backend
 
 - Navigate to the server folder
 
@@ -161,7 +161,7 @@ git clone https://github.com/StefanoGaspardone/Participium.git
 
     A swagger documentation is available at <http://localhost:3000/api/docs>.
 
-### Run The Client
+### Run The Frontend
 
 - Navigate to the client folder
 
