@@ -1,0 +1,392 @@
+openapi: 3.0.3
+info:
+  title: Participium API
+  version: 1.0.0
+  description: API documentation for Participium backend endpoints
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Users
+    description: User registration, authentication and management
+  - name: Categories
+    description: Category lookup endpoints
+  - name: Offices
+    description: Office lookup endpoints
+  - name: Uploads
+    description: Upload signing endpoints (Cloudinary)
+  - name: Reports
+    description: Report creation and management
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        firstName:
+          type: string
+          example: Mario
+        lastName:
+          type: string
+          example: Rossi
+        email:
+          type: string
+          example: mario.rossi@example.com
+        username:
+          type: string
+          example: mrossi
+        image:
+          type: string
+          nullable: true
+        telegramUsername:
+          type: string
+          nullable: true
+        userType:
+          type: string
+          example: CITIZEN
+        office:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    NewUser:
+      type: object
+      required: [email, password, firstName, lastName, username]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+        image:
+          type: string
+          nullable: true
+        telegramUsername:
+          type: string
+          nullable: true
+
+    NewMunicipalityUser:
+      type: object
+      required: [email, password, firstName, lastName, username, userType]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+        userType:
+          type: string
+          description: one of the enum values from UserType
+        officeId:
+          type: integer
+          nullable: true
+        image:
+          type: string
+          nullable: true
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    Office:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    CreateReport:
+      type: object
+      required: [title, description, categoryId, images, lat, long, anonymous]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: integer
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+        lat:
+          type: number
+          format: float
+        long:
+          type: number
+          format: float
+        anonymous:
+          type: boolean
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: '#/components/schemas/Category'
+        images:
+          type: array
+          items:
+            type: string
+        lat:
+          type: number
+        long:
+          type: number
+        status:
+          type: string
+        anonymous:
+          type: boolean
+        rejectedDescription:
+          type: string
+          nullable: true
+        createdBy:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+
+    UploadSignResponse:
+      type: object
+      properties:
+        cloudName:
+          type: string
+        apiKey:
+          type: string
+        timestamp:
+          type: integer
+        defaultFolder:
+          type: string
+          nullable: true
+        uploadPreset:
+          type: string
+          nullable: true
+        signature:
+          type: string
+
+  parameters: {}
+
+paths:
+  /users:
+    get:
+      tags: [Users]
+      summary: List users (Dev)
+      responses:
+        '200':
+          description: list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+    post:
+      tags: [Users]
+      summary: (unused) placeholder
+
+  /users/signup:
+    post:
+      tags: [Users]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /users/login:
+    post:
+      tags: [Users]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /users/employees:
+    post:
+      tags: [Users]
+      summary: Create a municipality employee (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewMunicipalityUser'
+      responses:
+        '201':
+          description: Municipality user created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /users/me:
+    post:
+      tags: [Users]
+      summary: Return current authenticated user and (optionally) a fresh token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user and token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /categories:
+    get:
+      tags: [Categories]
+      summary: List categories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: list of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+
+  /offices:
+    get:
+      tags: [Offices]
+      summary: List offices
+      responses:
+        '200':
+          description: list of offices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Office'
+
+  /uploads/sign:
+    post:
+      tags: [Uploads]
+      summary: Get Cloudinary signature and parameters for client upload
+      responses:
+        '200':
+          description: Signing parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadSignResponse'
+
+  /reports:
+    post:
+      tags: [Reports]
+      summary: Create a report (citizen only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReport'
+      responses:
+        '201':
+          description: Report successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+components_x_generated_from: server

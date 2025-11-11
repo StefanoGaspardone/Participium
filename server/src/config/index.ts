@@ -1,3 +1,5 @@
+import path from "path";
+
 const BASE_URL = "/api";
 
 export const CONFIG = {
@@ -12,7 +14,7 @@ export const CONFIG = {
     NAME: process.env.DB_NAME || "postgres",
     ENTITIES: [__dirname + "/../models/daos/*.{ts,js}"],
   },
-  SWAGGER_FILE_PATH: "../../docs/swagger.yaml",
+  SWAGGER_FILE_PATH: path.join(__dirname, "../../docs/swagger.yaml"),
   ROUTES: {
     SWAGGER: `${BASE_URL}/docs`,
     CATEGORIES: `${BASE_URL}/categories`,

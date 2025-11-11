@@ -29,7 +29,7 @@ if(!jwtSecretEnv) {
     process.exit(1);
 }
 
-// app.use(CONFIG.ROUTES.SWAGGER, swaggerUi.serve, swaggerUi.setup(YAML.load(CONFIG.SWAGGER_V1_FILE_PATH))); // now arises error since the swagger.yaml is empty
+app.use(CONFIG.ROUTES.SWAGGER, swaggerUi.serve, swaggerUi.setup(YAML.load(CONFIG.SWAGGER_FILE_PATH))); // now arises error since the swagger.yaml is empty
 
 // app.use(
 //     OpenApiValidator.middleware({
