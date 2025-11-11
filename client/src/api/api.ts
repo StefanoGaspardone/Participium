@@ -164,7 +164,7 @@ export const createEmployee = async (payload: {
   userType: string;
   officeId?: number;
 }): Promise<{ message: string }> => {
-  const res = await fetch(`${BASE_URL}/users/createMunicipalityUser`, {
+  const res = await fetch(`${BASE_URL}/users/employees`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
