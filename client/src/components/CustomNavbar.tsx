@@ -1,43 +1,21 @@
-// CustomNavbar.tsx
-import React from "react";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../contexts/AppContext";
 
-interface UserData {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  username?: string;
-  image?: string;
-  telegramUsername?: string;
-  role: string;
-  category?: string;
-}
-
-type Props = {
-  isLoggedIn: boolean;
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-  user?: UserData | null;
-  setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
-};
-
-export default function CustomNavbar({
-  isLoggedIn,
-  setIsLoggedIn,
-  //user,
-  setUser,
-}: Props) {
+export default function CustomNavbar() {
   const navigate = useNavigate();
+
+  const { setUser, isLoggedIn, setIsLoggedIn } = useAppContext();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     setUser(null);
-    navigate("/");
+
+    navigate("/login");
   };
 
   return (

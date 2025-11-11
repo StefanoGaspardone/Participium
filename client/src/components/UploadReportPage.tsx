@@ -10,7 +10,6 @@ import {
   uploadImages,
   createReport,
   type CreateReportPayload,
-  refreshUser,
 } from "../api/api";
 import type { Category } from "../models/models";
 import { isApiError, type FieldErrors } from "../models/models";
@@ -20,32 +19,11 @@ type Coord = { lat: number; lng: number } | null;
 type Props = {
   selected: Coord;
   setSelected: React.Dispatch<React.SetStateAction<Coord>>;
-  isLoggedIn: boolean;
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-  user: UserData | null;
-  setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
 };
-
-interface UserData {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  username?: string;
-  image?: string;
-  telegramUsername?: string;
-  role: string;
-  category?: string;
-}
 
 export default function UploadReport({
   selected,
-  setSelected,
-  isLoggedIn,
-  setIsLoggedIn,
-  // user,
-  setUser,
-}: Props) {
+  setSelected}: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -56,27 +34,6 @@ export default function UploadReport({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleRefresh = async () => {
-      if (localStorage.getItem("token") !== null) {
-        const res = await refreshUser({
-          token: localStorage.getItem("token")!,
-        });
-        if (res.status != 200) {
-          setIsLoggedIn(false);
-          setUser(null);
-        } else {
-          const data = res.data;
-          const userId = data?.userId;
-          const role = data?.role;
-          setUser({ id: userId!, role: role! });
-          setIsLoggedIn(true);
-        }
-      }
-    };
-    handleRefresh();
-  }, [setIsLoggedIn, setUser]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -188,7 +145,7 @@ export default function UploadReport({
 
   return (
     <>
-      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setUser={setUser}/>
+      <CustomNavbar/>
       <main className="upload-container">
         <section className="upload-form">
           <Button

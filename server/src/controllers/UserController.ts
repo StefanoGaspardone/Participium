@@ -1,13 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import { UserService, userService } from "@services/UserService";
-import { NewMunicipalityUserDTO, NewUserDTO } from "@dtos/UserDTO";
+import { NewMunicipalityUserDTO, NewUserDTO, MapUserDAOtoDTO } from "@dtos/UserDTO";
 import * as jwt from "jsonwebtoken";
 import { CONFIG } from "@config";
 import { BadRequestError } from "@errors/BadRequestError";
+import { UnauthorizedError } from "@errors/UnauthorizedError";
 import { ConflictError } from "@errors/ConflictError";
 import { QueryFailedError } from "typeorm";
 import { UserType } from "@daos/UserDAO";
 import { JwtPayload } from "jsonwebtoken";
+import { AuthRequest } from "@middlewares/authenticationMiddleware";
 
 interface UserPayload extends JwtPayload {
   userId: number;
@@ -76,7 +78,9 @@ export class UserController {
       if (!user) {
         return res.status(401).json({ message: "Invalid email or password" });
       } else {
-        const payload = { userId: user.id, role: user.userType };
+        const userDto = MapUserDAOtoDTO(user);
+        // include full user object inside token under `user` key
+        const payload = { user: userDto } as any;
         const token = jwt.sign(payload, CONFIG.JWT_SECRET, { expiresIn: "1h" });
         res.status(200).json({ message: "Login successful", token });
       }
@@ -135,21 +139,30 @@ export class UserController {
     }
   };
 
-  refreshUser = async (req: Request, res: Response, next: NextFunction) => {
+  me = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      if (!req.body.token) {
-        throw new BadRequestError("User not logged");
-      }
-      // if we arrive here, the user is logged as authmiddleware already checked it
+      if (!req.token) throw new UnauthorizedError('Not authenticated');
 
-      //******** */
-      const userPayload: tokenDatas = jwt.decode(req.body.token) as tokenDatas;
-      //***** */
-      res.status(200).json({ userId: userPayload.userId, role: userPayload.role });
+      // If middleware provided decoded payload under req.token, prefer it.
+      // If it contains a `user` object, use that. Otherwise, fetch from DB.
+      const decodedAny = req.token as any;
+
+      let userDto = decodedAny?.user || null;
+
+      if (!userDto) throw new UnauthorizedError('User not found');
+
+      const authHeader = req.headers.authorization;
+      const rawToken = authHeader && authHeader.startsWith('Bearer ')
+        ? authHeader.split(' ')[1]
+        : undefined;
+
+      const token = rawToken ?? jwt.sign({ user: userDto } as any, CONFIG.JWT_SECRET, { expiresIn: '1h' });
+
+      res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
       next(error);
     }
-  };
+  }
 }
 
 interface tokenDatas extends JwtPayload {

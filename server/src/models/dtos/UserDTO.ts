@@ -19,7 +19,7 @@ export interface UserDTO {
     username: string;
     image?: string | null;
     telegramUsername?: string | null;
-    userType: UserType;
+    userType: string;
     office?: string | null;
     createdAt: Date;
 }

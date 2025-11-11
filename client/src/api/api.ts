@@ -3,6 +3,8 @@ import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
 
+const getToken = () => localStorage.getItem('token');
+
 export interface CreateReportPayload {
   title: string;
   description: string;
@@ -40,7 +42,7 @@ export const getCategories = async (): Promise<Category[]> => {
   const res = await fetch(`${BASE_URL}/categories`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `Bearer ${getToken()}`,
     },
   });
   if (!res.ok) {
@@ -59,7 +61,7 @@ export const createReport = async (
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `Bearer ${getToken()}`,
     },
     body: JSON.stringify({ payload }),
   });
@@ -166,7 +168,7 @@ export const createEmployee = async (payload: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `Bearer ${getToken()}`,
     },
     body: JSON.stringify(payload),
   });
@@ -179,32 +181,23 @@ export const createEmployee = async (payload: {
   return res.json();
 };
 
-export const refreshUser = async (payload: {
-  token: string;
-}): Promise<{ status: number, data: { userId: number; role: string } | null }> => {
-  const res = await fetch(`${BASE_URL}/users/refreshUser`, {
+export const me = async (): Promise<{ token: string }> => {
+  const res = await fetch(`${BASE_URL}/users/me`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${payload.token}`,
-    },
-    body: JSON.stringify(payload),
+    headers: { Authorization: `Bearer ${getToken()}` }
   });
+
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(
-      `User not logged in, couldn't refresh login : ${res.status} ${text}`
-    );
+    throw await toApiError(res);
   }
-  const status = res.status;
-  const data = await res.json().catch(() => null);
-  return { status, data } as { status: number; data: { userId: number; role: string } | null };
-};
+
+  return res.json();
+}
 
 export const getOffices = async (): Promise<Office[]> => {
-  const token = localStorage.getItem("token");
+  const token = getToken();
 
-  if (!token) {
+  if(!token) {
     throw new Error("Missing authentication token");
   }
 
@@ -221,18 +214,18 @@ export const getOffices = async (): Promise<Office[]> => {
     throw new Error(`Failed to fetch offices: ${res.status} ${text}`);
   }
 
-  let data: unknown;
+  let data: OfficeResponse;
   try {
     data = await res.json();
-  } catch (err) {
+  } catch {
     throw new Error("Invalid JSON in /offices response");
   }
 
   const officesArray =
     Array.isArray(data)
       ? data
-      : Array.isArray((data as any)?.offices)
-        ? (data as any).offices
+      : Array.isArray(data.offices)
+        ? data.offices
         : [];
 
   if (!Array.isArray(officesArray)) {
@@ -243,7 +236,7 @@ export const getOffices = async (): Promise<Office[]> => {
   const offices: Office[] = officesArray.map((office) => ({
     id: Number(office.id),
     name: String(office.name),
-    ...(office as any),
+    ...office,
   }));
 
   return offices;

@@ -1,29 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
-import { useAuth } from "../hooks/useAuth";
-import { getOffices, createEmployee, refreshUser } from "../api/api";
+import { getOffices, createEmployee } from "../api/api";
 import CustomNavbar from "./CustomNavbar";
 import type { Office } from "../models/models";
+import { useAppContext } from "../contexts/AppContext";
 
-type Props = {
-  isLoggedIn: boolean;
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-  user: UserData | null;
-  setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
-};
+export default function AdminHomepage() {
+  const { user } = useAppContext();
 
-interface UserData {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  username?: string;
-  role: string;
-  officeId?: string;
-}
-
-export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser }: Props) {
-  useAuth(user, setUser);
   const [offices, setOffices] = useState<Office[]>([]);
   const [loadingOffices, setLoadingOffices] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,27 +21,6 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
     userType: "",
     officeId: "",
   });
-
-  useEffect(() => {
-    const handleRefresh = async () => {
-      if (localStorage.getItem("token") !== null) {
-        const res = await refreshUser({
-          token: localStorage.getItem("token")!,
-        });
-        if (res.status != 200) {
-          setIsLoggedIn(false);
-          setUser(null);
-        } else {
-          const data = res.data;
-          const userId = data?.userId;
-          const role = data?.role;
-          setUser({ id: userId!, role: role! });
-          setIsLoggedIn(true);
-        }
-      }
-    };
-    handleRefresh();
-  }, [setIsLoggedIn, setUser]);
 
   useEffect(() => {
     const fetchOffices = async () => {
@@ -115,10 +78,10 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
     }
   };
 
-  if (user?.role !== "ADMINISTRATOR") {
+  if (user?.userType !== "ADMINISTRATOR") {
     return (
       <>
-        <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setUser={setUser} />
+        <CustomNavbar/>
         <Container className="mt-5">
           <Alert variant="danger" className="text-center">
             Access denied: this page is reserved for administrators only.
@@ -130,7 +93,7 @@ export default function AdminHomepage({ isLoggedIn, setIsLoggedIn, user, setUser
 
   return (
     <>
-      <CustomNavbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setUser={setUser} />
+      <CustomNavbar/>
       <Container className="mt-5">
         <h2 className="text-center mb-4">
           Welcome, Admin {user?.firstName ?? ""} {user?.lastName ?? ""}
