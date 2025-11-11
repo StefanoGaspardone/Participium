@@ -16,7 +16,7 @@ export class ReportController {
     createReport = async (req: AuthRequest & { body: { payload: CreateReportDTO } }, res: Response, next: NextFunction) => {
         try {
             const { payload } = req.body;
-            const userId = req.token?.userId;
+            const userId = req.token?.user?.id;
 
             const errors: Record<string, string> = {};
             if(typeof payload.title !== 'string') errors.title = 'Title must be a non-empty string';

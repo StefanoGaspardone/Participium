@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./components/Homepage";
 import LoginPage from "./components/LoginPage";
@@ -7,19 +7,7 @@ import UploadReport from "./components/UploadReportPage";
 import "./App.css";
 import "./custom_theme.scss";
 import AdminHomepage from "./components/AdminHomepage";
-import { useAuth } from "./hooks/useAuth";
-
-interface UserData {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  username?: string;
-  image?: string;
-  telegramUsername?: string;
-  role: string;
-  category?: string;
-}
+import { useAppContext } from "./contexts/AppContext";
 
 function App() {
   // selected and setSelected are the two parameters (as props) that have to be passed to the Map component
@@ -27,9 +15,8 @@ function App() {
   const [selected, setSelected] = useState<{ lat: number; lng: number } | null>(
     null
   );
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  useAuth(user, setUser);
+  
+  const { user, isLoggedIn } = useAppContext();
   
   return (
     <>
@@ -37,26 +24,14 @@ function App() {
         <Route
           path="/"
           element={
-            <HomePage
-              selected={selected}
-              setSelected={setSelected}
-              isLoggedIn={isLoggedIn}
-              setIsLoggedIn={setIsLoggedIn}
-              user={user}
-              setUser={setUser}
-            />
+            <HomePage selected = { selected } setSelected = { setSelected }/>
           }
         />
         <Route
           path="/admin"
           element={
-            isLoggedIn && user?.role === "ADMINISTRATOR" ? (
-              <AdminHomepage
-                isLoggedIn={isLoggedIn}
-                setIsLoggedIn={setIsLoggedIn}
-                user={user}
-                setUser={setUser}
-              />
+            isLoggedIn && user?.userType === "ADMINISTRATOR" ? (
+              <AdminHomepage/>
             ) : (
               <Navigate to="/login" />
             )
@@ -66,11 +41,7 @@ function App() {
         <Route
           path="/login"
           element={
-            <LoginPage
-              setIsLoggedIn={setIsLoggedIn}
-              user={user}
-              setUser={setUser}
-            />
+            <LoginPage/>
           }
         />
         <Route path="/register" element={<RegisterPage />} />
@@ -81,12 +52,7 @@ function App() {
             isLoggedIn ? (
               <UploadReport
                 selected={selected}
-                setSelected={setSelected}
-                isLoggedIn={isLoggedIn}
-                setIsLoggedIn={setIsLoggedIn}
-                user={user}
-                setUser={setUser}
-              />
+                setSelected={setSelected}/>
             ) : (
               <Navigate to="/login" />
             )

@@ -1,15 +1,4 @@
 import { UserDAO, UserType } from '@daos/UserDAO';
-import {
-    IsEmail,
-    IsEnum,
-    IsInt,
-    IsNotEmpty,
-    IsOptional,
-    IsString,
-    IsUrl,
-    MinLength,
-    ValidateIf
-} from 'class-validator';
 
 export interface UserDTO {
     id: number;
@@ -19,7 +8,7 @@ export interface UserDTO {
     username: string;
     image?: string | null;
     telegramUsername?: string | null;
-    userType: UserType;
+    userType: string;
     office?: string | null;
     createdAt: Date;
 }

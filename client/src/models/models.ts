@@ -8,6 +8,19 @@ export interface Office {
 	name: string;
 }
 
+export interface User {
+	id: number;
+    firstName: string;
+    lastName: string;
+    // email: string;
+    // username: string;
+    // image?: string | null;
+    // telegramUsername?: string | null;
+    userType: string;
+    // office?: string | null;
+    // createdAt: Date;
+}
+
 export type FieldErrors = Record<string, string | string[]>;
 
 export class ApiError extends Error {

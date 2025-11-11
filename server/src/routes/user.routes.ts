@@ -8,6 +8,11 @@ router.get('/', userController.findAllUsers); //TODO remove or protect in produc
 router.post('/signup', userController.signUpUser);
 router.post('/login', userController.loginUser);
 router.post('/employees', authMiddleware([UserType.ADMINISTRATOR]),  userController.createMunicipalityUser);
-router.post('/refreshUser', authMiddleware([UserType.CITIZEN, UserType.ADMINISTRATOR]), userController.refreshUser);
+router.post('/me', authMiddleware([
+    UserType.CITIZEN, 
+    UserType.ADMINISTRATOR, 
+    UserType.MUNICIPAL_ADMINISTRATOR,
+    UserType.PUBLIC_RELATION_OFFICER,
+    UserType.TECHNICAL_STAFF_MEMBER]), userController.me);
 
 export const userRouter = router;

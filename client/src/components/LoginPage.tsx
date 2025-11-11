@@ -1,33 +1,15 @@
 import React, { useState } from "react";
 import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../api/api"; // importa la funzione API
-import { useAuth } from "../hooks/useAuth";
-import { jwtDecode } from "jwt-decode";
+import { loginUser } from "../api/api";
+import { useAppContext } from "../contexts/AppContext";
 
-type Props = {
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-  user: UserData | null;
-  setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
-};
-
-interface UserData {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  username?: string;
-  image?: string;
-  telegramUsername?: string;
-  role: string;
-  category?: string;
-}
-
-export default function LoginPage({ setIsLoggedIn, user, setUser }: Props) {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { reloadAuth } = useAuth(user, setUser);
+  
+  const { setUserFromToken } = useAppContext();
 
   const navigate = useNavigate();
 
@@ -47,20 +29,8 @@ export default function LoginPage({ setIsLoggedIn, user, setUser }: Props) {
         password: password.trim(),
       });
 
-      // Persist token and refresh auth state
-      localStorage.setItem("token", res.token);
-      reloadAuth();
-
-      setIsLoggedIn(true);
+      setUserFromToken(res.token);
       alert("Login successful!");
-
-      // Navigate based on role decoded from the fresh token to avoid stale user state
-      type Payload = { userId: number; role: string };
-      const decoded = jwtDecode<Payload>(res.token);
-      console.log("ROLE ===> " + decoded.role);
-      if (decoded.role === "ADMINISTRATOR") {
-        navigate("/admin");
-      } else navigate("/");
     } catch (error) {
       const message =
         error instanceof Error
