@@ -57,7 +57,7 @@ describe('ReportController integration tests', () => {
           anonymous: false,
         },
       },
-      token: { userId: 1, role: UserType.CITIZEN },
+      token: { user: { id: 1, role: UserType.CITIZEN } },
     };
 
     const res: any = {
@@ -74,7 +74,7 @@ describe('ReportController integration tests', () => {
   });
 
   it('createReport => invalid payload calls next with BadRequestError', async () => {
-    const req: any = { body: { payload: { title: 1 } }, token: { userId: 1, role: UserType.CITIZEN } };
+    const req: any = { body: { payload: { title: 1 } }, token: { user: { id: 1, role: UserType.CITIZEN } } };
     const res: any = { status: jest.fn(), json: jest.fn() };
     const next = jest.fn();
 
@@ -99,7 +99,7 @@ describe('ReportController integration tests', () => {
           anonymous: false,
         },
       },
-      token: { userId: 1, role: UserType.CITIZEN },
+      token: { user: { id: 1, role: UserType.CITIZEN } },
     };
 
     const res: any = { status: jest.fn(), json: jest.fn() };
