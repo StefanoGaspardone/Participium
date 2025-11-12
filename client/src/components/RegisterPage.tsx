@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser, type RegisterPayload, uploadImages } from "../api/api";
+import LoginSignupNavbar from "./LoginSignupNavbar";
 
 export default function RegisterPage() {
     const [name, setName] = useState("");
@@ -49,6 +50,8 @@ export default function RegisterPage() {
     };
 
     return (
+        <>
+        <LoginSignupNavbar />
         <Container className="my-5">
             <Row className="justify-content-md-center">
                 <Col md={8} lg={6}>
@@ -152,5 +155,6 @@ export default function RegisterPage() {
                 </Col>
             </Row>
         </Container>
+        </>
     );
 }

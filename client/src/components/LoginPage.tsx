@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { loginUser } from "../api/api";
 import { useAppContext } from "../contexts/AppContext";
+import LoginSignupNavbar from "./LoginSignupNavbar";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,8 +11,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   
   const { setUserFromToken } = useAppContext();
-
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,24 +44,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <Container className="mt-4">
-        <Row className="justify-content-md-center">
-          <Col md={6} lg={4}>
-            <Card>
-              <Button
-                className="w-100"
-                variant="secondary"
-                onClick={() => {
-                  navigate("/");
-                }}
-              >
-                Go back to Homepage
-              </Button>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-
+      <LoginSignupNavbar />
       <Container className="mt-5">
         <Row className="justify-content-md-center">
           <Col md={6} lg={4}>
