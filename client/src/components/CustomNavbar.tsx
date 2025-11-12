@@ -16,6 +16,8 @@ export default function CustomNavbar() {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     setUser(null);
+
+    navigate("/");
   };
 
   const handleBrandClick = () => {
@@ -90,10 +92,13 @@ export default function CustomNavbar() {
                     color: '#00205B',
                   }}
                 >
+                  {/*
                   <Dropdown.Item as={Link} to="/profile">
                     Profile
                   </Dropdown.Item>
-                  <Dropdown.Divider />
+                  */}
+
+                  { /*<Dropdown.Divider />*/}
                   <Dropdown.Item
                     onClick={handleLogout}
                     className="fw-semibold"

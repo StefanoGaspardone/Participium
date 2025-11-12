@@ -13,7 +13,7 @@ export interface User {
     firstName: string;
     lastName: string;
     // email: string;
-    // username: string;
+    username: string;
     image?: string | null;
     // telegramUsername?: string | null;
     userType: string;

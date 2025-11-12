@@ -121,7 +121,7 @@ export default function RegisterPage() {
 
                                 <hr />
 
-                                {/* Optional fields */}
+                                {/* Optional fields 
                                 <Form.Group className="mb-3" controlId="formTelegram">
                                     <Form.Label>Telegram Username (Optional)</Form.Label>
                                     <Form.Control
@@ -142,7 +142,8 @@ export default function RegisterPage() {
                                         }
                                     />
                                 </Form.Group>
-
+                                */}
+                                
                                 <Button variant="primary" type="submit" className="w-100 mt-3" disabled={loading}>
                                     {loading ? "Registering..." : "Register"}
                                 </Button>

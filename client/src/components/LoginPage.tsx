@@ -6,7 +6,7 @@ import { useAppContext } from "../contexts/AppContext";
 import LoginSignupNavbar from "./LoginSignupNavbar";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   
@@ -15,8 +15,8 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      alert("Please enter both email and password.");
+    if (!username || !password) {
+      alert("Please enter both username and password.");
       return;
     }
 
@@ -24,7 +24,7 @@ export default function LoginPage() {
 
     try {
       const res = await loginUser({
-        email: email.trim(),
+        username: username.trim(),
         password: password.trim(),
       });
 
@@ -52,13 +52,13 @@ export default function LoginPage() {
               <Card.Body>
                 <Card.Title className="text-center mb-4">Login</Card.Title>
                 <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3" controlId="formBasicEmail">
-                    <Form.Label>Email</Form.Label>
+                  <Form.Group className="mb-3" controlId="formBasicUsername">
+                    <Form.Label>Username</Form.Label>
                     <Form.Control
                       type="text"
-                      placeholder="Enter email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       required
                     />
                   </Form.Group>

@@ -26,7 +26,7 @@ export interface RegisterPayload {
 }
 
 export interface LoginPayload {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -197,7 +197,7 @@ export const me = async (): Promise<{ token: string }> => {
 export const getOffices = async (): Promise<Office[]> => {
   const token = getToken();
 
-  if(!token) {
+  if (!token) {
     throw new Error("Missing authentication token");
   }
 
