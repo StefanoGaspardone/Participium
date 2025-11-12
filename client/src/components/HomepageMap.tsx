@@ -3,6 +3,7 @@ import "leaflet/dist/leaflet.css";
 import leaflet from "leaflet";
 import "./map.css";
 import { MaptilerLayer } from "@maptiler/leaflet-maptilersdk";
+import { useAppContext } from "../contexts/AppContext";
 
 type Coord = { lat: number; lng: number } | null;
 
@@ -12,6 +13,8 @@ type Props = {
 };
 
 export default function Map({ selected, setSelected }: Props) {
+  const { isLoggedIn } = useAppContext();
+
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<leaflet.Map | null>(null);
 
@@ -39,6 +42,8 @@ export default function Map({ selected, setSelected }: Props) {
     new MaptilerLayer({ apiKey: "gb0u8xp4Dznehd1U110M" }).addTo(map.current);
 
     const onClick = (e: leaflet.LeafletMouseEvent) => {
+      if(!isLoggedIn) return;
+      
       const { lat, lng } = e.latlng;
       const newCoords = { lat, lng };
       setSelected(newCoords);
@@ -70,15 +75,17 @@ export default function Map({ selected, setSelected }: Props) {
 
   return (
     <div className="map-wrap">
-      <div className="map-coords-top" aria-live="polite">
-        {selected ? (
-          <span>
-            Selected location: ({selected.lat}, {selected.lng})
-          </span>
-        ) : (
-          <span style={{ opacity: 0.7 }}>Click on the map to pick a location</span>
-        )}
-      </div>
+      {isLoggedIn && (
+        <div className = 'map-coords-top' aria-live="polite">
+          {selected ? (
+            <span>
+              Selected location: ({selected.lat}, {selected.lng})
+            </span>
+          ) : (
+            <span style={{ opacity: 0.7 }}>Click on the map to pick a location</span>
+          )}
+        </div>
+      )}
 
       <div ref={mapContainer} className="map" />
     </div>
