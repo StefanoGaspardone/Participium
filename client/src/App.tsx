@@ -24,7 +24,13 @@ function App() {
         <Route
           path="/"
           element={
-            <HomePage selected = { selected } setSelected = { setSelected }/>
+            !isLoggedIn || (isLoggedIn && user?.userType === 'CITIZEN') ? (
+              <HomePage selected={selected} setSelected={setSelected} />
+            ) : user?.userType === 'ADMINISTRATOR' ? (
+              <Navigate to="/admin" />
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
         <Route
@@ -49,7 +55,7 @@ function App() {
         <Route
           path="/reports/new"
           element={
-            isLoggedIn ? (
+            isLoggedIn && user?.userType === 'CITIZEN' ? (
               <UploadReport
                 selected={selected}
                 setSelected={setSelected}/>

@@ -209,7 +209,7 @@ export default function AdminHomepage() {
                   disabled={loadingOffices}
                   required
                 >
-                  <option value="">Select a technical office</option>
+                  <option value="" disabled>Select a technical office</option>
                   {offices.map((office) => (
                     <option key={office.id} value={String(office.id)}>
                       {office.name}

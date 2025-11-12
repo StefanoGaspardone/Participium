@@ -1,6 +1,6 @@
 import { Navbar, Nav, Container } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { useAppContext } from "../contexts/AppContext";
 import { Image } from "react-bootstrap";
@@ -9,6 +9,7 @@ import "./CustomNavbar.css";
 
 export default function CustomNavbar() {
   const { user, setUser, isLoggedIn, setIsLoggedIn } = useAppContext();
+  const navigate = useNavigate();
   const profilePicSize = 40;
 
   const handleLogout = () => {
@@ -17,10 +18,21 @@ export default function CustomNavbar() {
     setUser(null);
   };
 
+  const handleBrandClick = () => {
+    // If admin, send to /admin, otherwise to homepage '/'
+    if (user?.userType === "ADMINISTRATOR") navigate("/admin");
+    else navigate("/");
+  };
+
   return (
     <Navbar bg="primary" variant="dark" expand="lg" sticky="top">
       <Container fluid className="position-relative">
-        <Navbar.Brand as={Link} to="/" className="d-flex align-items-center ms-2">
+        <Navbar.Brand
+          role="button"
+          tabIndex={0}
+          onClick={handleBrandClick}
+          className="d-flex align-items-center ms-2"
+        >
           <img
             src={logo}
             height={45}
@@ -28,18 +40,21 @@ export default function CustomNavbar() {
             alt="Logo"
           />
         </Navbar.Brand>
-        <Link
-          to="/"
+        <div
+          onClick={handleBrandClick}
+          role="button"
+          tabIndex={0}
           className="text-warning font-regal fs-3 text-decoration-none position-absolute"
           style={{
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            zIndex: 10
+            zIndex: 10,
+            cursor: 'pointer'
           }}
         >
           Participium
-        </Link>
+        </div>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto d-flex align-items-center">
