@@ -59,7 +59,7 @@
 .navbar .profile-toggle:focus img,
 .navbar .profile-toggle:hover .profile-icon,
 .navbar .profile-toggle:focus .profile-icon {
-    transform: scale(1.12);
+    transform: scale(1.03);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
@@ -108,4 +108,28 @@
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
     font-weight: 500;
     text-decoration: none;
+}
+
+/* username to the left of the icon */
+.navbar .profile-toggle .profile-username {
+    display: inline-block;
+    color: #E1AD01;
+    margin-right: 0.5rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: transform 0.14s ease, font-weight 0.14s ease;
+    transform-origin: left center;
+
+    /* added underline styling */
+    text-decoration: underline;
+    text-decoration-color: #E1AD01;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+
+/* on hover/focus, scale the username like the icon/caret (no bg change) */
+.navbar .profile-toggle:hover .profile-username,
+.navbar .profile-toggle:focus .profile-username {
+    transform: scale(1.07);
+    font-weight: 500;
 }
