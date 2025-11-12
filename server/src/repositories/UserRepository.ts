@@ -18,8 +18,8 @@ export class UserRepository {
     return this.repo.save(user);
   };
 
-  login = async (email: string, password: string): Promise<UserDAO | null> => {
-    const user = await this.repo.findOneBy({ email });
+  login = async (username: string, password: string): Promise<UserDAO | null> => {
+    const user = await this.repo.findOneBy({ username });
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
       if (isPasswordValid) return user;

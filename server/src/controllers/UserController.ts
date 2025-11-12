@@ -68,15 +68,15 @@ export class UserController {
 
   loginUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.body.email || !req.body.password) {
-        throw new BadRequestError("Email and password are required");
+      if (!req.body.username || !req.body.password) {
+        throw new BadRequestError("Username and password are required");
       }
       const user = await this.userService.login(
-        req.body.email,
+        req.body.username,
         req.body.password
       );
       if (!user) {
-        return res.status(401).json({ message: "Invalid email or password" });
+        return res.status(401).json({ message: "Invalid username or password" });
       } else {
         const userDto = MapUserDAOtoDTO(user);
         // include full user object inside token under `user` key
