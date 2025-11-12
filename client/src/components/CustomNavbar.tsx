@@ -69,6 +69,11 @@ export default function CustomNavbar() {
                   role="button"
                   tabIndex={0}
                 >
+                  {/* username on the left of the icon */}
+                  {user?.username && (
+                    <span className="profile-username">{user.username}</span>
+                  )}
+
                   {user?.image ? (
                     <Image
                       src={user.image}
