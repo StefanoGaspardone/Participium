@@ -40,9 +40,9 @@ export class UserService {
         }
     }
 
-    login = async (email: string, password: string): Promise<UserDAO | null> => {
+    login = async (username: string, password: string): Promise<UserDAO | null> => {
         try {
-            return this.userRepo.login(email, password);
+            return this.userRepo.login(username, password);
         }catch (error) {
             throw error;
         }
