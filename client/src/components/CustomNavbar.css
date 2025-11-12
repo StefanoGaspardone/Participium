@@ -1,0 +1,111 @@
+.navbar .profile-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: transparent !important;
+    cursor: pointer;
+}
+
+/* profile image */
+.navbar .profile-toggle img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 2px solid #E1AD01;
+    transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+/* fallback icon container */
+.navbar .profile-toggle .profile-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0;
+    background: transparent;
+    transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+/* make svg fill the container */
+.navbar .profile-toggle .profile-icon svg,
+.navbar .profile-toggle .profile-icon .svg-inline--fa {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.14s ease, color 0.14s ease;
+}
+
+/* caret (Giallo Torino) */
+.navbar .profile-toggle::after {
+    content: "";
+    display: inline-block;
+    margin-left: 0.45rem;
+    vertical-align: middle;
+    border-left: 0.35rem solid transparent;
+    border-right: 0.35rem solid transparent;
+    border-top: 0.35rem solid #E1AD01;
+    transition: transform 0.14s ease;
+}
+
+/* hover: enlarge image/icon and caret only */
+.navbar .profile-toggle:hover img,
+.navbar .profile-toggle:focus img,
+.navbar .profile-toggle:hover .profile-icon,
+.navbar .profile-toggle:focus .profile-icon {
+    transform: scale(1.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.navbar .profile-toggle:hover::after,
+.navbar .profile-toggle:focus::after,
+.navbar .profile-toggle:hover .profile-icon svg,
+.navbar .profile-toggle:focus .profile-icon svg {
+    transform: scale(1.12);
+}
+
+/* dropdown items: remove background on hover, emphasize text */
+.navbar .dropdown-menu .dropdown-item {
+    background-color: transparent !important;
+    transition: transform 0.12s ease, font-weight 0.12s ease;
+    font-weight: 400;
+    transform-origin: left center;
+}
+
+.navbar .dropdown-menu .dropdown-item:hover,
+.navbar .dropdown-menu .dropdown-item:focus {
+    background-color: transparent !important;
+    font-weight: 500;
+    transform: scale(1.03);
+    color: inherit;
+}
+
+.navbar .dropdown-menu .dropdown-item:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Login button: preserve colors; subtle scale and shadow on hover */
+.navbar .btn.btn-warning {
+    background-color: #ffc107 !important;
+    color: #000000 !important;
+    border-color: #ffc107 !important;
+    transition: transform 160ms ease, box-shadow 160ms ease, font-weight 160ms ease;
+}
+
+.navbar .btn.btn-warning:hover,
+.navbar .btn.btn-warning:focus {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+    border-color: #ffc107 !important;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    font-weight: 500;
+    text-decoration: none;
+}

@@ -14,7 +14,7 @@ export interface User {
     lastName: string;
     // email: string;
     // username: string;
-    // image?: string | null;
+    image?: string | null;
     // telegramUsername?: string | null;
     userType: string;
     // office?: string | null;
