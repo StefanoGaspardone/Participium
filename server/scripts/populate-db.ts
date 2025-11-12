@@ -16,8 +16,8 @@ const OFFICES: string[] = [
 ];
 
 const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType }> = [
-    { username: 'admin', email: 'admin@gmail.com', firstName: 'Admin', lastName: 'Admin', password: 'admin', userType: UserType.ADMINISTRATOR },
-    { username: 'user', email: 'user@gmail.com', firstName: 'user', lastName: 'user', password: 'user', userType: UserType.CITIZEN }
+    { username: 'admin', email: 'admin@gmail.com', firstName: 'Stefano', lastName: 'Lo Russo', password: 'admin', userType: UserType.ADMINISTRATOR },
+    { username: 'user', email: 'user@gmail.com', firstName: 'Francesco', lastName: 'Totti', password: 'user', userType: UserType.CITIZEN }
 ];
 
 const CATEGORIES: Array<{ name: string; office: string }> = [
