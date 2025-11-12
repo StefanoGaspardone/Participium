@@ -36,6 +36,10 @@ export default function UploadReport({
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const latRef = useRef<HTMLInputElement | null>(null);
+  const longRef = useRef<HTMLInputElement | null>(null);
+  const titleRef = useRef<HTMLInputElement | null>(null);
+  const categoryRef = useRef<HTMLSelectElement | null>(null);
 
   const navigate = useNavigate();
 
@@ -79,7 +83,29 @@ export default function UploadReport({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!canSubmitRequired) return;
+    if (!canSubmitRequired) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        ...(selected ? {} : { lat: "Select a location on the map", long: "Select a location on the map" }),
+      }));
+      setGeneralError("Please fill all required fields.");
+      
+      setTimeout(() => {
+        if (!selected) {
+          latRef.current?.focus();
+        } else if (title.trim().length === 0) {
+          titleRef.current?.focus();
+        } else if (description.trim().length === 0) {
+          descRef.current?.focus();
+        } else if (!categoryId) {
+          categoryRef.current?.focus();
+        } else if (images.length < 1) {
+          fileInputRef.current?.focus();
+        }
+      }, 0);
+
+      return;
+    }
     setIsSubmitting(true);
     setFieldErrors({});
     setGeneralError(null);
@@ -103,9 +129,29 @@ export default function UploadReport({
       alert("Report successfully created!");
       navigate("/");
     } catch (err: unknown) {
-      if (isApiError(err)) {
-        if (err.errors) setFieldErrors(err.errors);
-        else setGeneralError(err.message || "Request failed");
+      if(isApiError(err)) {
+        if(err.errors) {
+          setFieldErrors(err.errors);
+
+          setTimeout(() => {
+            const keys = Object.keys(err.errors as Record<string, unknown>);
+            if (keys.includes("lat")) {
+              latRef.current?.focus();
+            } else if (keys.includes("long")) {
+              longRef.current?.focus();
+            } else if (keys.includes("title")) {
+              titleRef.current?.focus();
+            } else if (keys.includes("description")) {
+              descRef.current?.focus();
+            } else if (keys.includes("categoryId")) {
+              categoryRef.current?.focus();
+            } else if (keys.includes("images")) {
+              fileInputRef.current?.focus();
+            }
+          }, 0);
+        } else {
+          setGeneralError(err.message || "Request failed");
+        }
       } else if (err instanceof Error) {
         setGeneralError(err.message);
       } else {
@@ -163,21 +209,37 @@ export default function UploadReport({
               <Col md={6}>
                 <Form.Group>
                   <Form.Label>Latitude</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={selected ? selected.lat : ""}
-                    readOnly
-                  />
+          <Form.Control
+            type="text"
+            value={selected ? selected.lat : ""}
+            readOnly
+            isInvalid={Boolean(fieldErrors.lat)}
+            ref={latRef}
+            tabIndex={0}
+          />
+                    {fieldErrors.lat && (
+                      <Form.Control.Feedback type="invalid">
+                        {Array.isArray(fieldErrors.lat) ? fieldErrors.lat.join(', ') : fieldErrors.lat}
+                      </Form.Control.Feedback>
+                    )}
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group>
                   <Form.Label>Longitude</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={selected ? selected.lng : ""}
-                    readOnly
-                  />
+          <Form.Control
+            type="text"
+            value={selected ? selected.lng : ""}
+            readOnly
+            isInvalid={Boolean(fieldErrors.long)}
+            ref={longRef}
+            tabIndex={0}
+          />
+                    {fieldErrors.long && (
+                      <Form.Control.Feedback type="invalid">
+                        {Array.isArray(fieldErrors.long) ? fieldErrors.long.join(', ') : fieldErrors.long}
+                      </Form.Control.Feedback>
+                    )}
                 </Form.Group>
               </Col>
             </Row>
@@ -188,6 +250,7 @@ export default function UploadReport({
                 placeholder="Enter a title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                ref={titleRef}
                 isInvalid={Boolean(fieldErrors.title)}
               />
               {fieldErrors.title && (
@@ -224,6 +287,7 @@ export default function UploadReport({
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 isInvalid={Boolean(fieldErrors.categoryId)}
+                ref={categoryRef}
               >
                 <option value="" disabled>
                   Select a category
@@ -311,6 +375,11 @@ export default function UploadReport({
             {generalError && (
               <div className="text-danger mb-2" role="alert">
                 {generalError}
+              </div>
+            )}
+            {Object.keys(fieldErrors || {}).length > 0 && (
+              <div className="text-danger mb-2" role="alert">
+                There are some errors - please check the highlighted fields.
               </div>
             )}
             <Button
