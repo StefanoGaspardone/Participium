@@ -41,26 +41,32 @@ export default function Map({ selected, setSelected }: Props) {
     // Create a MapTiler Layer inside Leaflet
     new MaptilerLayer({ apiKey: "gb0u8xp4Dznehd1U110M" }).addTo(map.current);
 
+  }, [center.lng, center.lat, zoom, setSelected]);
+
+  // attach click listener in a separate effect so the handler closes over latest isLoggedIn
+  useEffect(() => {
+    if (!map.current) return;
+
     const onClick = (e: leaflet.LeafletMouseEvent) => {
-      if(!isLoggedIn) return;
-      
+      if (!isLoggedIn) return;
+
       const { lat, lng } = e.latlng;
       const newCoords = { lat, lng };
       setSelected(newCoords);
 
       if (!map.current) return;
       if (!markerRef.current) {
-        // if a marker doesn't exist, it is created
         markerRef.current = leaflet.marker([lat, lng]).addTo(map.current);
       } else {
-        // if it exists, it is update
         markerRef.current.setLatLng([lat, lng]);
       }
     };
 
-    map.current.on("click", onClick); // we call the above fn if clicked on a "location"
-
-  }, [center.lng, center.lat, zoom, setSelected]);
+    map.current.on("click", onClick);
+    return () => {
+      map.current?.off("click", onClick);
+    };
+  }, [isLoggedIn, setSelected]);
 
   useEffect(() => {
     if (!map.current || !selected) return;
