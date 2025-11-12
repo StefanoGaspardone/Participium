@@ -2,7 +2,7 @@ import Map from "./HomepageMap";
 import ReportList from "./ReportList";
 import CustomNavbar from "./CustomNavbar";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import { useAppContext } from "../contexts/AppContext";
 
@@ -15,8 +15,8 @@ type Props = {
 
 export default function HomePage({
   selected,
-  setSelected,}: Props) {
-  
+  setSelected, }: Props) {
+
   const { user, isLoggedIn } = useAppContext();
   const navigate = useNavigate();
 
@@ -33,14 +33,23 @@ export default function HomePage({
 
   return (
     <>
-      <CustomNavbar/>
+      <CustomNavbar />
       <Container fluid className="content">
-        <Row className="h-100 g-0 bg-primary">
+        <Row className="h-100 g-0">
           <Col xs={12} md={8} lg={9} className="h-100">
             <Map selected={selected} setSelected={setSelected} />
           </Col>
           <Col md={4} lg={3} className="d-none d-md-block h-100">
-            <ReportList />
+            {isLoggedIn ? (
+              <ReportList />
+            ) : (
+              <div className="h-100 d-flex flex-column align-items-center justify-content-center px-3">
+                <div className="text-center">
+                  <h5 className="text-primary mb-2">Log in to report</h5>
+                  <p className="mb-0">You need to <Link to="/login" className="text-primary">log in</Link> to upload new reports.</p>
+                </div>
+              </div>
+            )}
           </Col>
         </Row>
       </Container>
