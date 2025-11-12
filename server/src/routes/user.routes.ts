@@ -12,7 +12,7 @@ router.post('/me', authMiddleware([
     UserType.CITIZEN, 
     UserType.ADMINISTRATOR, 
     UserType.MUNICIPAL_ADMINISTRATOR,
-    UserType.PUBLIC_RELATION_OFFICER,
+    UserType.PUBLIC_RELATIONS_OFFICER,
     UserType.TECHNICAL_STAFF_MEMBER]), userController.me);
 
 export const userRouter = router;

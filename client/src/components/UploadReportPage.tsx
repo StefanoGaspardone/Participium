@@ -299,7 +299,7 @@ export default function UploadReport({
                 </div>
               )}
             </Form.Group>
-            <Form.Group className="mb-3">
+            {/* <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
                 id="anonymousCheck"
@@ -307,7 +307,7 @@ export default function UploadReport({
                 checked={anonymous}
                 onChange={(e) => setAnonymous(e.target.checked)}
               />
-            </Form.Group>
+            </Form.Group> */}
             {generalError && (
               <div className="text-danger mb-2" role="alert">
                 {generalError}

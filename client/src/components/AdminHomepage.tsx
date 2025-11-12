@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
+import { Loader2Icon } from "lucide-react";
 import { getOffices, createEmployee } from "../api/api";
 import CustomNavbar from "./CustomNavbar";
 import type { Office } from "../models/models";
@@ -21,6 +22,7 @@ export default function AdminHomepage() {
     userType: "",
     officeId: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchOffices = async () => {
@@ -50,6 +52,7 @@ export default function AdminHomepage() {
     e.preventDefault();
     setError(null);
     setSuccessMsg("");
+    setIsSubmitting(true);
     try {
       const payload = {
         firstName: form.firstName.trim(),
@@ -73,10 +76,24 @@ export default function AdminHomepage() {
         userType: "",
         officeId: "",
       });
-    } catch (err: any) {
-      setError(err.message || "Failed to create employee.");
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message || "Failed to create employee.");
+      else setError(String(err) || "Failed to create employee.");
+    }
+    finally {
+      setIsSubmitting(false);
     }
   };
+
+  // form validity: all required fields must be non-empty (trimmed)
+  const isFormValid =
+    form.firstName.trim() !== "" &&
+    form.lastName.trim() !== "" &&
+    form.username.trim() !== "" &&
+    form.email.trim() !== "" &&
+    form.password.trim() !== "" &&
+    form.userType !== "" &&
+    (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeId !== "");
 
   if (user?.userType !== "ADMINISTRATOR") {
     return (
@@ -167,11 +184,8 @@ export default function AdminHomepage() {
                 onChange={handleChange}
                 required
               >
-                <option value="CITIZEN">
-                  Citizen
-                </option>
-                <option value="ADMINISTRATOR">
-                  Administrator
+                <option value="" disabled>
+                  Select a role
                 </option>
                 <option value="MUNICIPAL_ADMINISTRATOR">
                   Municipal Administrator
@@ -205,8 +219,23 @@ export default function AdminHomepage() {
               </Form.Group>
             )}
 
-            <Button variant="primary" type="submit" className="w-100">
-              Create Account
+            <Button
+              variant="primary"
+              type="submit"
+              className={`w-100 d-inline-flex align-items-center justify-content-center gap-2`}
+              disabled={!isFormValid || isSubmitting}
+              aria-disabled={!isFormValid || isSubmitting}
+              aria-busy={isSubmitting}
+              title={!isFormValid ? "Fill all required fields to enable" : isSubmitting ? "Creating account..." : "Create account"}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2Icon size={18} className="spin" aria-hidden="true" />
+                  <span>Creating…</span>
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </Form>
         </Card>
