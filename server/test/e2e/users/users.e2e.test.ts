@@ -55,7 +55,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it("/login test => status 200 (user enters right credentials)", async () => {
     const credentials = {
-      email: "user@gmail.com",
+      username: "user",
       password: "user",
     };
     const res = await request(app).post("/api/users/login").send(credentials);
@@ -67,7 +67,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it("/login test ", async () => {
     const credentials = {
-      email: "wrong@mail.bad",
+      username: "wronguser",
       password: "notexistent",
     };
     const res = await request(app).post("/api/users/login").send(credentials);
@@ -77,7 +77,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it("/employees (create municipality user) => 201 with admin token", async () => {
     // login as admin (populated by lifecycle)
-    const loginRes = await request(app).post('/api/users/login').send({ email: 'admin@gmail.com', password: 'admin' });
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token as string;
 
@@ -108,7 +108,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it("/employees => 400 when TECHNICAL_STAFF_MEMBER missing officeId (admin token)", async () => {
     // login as admin
-    const loginRes = await request(app).post('/api/users/login').send({ email: 'admin@gmail.com', password: 'admin' });
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token as string;
 
@@ -133,7 +133,7 @@ describe("Users e2e tests : Login and Registration", () => {
   });
 
   it('/login for municipality user => 200 and returns token', async () => {
-    const credentials = { email: 'e2e_muni@example.com', password: 'munipass' };
+    const credentials = { username: 'e2emuni', password: 'munipass' };
     const res = await request(app).post('/api/users/login').send(credentials);
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
@@ -153,7 +153,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it('POST /api/users/employees => 403 with non-admin token (e2e)', async () => {
     // login as normal (non-admin) user from populated test data
-    const loginRes = await request(app).post('/api/users/login').send({ email: 'user@gmail.com', password: 'user' });
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'user', password: 'user' });
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token as string;
 

@@ -118,7 +118,7 @@ describe('UserController integration tests', () => {
   });
 
   it('loginUser => valid credentials returns token', async () => {
-    const req: any = { body: { email: 'user@gmail.com', password: 'user' } };
+    const req: any = { body: { username: 'user', password: 'user' } };
     const res: any = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
@@ -136,7 +136,7 @@ describe('UserController integration tests', () => {
   });
 
   it('loginUser => missing fields should call next with BadRequestError', async () => {
-    const req: any = { body: { email: 'user@gmail.com' } }; // missing password
+    const req: any = { body: { username: 'user' } }; // missing password
     const res: any = {
       status: jest.fn(),
       json: jest.fn(),

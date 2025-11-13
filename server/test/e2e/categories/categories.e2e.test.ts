@@ -25,7 +25,7 @@ describe("Categories e2e tests", () => {
     expect(categories.length).toBeGreaterThan(0);
 
     // login as seeded user
-    const login = await request(app).post('/api/users/login').send({ email: 'user@gmail.com', password: 'user' });
+    const login = await request(app).post('/api/users/login').send({ username: 'user', password: 'user' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -44,7 +44,7 @@ describe("Categories e2e tests", () => {
 
   it("GET /api/categories => response DTO shape (id:number, name:string)", async () => {
     // login and fetch categories
-    const login = await request(app).post('/api/users/login').send({ email: 'user@gmail.com', password: 'user' });
+    const login = await request(app).post('/api/users/login').send({ username: 'user', password: 'user' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 

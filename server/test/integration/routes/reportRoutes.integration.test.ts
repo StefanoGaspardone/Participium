@@ -41,7 +41,7 @@ describe('Report routes integration tests', () => {
     await userRepo.save(citizen);
 
     // login once and cache token for tests
-    const login = await request(app).post('/api/users/login').send({ email: 'citizen_user@gmail.com', password: 'citizen' });
+    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     token = login.body.token as string;
   });
@@ -108,7 +108,7 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 201 with 3 images (upper images boundary)', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'citizen_user@gmail.com', password: 'citizen' });
+    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -129,7 +129,7 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 201 with lat/long at allowed boundaries', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'citizen_user@gmail.com', password: 'citizen' });
+    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -150,7 +150,7 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 400 when lat is below minimum', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'citizen_user@gmail.com', password: 'citizen' });
+    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -173,7 +173,7 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 400 when long is above maximum', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'citizen_user@gmail.com', password: 'citizen' });
+    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -196,7 +196,7 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 404 when categoryId does not exist', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'citizen_user@gmail.com', password: 'citizen' });
+    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 

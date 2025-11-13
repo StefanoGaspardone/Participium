@@ -24,7 +24,7 @@ describe('Category Routes integration tests', () => {
 
   it('GET /api/categories => 200 with token and returns categories array', async () => {
     // login as seeded user
-    const login = await request(app).post('/api/users/login').send({ email: 'user@gmail.com', password: 'user' });
+    const login = await request(app).post('/api/users/login').send({ username: 'user', password: 'user' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 

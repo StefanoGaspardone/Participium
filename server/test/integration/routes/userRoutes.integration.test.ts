@@ -70,7 +70,7 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/login => 200 and returns token', async () => {
-    const credentials = { email: 'self_user@gmail.com', password: 'user' };
+    const credentials = { username: 'self_user', password: 'user' };
     const res = await request(app).post('/api/users/login').send(credentials);
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
@@ -88,11 +88,11 @@ describe('User routes integration tests', () => {
 
   it('POST /api/users/login => 400 when missing mandatory fields', async () => {
     // missing password should return BadRequest
-    const payload = { email: 'self_user@gmail.com' };
+    const payload = { username: 'self_user' };
     const res = await request(app).post('/api/users/login').send(payload);
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message');
-    expect(String(res.body.message)).toMatch(/Email and password are required/);
+    expect(String(res.body.message)).toMatch(/Username and password are required/);
   });
 
   it('POST /api/users/employees => 401 without token', async () => {
@@ -112,7 +112,7 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 201 with admin token', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: 'admin' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -135,7 +135,7 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 409 with admin token when email already exists', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: 'admin' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -159,7 +159,7 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 400 when office not found for TECHNICAL_STAFF_MEMBER', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: 'admin' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -184,7 +184,7 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 400 with admin token when missing mandatory fields', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'self_admin@gmail.com', password: 'admin' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: 'admin' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
@@ -210,7 +210,7 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 403 with non-admin token', async () => {
-    const login = await request(app).post('/api/users/login').send({ email: 'self_user@gmail.com', password: 'user' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_user', password: 'user' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 

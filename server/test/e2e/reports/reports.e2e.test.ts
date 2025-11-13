@@ -31,7 +31,7 @@ describe("Reports e2e tests", () => {
 		// login as the seeded test user
 		const login = await request(app)
 			.post("/api/users/login")
-			.send({ email: "user@gmail.com", password: "user" });
+			.send({ username: "user", password: "user" });
 		expect(login.status).toBe(200);
 		token = login.body.token as string;
 
