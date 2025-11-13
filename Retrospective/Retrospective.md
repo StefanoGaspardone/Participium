@@ -11,9 +11,9 @@ sections:
 
 ### Macro statistics
 
-- Number of stories committed vs. done =
-- Total points committed vs. done =
-- Nr of hours planned vs. spent (as a team) =
+- Number of stories committed vs. done = 5
+- Total points committed vs. done = 11
+- Nr of hours planned vs. spent (as a team) = planned:80h, spent:74h16m
 
 **Remember**a story is done ONLY if it fits the Definition of Done:
 
@@ -26,44 +26,46 @@ sections:
 
 ### Detailed statistics
 
-| Story           | # Tasks | Points | Hours est. | Hours actual |
-| --------------- | ------- | ------ | ---------- | ------------ |
-| _Uncategorized_ |         | -      |            |              |
-| Get tickets     |         |        |            |              |
-| Next customer   |         |        |            |              |
-| Call customer   |         |        |            |              |
+| Story                          | # Tasks | Points | Hours est. | Hours actual |
+|--------------------------------|---------|--------|------------|--------------|
+| _Uncategorized_                | 18      | -      | 55h 35m    | 49h 10m      |
+| Register user                  | 9       | 2      | 7h 30m     | 9h 7m        |
+| register municipality user     | 8       | 1      | 5h 20m     | 5h 22m       |
+| assign municipality user roles | 5       | 1      | 2h 30m     | 1h 57m       |
+| get location                   | 5       | 5      | 4h         | 3h 31m       |
+| create report                  | 9       | 2      | 5h 5m      | 5h 9m        |
 
 > story `Uncategorized` is for technical tasks, leave out story points (not applicable in this case)
 
 - Hours per task average, standard deviation (estimate and actual)
 
 |            | Mean | StDev |
-| ---------- | ---- | ----- |
-| Estimation |      |       |
-| Actual     |      |       |
+| ---------- |------|-------|
+| Estimation | 1.481 | 2.580 |
+| Actual     | 1.375| 2.317 |
 
 - Total estimation error ratio: sum of total hours spent / sum of total hours effort - 1
 
-  $$\frac{\sum_i spent_{task_i}}{\sum_i estimation_{task_i}} - 1$$ =
+  $$\frac{\sum_i spent_{task_i}}{\sum_i estimation_{task_i}} - 1$$ = -0.0717
 
 - Absolute relative task estimation error: sum( abs( spent-task-i / estimation-task-i - 1))/n
 
-  $$\frac{1}{n}\sum_i^n \left| \frac{spent_{task_i}}{estimation_task_i}-1 \right| $$ =
+  $$\frac{1}{n}\sum_i^n \left| \frac{spent_{task_i}}{estimation_task_i}-1 \right| $$ = 0.1506
 
 ## QUALITY MEASURES
 
 - Unit Testing:
-  - Total hours estimated =
-  - Total hours spent =
-  - Nr of automated unit test cases =
-  - Coverage =
+  - Total hours estimated = 9h
+  - Total hours spent = 9h 30m
+  - Nr of automated unit test cases = 28
+  - Coverage = >92%
 - E2E testing:
-  - Total hours estimated =
-  - Total hours spent =
-  - Nr of test cases =
+  - Total hours estimated = 2h 30m
+  - Total hours spent = 2h 30m
+  - Nr of test cases = 28
 - Code review
-  - Total hours estimated =
-  - Total hours spent =
+  - Total hours estimated = 2h 30m
+  - Total hours spent = 1h 59m
 
 ## ASSESSMENT
 
