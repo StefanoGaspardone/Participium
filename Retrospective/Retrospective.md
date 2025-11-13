@@ -69,27 +69,37 @@ sections:
 
 - What did go wrong in the sprint?
 
-  >
+  > We were not able to fully point out all the tasks in the beginning, so we had to add new ones during the sprint.
 
 - What caused your errors in estimation (if any)?
 
-  >
+  > At the beginning we thought that retrospective was part of the sprint, but 
+  > we also had to add new tasks so overall the estimation was right and the 
+  > actual time spent was a little bit shorter.
 
 - What lessons did you learn (both positive and negative) in this sprint?
 
-  >
+  > Positive: We learned that we should have a task for bug fixing or any other
+  > problems that can arise.
+  > Negative:  
 
 - Which improvement goals set in the previous retrospective were you able to achieve?
 
-  >
+  > This time we assigned all the tasks in the beginning of the sprint.
+  > The communication among us was better during the work and not only
+  >  at the end of each task
 
 - Which ones you were not able to achieve? Why?
 
-  >
+  > We still have to improve task estimation, because we were not able to 
+  > point out every task from the beginning.
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
 
-  >
+  > 1. better task estimation: we should spend more time in the sprint planning
+  > to analyze what can go wrong and what tasks can arise
+  > 2. improve frontend style: we should spend time on restyling the frontend
+  > to make it more user-friendly and nice looking
 
 - One thing you are proud of as a Team !!
 
