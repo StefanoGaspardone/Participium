@@ -16,4 +16,4 @@ coverage/
 .typeorm_cache
 .DS_Store
 Thumbs.db
-.idea
+.idea/
