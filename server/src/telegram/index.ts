@@ -2,8 +2,9 @@ import { UserDTO } from '@dtos/UserDTO';
 import { Telegraf, Context } from 'telegraf';
 import { CONFIG } from '../config/index';
 import LocalSession from 'telegraf-session-local';
-import { logError, logInfo } from '@utils/logger';
+import { logError, logInfo, logWarn } from '@utils/logger';
 import { Auth } from '@telegram/commands/auth';
+import { login } from 'telegraf/typings/button';
 
 export interface SessionData {
     report?: any;
@@ -20,6 +21,7 @@ interface BotHandler {
 
 export class TelegramBot {
     private bot: Telegraf<CustomContext>;
+    private launched = false;
     
     constructor() {
         if(!CONFIG.TELEGRAM.BOT_API_TOKEN || CONFIG.TELEGRAM.BOT_API_TOKEN.startsWith('000') ){
@@ -48,16 +50,12 @@ export class TelegramBot {
         this.bot.start((ctx) => ctx.reply('Welcome to the Participium telegram bot! To get started, run **/connect** to associate your account.', { parse_mode: 'Markdown' }));
     }
 
-    public initializeBot = async (): Promise<void> => {
-        try {
-            this.loadMiddlewares();
-            this.loadCommands();
+    public initializeBot = (): void => {
+        this.loadMiddlewares();
+        this.loadCommands();
 
-            await this.bot.launch();
-            logInfo('[TELEGRAM BOT INIT] Telegram bot ParticipiumSE05 initialize and running on t.me/ParticipiumSE05Bot');
-        } catch(error) {
-            logError('[TELEGRAM BOT INIT] Error in telegram bot initialization: ', error);
-        }
+        logInfo('[TELEGRAM BOT INIT] Telegram bot initialized and running on https://t.me/ParticipiumSE05Bot');
+        this.bot.launch();
     }
 
     public stopBot = async (): Promise<void> => {
