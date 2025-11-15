@@ -14,5 +14,6 @@ router.post('/me', authMiddleware([
     UserType.MUNICIPAL_ADMINISTRATOR,
     UserType.PUBLIC_RELATIONS_OFFICER,
     UserType.TECHNICAL_STAFF_MEMBER]), userController.me);
+router.get('/:telegramUsername', userController.findUserByTelegramUsername)
 
 export const userRouter = router;

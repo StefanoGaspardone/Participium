@@ -4,6 +4,7 @@ import {UserDAO, UserType} from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
+import { NotFoundError } from "@errors/NotFoundError";
 
 export class UserService {
 
@@ -18,6 +19,13 @@ export class UserService {
     findAllUsers = async (): Promise<UserDTO[]> => {
         const users = await this.userRepo.findAllUsers();
         return users.map(MapUserDAOtoDTO);
+    }
+
+    findUserByTelegramUsername = async (telegramUsername: string): Promise<UserDTO> => {
+        const user = await this.userRepo.findUserByTelegramUsername(telegramUsername);
+
+        if(!user) throw new NotFoundError(`No user found with telegram username ${telegramUsername}`);
+        return MapUserDAOtoDTO(user);
     }
 
     signUpUser = async (payload: NewUserDTO): Promise<UserDAO> => {

@@ -5,6 +5,7 @@ import { logError, logInfo } from '@utils/logger';
 import { Server } from 'http';
 import { app } from '@app';
 import { CONFIG } from '@config';
+import { botInstance } from '@telegram/index';
 
 let server: Server;
 
@@ -15,6 +16,7 @@ const startServer = async () => {
             logInfo(`[APP INIT] Server listening on http://localhost:${CONFIG.APP_PORT}`);
             logInfo(`[APP INIT] Swagger UI available at http://localhost:${CONFIG.APP_PORT}${CONFIG.ROUTES.SWAGGER}`);
         });
+        await botInstance.initializeBot();
     } catch(error) {
         logError('[APP INIT] Error in app initialization:', error);
         process.exit(1);
@@ -27,6 +29,7 @@ const closeServer = (): Promise<void> => {
 }
 
 async function shutdown() {
+    await botInstance.stopBot();
     await closeServer();
     logInfo('[APP CLOSE] Shutdown complete');
 

@@ -22,11 +22,15 @@ export class TelegramBot {
     private bot: Telegraf<CustomContext>;
     
     constructor() {
+        if(!CONFIG.TELEGRAM.BOT_API_TOKEN || CONFIG.TELEGRAM.BOT_API_TOKEN.startsWith('000') ){
+            logError('[TELEGRAM BOT INIT] Invalid or missing bot token');
+        }
+
         this.bot = new Telegraf<CustomContext>(CONFIG.TELEGRAM.BOT_API_TOKEN);
     }
 
     private loadMiddlewares = (): void => {
-        const session = new LocalSession({ database: 'session_db.json' });
+        const session = new LocalSession({ database: CONFIG.TELEGRAM.SESSION_JSON_PATH });
         this.bot.use(session.middleware());
     }
 
@@ -41,7 +45,7 @@ export class TelegramBot {
             handler.register(this.bot);
         });
 
-        this.bot.start((ctx) => ctx.reply('Welcome to the Participium telegram bot! To get started, run **/connect** to associate your account.'));
+        this.bot.start((ctx) => ctx.reply('Welcome to the Participium telegram bot! To get started, run **/connect** to associate your account.', { parse_mode: 'Markdown' }));
     }
 
     public initializeBot = async (): Promise<void> => {

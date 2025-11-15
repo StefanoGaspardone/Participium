@@ -32,6 +32,19 @@ export class UserController {
     }
   };
 
+  findUserByTelegramUsername = async (req: Request<{ telegramUsername: string }>, res: Response, next: NextFunction) => {
+    try {
+      const { telegramUsername } = req.params;
+
+      if(!telegramUsername.startsWith('@') || telegramUsername.length < 2) throw new BadRequestError(`${telegramUsername} is not a valid telegram username`);
+
+      const user = await this.userService.findUserByTelegramUsername(telegramUsername);
+      res.status(200).json({ user });
+    } catch(error) {
+      next(error);
+    }
+  }
+
   signUpUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (
@@ -56,11 +69,9 @@ export class UserController {
       const newUser = await this.userService.signUpUser(payload);
       res.status(201).json({ message: "User created" });
     } catch (error) {
-      if (
-        error instanceof QueryFailedError &&
-        (error as any).code === "23505"
-      ) {
-        return next(new ConflictError("Email or username already exists"));
+      if (error instanceof QueryFailedError && (error as any).code === "23505") {
+        if(req.body.telegramUsername === '') return next(new ConflictError("Email or username already exists"));
+        else return next(new ConflictError("Email, username or telegram username already exists"));
       }
       next(error);
     }
