@@ -43,5 +43,8 @@ export const CONFIG = {
     MIN_LONG: parseFloat(process.env.TURIN_MIN_LONG || "7.550"),
     MAX_LONG: parseFloat(process.env.TURIN_MAX_LONG || "7.800"),
   },
-  JWT_SECRET: process.env.JWT_SECRET || 'powerPuffGirls'
+  JWT_SECRET: process.env.JWT_SECRET || 'powerPuffGirls',
+  TELEGRAM: {
+     BOT_API_TOKEN: process.env.TELEGRAM_BOT_API_TOKEN || '7714201933:AAHzlmE5AWN3o1WirpDuc4H318NUb7WHFM4',
+  },
 };
