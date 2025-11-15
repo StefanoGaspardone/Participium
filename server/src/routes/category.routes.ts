@@ -5,6 +5,6 @@ import { Router } from 'express';
 
 const router = Router();
 
-router.get('/', authMiddleware([UserType.CITIZEN, UserType.ADMINISTRATOR]), categoryController.findAllCategories);
+router.get('/', categoryController.findAllCategories);
 
 export const categoryRouter = router;

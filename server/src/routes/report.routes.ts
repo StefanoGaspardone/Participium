@@ -6,5 +6,6 @@ import { Router } from 'express';
 const router = Router();
 
 router.post('/', authMiddleware([UserType.CITIZEN]), reportController.createReport);
+router.post('/telegram', reportController.createReportFromTelegram);
 
 export const reportRouter = router;

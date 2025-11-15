@@ -27,6 +27,17 @@ export interface CreateReportDTO {
     anonymous: boolean;
 }
 
+export interface CreateReportTelegramDTO {
+    userId: number;
+    title: string;
+    description: string;
+    categoryId: number;
+    images: string[];
+    latitude: number;
+    longitude: number;
+    anonymous: boolean;
+}
+
 export const createReportDTO = (report: ReportDAO): ReportDTO => {
     return {
         id: report.id,

@@ -4,7 +4,8 @@ import { CONFIG } from '../config/index';
 import LocalSession from 'telegraf-session-local';
 import { logError, logInfo, logWarn } from '@utils/logger';
 import { Auth } from '@telegram/commands/auth';
-import { login } from 'telegraf/typings/button';
+import fs from 'fs';
+import { NewReport } from './commands/new_report';
 
 export interface SessionData {
     report?: any;
@@ -21,7 +22,6 @@ interface BotHandler {
 
 export class TelegramBot {
     private bot: Telegraf<CustomContext>;
-    private launched = false;
     
     constructor() {
         if(!CONFIG.TELEGRAM.BOT_API_TOKEN || CONFIG.TELEGRAM.BOT_API_TOKEN.startsWith('000') ){
@@ -32,6 +32,11 @@ export class TelegramBot {
     }
 
     private loadMiddlewares = (): void => {
+        try {
+            if(fs.existsSync(CONFIG.TELEGRAM.SESSION_JSON_PATH)) fs.writeFileSync(CONFIG.TELEGRAM.SESSION_JSON_PATH, '{}', { encoding: 'utf-8' });
+            else fs.writeFileSync(CONFIG.TELEGRAM.SESSION_JSON_PATH, '{}', { encoding: 'utf-8' });
+        } catch {}
+
         const session = new LocalSession({ database: CONFIG.TELEGRAM.SESSION_JSON_PATH });
         this.bot.use(session.middleware());
     }
@@ -39,8 +44,7 @@ export class TelegramBot {
     private loadCommands = (): void => {
         const handlers: BotHandler[] = [
             new Auth(),
-            // new AuthFlow(),
-            // new ReportFlow()
+            new NewReport(),
         ];
 
         handlers.forEach(handler => {

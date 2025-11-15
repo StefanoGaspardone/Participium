@@ -1,8 +1,7 @@
-import { CONFIG } from '@config';
-import { CreateReportDTO } from '@dtos/ReportDTO';
+import { CreateReportDTO, CreateReportTelegramDTO } from '@dtos/ReportDTO';
 import { BadRequestError } from '@errors/BadRequestError';
 import { reportService, ReportService } from '@services/ReportService';
-import { Response, NextFunction } from 'express';
+import { Response, NextFunction, Request } from 'express';
 import type { AuthRequest } from '@middlewares/authenticationMiddleware';
 
 export class ReportController {
@@ -23,8 +22,9 @@ export class ReportController {
             if(typeof payload.description !== 'string') errors.description = 'Description must be a not-empty string';
             if(typeof payload.categoryId !== 'number' || Number.isNaN(payload.categoryId) || payload.categoryId <= 0) errors.categoryId = 'CategoryId must be a positive number';
             if(!Array.isArray(payload.images) || payload.images.length < 1 || payload.images.length > 3) errors.images = 'Images must be an array with 1 to 3 items';
-            if(typeof payload.lat !== 'number' || Number.isNaN(payload.lat) || payload.lat < CONFIG.TURIN.MIN_LAT || payload.lat > CONFIG.TURIN.MAX_LAT) errors.lat = `Latitude must be a number between ${CONFIG.TURIN.MIN_LAT}° and ${CONFIG.TURIN.MAX_LAT}°`;
-            if(typeof payload.long !== 'number' || Number.isNaN(payload.long) || payload.long < CONFIG.TURIN.MIN_LONG || payload.long > CONFIG.TURIN.MAX_LONG) errors.long = `Longitude must be a number between ${CONFIG.TURIN.MIN_LONG}° and ${CONFIG.TURIN.MAX_LONG}°`;
+            
+            // TODO check turin boundaries
+            
             if(typeof payload.anonymous !== 'boolean') errors.anonymous = 'Anonymous must be a boolean';
 
             if(Object.keys(errors).length > 0) {
@@ -35,6 +35,28 @@ export class ReportController {
 
             await this.reportService.createReport(userId as number, payload);
             res.status(201).json({ message: 'Report successfully created' });
+        } catch(error) {
+            next(error);
+        }
+    }
+
+    createReportFromTelegram = async (req: Request<{ payload: CreateReportTelegramDTO }>, res: Response, next: NextFunction) => {
+        try {
+            const { payload } = req.params;
+            const userId = payload.userId;
+
+            const payloadDto = {
+                title: payload.title,
+                description: payload.description,
+                categoryId: payload.categoryId,
+                images: payload.images,
+                lat: payload.latitude,
+                long: payload.longitude,
+                anonymous: payload.anonymous,
+            } as CreateReportDTO;
+
+            const report = await this.reportService.createReport(userId as number, payloadDto);
+            res.status(201).json({ message: 'Report successfully created', reportId: report.id });
         } catch(error) {
             next(error);
         }
