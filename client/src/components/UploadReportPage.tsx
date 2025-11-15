@@ -195,6 +195,7 @@ export default function UploadReport({
       <main className="upload-container">
         <section className="upload-form">
           <Button
+            id="go-to-homepage-button"
             className="w-100 mb-3"
             variant="secondary"
             onClick={() => navigate("/")}
@@ -210,6 +211,7 @@ export default function UploadReport({
                 <Form.Group>
                   <Form.Label>Latitude</Form.Label>
           <Form.Control
+            id="latitude"
             type="text"
             value={selected ? selected.lat : ""}
             readOnly
@@ -228,6 +230,7 @@ export default function UploadReport({
                 <Form.Group>
                   <Form.Label>Longitude</Form.Label>
           <Form.Control
+            id="longitude"
             type="text"
             value={selected ? selected.lng : ""}
             readOnly
@@ -246,6 +249,7 @@ export default function UploadReport({
             <Form.Group className="mb-3">
               <Form.Label>Title</Form.Label>
               <Form.Control
+                id="title"
                 type="text"
                 placeholder="Enter a title"
                 value={title}
@@ -264,6 +268,7 @@ export default function UploadReport({
             <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <Form.Control
+                id="description"
                 as="textarea"
                 rows={3}
                 placeholder="Describe the issue"
@@ -293,7 +298,7 @@ export default function UploadReport({
                   Select a category
                 </option>
                 {categories.map((category) => (
-                  <option key={category.id} value={String(category.id)}>
+                  <option id={category.name} key={category.id} value={String(category.id)}>
                     {category.name}
                   </option>
                 ))}

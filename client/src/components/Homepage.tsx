@@ -55,6 +55,7 @@ export default function HomePage({
       </Container>
       {isLoggedIn && user?.userType === "CITIZEN" && (
         <button
+          id="upload-new-report-button"
           type="button"
           className="center-action-button"
           aria-label="Create new report"
@@ -65,6 +66,7 @@ export default function HomePage({
       )}
       {isLoggedIn && user?.userType === "ADMINISTRATOR" && (
         <button
+          id="go-to-admin-page-button"
           type="button"
           className="center-action-button-admin"
           aria-label="Create new report"

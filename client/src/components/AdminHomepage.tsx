@@ -125,6 +125,7 @@ export default function AdminHomepage() {
             <Form.Group className="mb-3">
               <Form.Label>First Name</Form.Label>
               <Form.Control
+                id="first-name"
                 type="text"
                 name="firstName"
                 value={form.firstName}
@@ -136,6 +137,7 @@ export default function AdminHomepage() {
             <Form.Group className="mb-3">
               <Form.Label>Last Name</Form.Label>
               <Form.Control
+                id="last-name"
                 type="text"
                 name="lastName"
                 value={form.lastName}
@@ -146,6 +148,7 @@ export default function AdminHomepage() {
             <Form.Group className="mb-3">
               <Form.Label>Username</Form.Label>
               <Form.Control
+                id="username"
                 type="text"
                 name="username"
                 value={form.username}
@@ -157,6 +160,7 @@ export default function AdminHomepage() {
             <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
               <Form.Control
+                id="email"
                 type="email"
                 name="email"
                 value={form.email}
@@ -168,6 +172,7 @@ export default function AdminHomepage() {
             <Form.Group className="mb-3">
               <Form.Label>Password</Form.Label>
               <Form.Control
+                id="password"
                 type="password"
                 name="password"
                 value={form.password}
@@ -179,6 +184,7 @@ export default function AdminHomepage() {
             <Form.Group className="mb-3">
               <Form.Label>Role</Form.Label>
               <Form.Select
+                id="open-roles"
                 name="userType"
                 value={form.userType}
                 onChange={handleChange}
@@ -187,13 +193,13 @@ export default function AdminHomepage() {
                 <option value="" disabled>
                   Select a role
                 </option>
-                <option value="MUNICIPAL_ADMINISTRATOR">
+                <option id="municipal_administrator" value="MUNICIPAL_ADMINISTRATOR">
                   Municipal Administrator
                 </option>
-                <option value="PUBLIC_RELATIONS_OFFICER">
+                <option id="public_relations_officer" value="PUBLIC_RELATIONS_OFFICER">
                   Municipal Public Relations Officer
                 </option>
-                <option value="TECHNICAL_STAFF_MEMBER">
+                <option id="technical_staff_member" value="TECHNICAL_STAFF_MEMBER">
                   Technical Office Staff Member
                 </option>
               </Form.Select>
@@ -202,7 +208,8 @@ export default function AdminHomepage() {
             {form.userType === "TECHNICAL_STAFF_MEMBER" && (
               <Form.Group className="mb-3">
                 <Form.Label>Office Category</Form.Label>
-                <Form.Select
+                <Form.Select 
+                  id="open-offices" 
                   name="officeId"
                   value={form.officeId}
                   onChange={handleChange}
@@ -211,7 +218,7 @@ export default function AdminHomepage() {
                 >
                   <option value="" disabled>Select a technical office</option>
                   {offices.map((office) => (
-                    <option key={office.id} value={String(office.id)}>
+                    <option id="select-office"key={office.id} value={String(office.id)}>
                       {office.name}
                     </option>
                   ))}
@@ -220,6 +227,7 @@ export default function AdminHomepage() {
             )}
 
             <Button
+              id="create-account-button"
               variant="primary"
               type="submit"
               className={`w-100 d-inline-flex align-items-center justify-content-center gap-2`}

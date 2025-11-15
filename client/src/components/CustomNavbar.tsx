@@ -76,6 +76,7 @@ export default function CustomNavbar() {
 
                   {user?.image ? (
                     <Image
+                      id="profile-picture"
                       src={user.image}
                       alt="User profile"
                       roundedCircle
@@ -84,7 +85,7 @@ export default function CustomNavbar() {
                       style={{ objectFit: 'cover' }}
                     />
                   ) : (
-                    <span className="profile-icon d-inline-flex align-items-center justify-content-center">
+                    <span id="profile-picture" className="profile-icon d-inline-flex align-items-center justify-content-center">
                       <FaUserCircle className="text-white" />
                     </span>
                   )}
@@ -105,6 +106,7 @@ export default function CustomNavbar() {
 
                   { /*<Dropdown.Divider />*/}
                   <Dropdown.Item
+                    id="logout-button"
                     onClick={handleLogout}
                     className="fw-semibold"
                     style={{

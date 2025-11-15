@@ -55,6 +55,7 @@ export default function LoginPage() {
                   <Form.Group className="mb-3" controlId="formBasicUsername">
                     <Form.Label>Username</Form.Label>
                     <Form.Control
+                      id="username"
                       type="text"
                       placeholder="Enter username"
                       value={username}
@@ -66,6 +67,7 @@ export default function LoginPage() {
                   <Form.Group className="mb-3" controlId="formBasicPassword">
                     <Form.Label>Password</Form.Label>
                     <Form.Control
+                      id="password"
                       type="password"
                       placeholder="Password"
                       value={password}
@@ -75,6 +77,7 @@ export default function LoginPage() {
                   </Form.Group>
 
                   <Button
+                    id="submit-button"
                     variant="primary"
                     type="submit"
                     className="w-100"
