@@ -2,7 +2,7 @@ import { UserDTO } from '@dtos/UserDTO';
 import { Telegraf, Context } from 'telegraf';
 import { CONFIG } from '../config/index';
 import LocalSession from 'telegraf-session-local';
-import { logError, logInfo, logWarn } from '@utils/logger';
+import { logError, logInfo } from '@utils/logger';
 import { Auth } from '@telegram/commands/auth';
 import fs from 'fs';
 import { NewReport } from './commands/new_report';
