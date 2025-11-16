@@ -14,6 +14,9 @@
   - [Clone The Repository](#clone-the-repository)
   - [Run The Backend](#run-the-backend)
   - [Run The Frontend](#run-the-frontend)
+- [Telegram Bot](#telegram-bot)
+  - [Setup](#setup)
+  - [Commands](#commands)
 
 ## Overview
 
@@ -161,6 +164,8 @@ git clone https://github.com/StefanoGaspardone/Participium.git
 
   A swagger documentation is available at <http://localhost:3000/api/docs>.
 
+  Moreover, the [telegram bot](#telegram-bot) is initialized and running at <https://t.me/ParticipiumSE05Bot>.
+
 ### Run The Frontend
 
 - Navigate to the client folder
@@ -182,3 +187,30 @@ git clone https://github.com/StefanoGaspardone/Participium.git
   ```
 
   The client will be running at <http://localhost:5173>.
+
+## Telegram Bot
+
+The Participium Telegram bot helps citizens create reports directly from Telegram and receive updates.
+
+### Setup
+
+- Bot URL: <https://t.me/ParticipiumSE05Bot>
+- The bot starts automatically when the backend starts.
+- Make sure to set your Telegram username in Telegram settings (e.g., `@yourusername`).
+
+### Commands
+
+- `/start`: Shows a welcome message and basic instructions.
+
+- `/connect`: Links your Participium account to your Telegram username.
+  - Prerequisites: set your Telegram username in Telegram settings (e.g., `@yourusername`).
+  - The bot matches your Telegram username to a registered user in Participium.
+  - If not found, complete registration on the web app and set your username there.
+  
+- `/new_report`: Starts a guided, multi‑step flow to submit a new report.
+  - Step 1 – Location: send your location (must be inside the Municipality of Turin).
+  - Step 2 – Title: send a short title.
+  - Step 3 – Description: send a detailed description of the issue.
+  - Step 4 – Category: choose from the inline keyboard (categories are loaded from the server).
+  - Step 5 – Images: send 1–3 photos. When done, send `/done`.
+  - Step 6 – Anonymous: choose Yes/No for anonymous submission, then the bot submits the report.
