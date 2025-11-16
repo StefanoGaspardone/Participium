@@ -23,7 +23,7 @@ export class ReportController {
             if(typeof payload.description !== 'string') errors.description = 'Description must be a not-empty string';
             if(typeof payload.categoryId !== 'number' || Number.isNaN(payload.categoryId) || payload.categoryId <= 0) errors.categoryId = 'CategoryId must be a positive number';
             if(!Array.isArray(payload.images) || payload.images.length < 1 || payload.images.length > 3) errors.images = 'Images must be an array with 1 to 3 items';
-            if(!payload.latitude || !payload.longitude || !isPointInTurin(payload.latitude, payload.longitude)) errors.location = 'The location has to be inside the Municipality of Turin';
+            if(typeof payload.lat !== 'number' || Number.isNaN(payload.lat) || typeof payload.long !== 'number' || Number.isNaN(payload.long) || !isPointInTurin(payload.lat, payload.long)) errors.location = 'The location has to be inside the Municipality of Turin';
             if(typeof payload.anonymous !== 'boolean') errors.anonymous = 'Anonymous must be a boolean';
 
             if(Object.keys(errors).length > 0) {
