@@ -184,11 +184,11 @@ export class NewReport {
         return ctx.reply(
             '*STEP 6/6: Anonymous Report?*\nDo you want this report to be sent anonymously? Select YES or NO to finish.', {
                 parse_mode: 'Markdown',
+                ...Markup.removeKeyboard(),
                 ...Markup.inlineKeyboard([
                     Markup.button.callback('Yes', 'anon_true'),
                     Markup.button.callback('No', 'anon_false')
                 ], { columns: 2 }),
-                ...Markup.removeKeyboard(),
             }
         );
     }
