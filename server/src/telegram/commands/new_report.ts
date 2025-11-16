@@ -25,7 +25,7 @@ export class NewReport {
 
         bot.on('location', requireAppUser, this.handleLocation);
         bot.on('photo', requireAppUser, this.handlePhoto);
-        bot.on('text', requireAppUser, this.handleText);
+        bot.hears(/^(?!\/).+/s, requireAppUser, this.handleText);
         bot.on('callback_query', requireAppUser, this.handleCallbackQuery);
     }
 
