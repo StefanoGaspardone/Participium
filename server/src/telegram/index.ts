@@ -51,7 +51,7 @@ export class TelegramBot {
             handler.register(this.bot);
         });
 
-        this.bot.start((ctx) => ctx.reply('Welcome to the Participium telegram bot! To get started, run **/connect** to associate your account.', { parse_mode: 'Markdown' }));
+        this.bot.start((ctx) => ctx.reply('Welcome to the Participium telegram bot!\nTo get started, run */connect* to associate your account.', { parse_mode: 'Markdown' }));
     }
 
     public initializeBot = (): void => {

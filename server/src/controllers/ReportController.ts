@@ -3,6 +3,7 @@ import { BadRequestError } from '@errors/BadRequestError';
 import { reportService, ReportService } from '@services/ReportService';
 import { Response, NextFunction, Request } from 'express';
 import type { AuthRequest } from '@middlewares/authenticationMiddleware';
+import { isPointInTurin } from '@utils/geo_turin';
 
 export class ReportController {
 
@@ -22,9 +23,7 @@ export class ReportController {
             if(typeof payload.description !== 'string') errors.description = 'Description must be a not-empty string';
             if(typeof payload.categoryId !== 'number' || Number.isNaN(payload.categoryId) || payload.categoryId <= 0) errors.categoryId = 'CategoryId must be a positive number';
             if(!Array.isArray(payload.images) || payload.images.length < 1 || payload.images.length > 3) errors.images = 'Images must be an array with 1 to 3 items';
-            
-            // TODO check turin boundaries
-            
+            if(!payload.latitude || !payload.longitude || !isPointInTurin(payload.latitude, payload.longitude)) errors.location = 'The location has to be inside the Municipality of Turin';
             if(typeof payload.anonymous !== 'boolean') errors.anonymous = 'Anonymous must be a boolean';
 
             if(Object.keys(errors).length > 0) {
@@ -40,9 +39,9 @@ export class ReportController {
         }
     }
 
-    createReportFromTelegram = async (req: Request<{ payload: CreateReportTelegramDTO }>, res: Response, next: NextFunction) => {
+    createReportFromTelegram = async (req: Request<{}, {}, { payload: CreateReportTelegramDTO }>, res: Response, next: NextFunction) => {
         try {
-            const { payload } = req.params;
+            const { payload } = req.body;
             const userId = payload.userId;
 
             const payloadDto = {
