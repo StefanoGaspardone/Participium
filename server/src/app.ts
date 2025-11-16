@@ -10,7 +10,6 @@ import { uploadRouter } from '@routes/upload.routes';
 import { reportRouter } from '@routes/report.routes';
 import {userRouter} from "@routes/user.routes";
 import {officeRouter} from "@routes/office.routes";
-import { healthRouter } from '@routes/health.routes';
 
 export const app = express();
 
@@ -40,7 +39,6 @@ app.use(CONFIG.ROUTES.SWAGGER, swaggerUi.serve, swaggerUi.setup(YAML.load(CONFIG
 //     })
 // );
 
-app.use('/', healthRouter);
 app.use(CONFIG.ROUTES.CATEGORIES, categoryRouter);
 app.use(CONFIG.ROUTES.UPLOADS, uploadRouter);
 app.use(CONFIG.ROUTES.REPORTS, reportRouter);
