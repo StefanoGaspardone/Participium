@@ -6,7 +6,7 @@ import {
 import { registerPage } from "../../pageObjects/registerPage";
 import { generateRandomString } from "../../pageObjects/utils";
 
-describe("3. Test suite for registerpage tests :", () => {
+describe("3. Test suite for register page :", () => {
   /** credentials are generated here, so that they are "fresh" for the first test, but already rgistered for the second test  */
   it("3.1 Inserting correct fields should lead to a correct registration process and login page", () => {
     cy.visit(REGISTERPAGE_URL);

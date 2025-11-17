@@ -8,8 +8,10 @@ const homePage = {
     },
     clickLogin2: () => {
         cy.get('[id="login-2"]').focus().click();
+    },
+    clickNewReport: () => {
+        cy.get('[id="upload-new-report-button"]').click();
     }
-
 }
 
 export { homePage }

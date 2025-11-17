@@ -1,7 +1,21 @@
-import { HOMEPAGE_URL, LOGINPAGE_URL, UPLOADREPORTPAGE_URL } from "../../support/utils";
+import {
+  HOMEPAGE_URL,
+  LOGINPAGE_URL,
+  UPLOADREPORTPAGE_URL,
+} from "../../support/utils";
 import { homePage } from "../../pageObjects/homePage";
 import { loginPage } from "../../pageObjects/loginPage";
-describe("1. Test suite for homepage tests :", () => {
+
+const performLoginAsCitizen = () => {
+  cy.visit(LOGINPAGE_URL);
+  loginPage.insertUsername("giack.team5");
+  loginPage.insertPassword("password");
+  loginPage.submitForm();
+  loginPage.acceptAlertValid();
+  cy.url().should("equal", HOMEPAGE_URL);
+};
+
+describe("1. Test suite for home page :", () => {
   /** NON LOGGED user tests */
   it("1.1 Login button should lead to right login page", () => {
     cy.visit(HOMEPAGE_URL);
@@ -15,18 +29,9 @@ describe("1. Test suite for homepage tests :", () => {
     cy.url().should("equal", LOGINPAGE_URL);
   });
 
-  const performLogin = () => {
-    cy.visit(LOGINPAGE_URL);
-    loginPage.insertUsername("giack.team5");
-    loginPage.insertPassword("password");
-    loginPage.submitForm();
-    loginPage.acceptAlertValid();
-    cy.url().should("equal", HOMEPAGE_URL);
-  };
-
   /** LOGGED user tests */
   it("1.3 As a logged user i should be able to click the map and select a location (identified b latitude and longitude)", () => {
-    performLogin();
+    performLoginAsCitizen();
     cy.get('[id="selected-location"]').should(
       "contain.text",
       "Click on the map to pick a location"
@@ -40,8 +45,8 @@ describe("1. Test suite for homepage tests :", () => {
   });
 
   it("1.4 As a logged user i should be able to go onto the upload a new report page", () => {
-    performLogin();
+    performLoginAsCitizen();
     cy.get('[id="upload-new-report-button"]').click();
-    cy.url().should('equal', UPLOADREPORTPAGE_URL);
-  })
+    cy.url().should("equal", UPLOADREPORTPAGE_URL);
+  });
 });

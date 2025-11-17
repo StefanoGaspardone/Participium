@@ -5,7 +5,7 @@ import {
 } from "../../support/utils";
 import { loginPage } from "../../pageObjects/loginPage";
 
-describe("2. Test suite for homepage tests :", () => {
+describe("2. Test suite for login page :", () => {
   it("2.1 Register button should lead to right register page", () => {
     cy.visit(LOGINPAGE_URL);
     loginPage.clickRegister();
