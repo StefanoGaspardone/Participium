@@ -8,6 +8,7 @@ import "./App.css";
 import "./custom_theme.scss";
 import AdminHomepage from "./components/AdminHomepage";
 import { useAppContext } from "./contexts/AppContext";
+import ProfilePage from "./components/ProfilePage.tsx";
 
 function App() {
   // selected and setSelected are the two parameters (as props) that have to be passed to the Map component
@@ -64,6 +65,18 @@ function App() {
             ) : (
               <Navigate to="/"/>
             )
+          }
+        />
+        <Route
+            path="/profile"
+            element={
+              isLoggedIn ? (
+                  user?.userType === 'CITIZEN' && (
+                      <ProfilePage/>
+                  )
+              ) : (
+                  <Navigate to="/"/>
+              )
           }
         />
       </Routes>
