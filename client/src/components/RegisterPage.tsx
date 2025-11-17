@@ -151,12 +151,12 @@ export default function RegisterPage() {
                                 </Form.Group>
                                 */}
                                 
-                                <Button variant="primary" type="submit" className="w-100 mt-3" disabled={loading}>
+                                <Button id="submit-button" variant="primary" type="submit" className="w-100 mt-3" disabled={loading}>
                                     {loading ? "Registering..." : "Register"}
                                 </Button>
                             </Form>
                             <div className="mt-3 text-center">
-                                Already have an account? <Link to="/login">Log in</Link>
+                                Already have an account? <Link id="login-redirect" to="/login">Log in</Link>
                             </div>
                         </Card.Body>
                     </Card>

@@ -119,6 +119,7 @@ export default function CustomNavbar() {
               </Dropdown>
             ) : (
               <Link
+                id="login-1"
                 to="/login"
                 className="btn btn-warning me-3"
               >

@@ -84,16 +84,16 @@ export default function Map({ selected, setSelected }: Props) {
       {isLoggedIn && (
         <div className = 'map-coords-top' aria-live="polite">
           {selected ? (
-            <span>
+            <span id="selected-location">
               Selected location: ({selected.lat}, {selected.lng})
             </span>
           ) : (
-            <span style={{ opacity: 0.7 }}>Click on the map to pick a location</span>
+            <span id="selected-location" style={{ opacity: 0.7 }}>Click on the map to pick a location</span>
           )}
         </div>
       )}
 
-      <div ref={mapContainer} className="map" />
+      <div ref={mapContainer} id="map-container" className="map" />
     </div>
   );
 }
