@@ -191,9 +191,11 @@ export class UserController {
 
           // check that in the requst body there are only fields that can be updated
           for(const key in req.body){
-              console.log(key)
               if(!Object.values(["firstName", "lastName", "username", "email", "image", "telegramUsername"]).includes(key)){
                   throw new BadRequestError(`Field ${key} cannot be updated.`);
+              }
+              if(req.body[key] === ''){
+                    throw new BadRequestError(`Field ${key} cannot be empty.`);
               }
           }
 
