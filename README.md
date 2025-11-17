@@ -205,7 +205,8 @@ The Participium Telegram bot helps citizens create reports directly from Telegra
 - `/connect`: Links your Participium account to your Telegram username.
   - Prerequisites: set your Telegram username in Telegram settings (e.g., `@yourusername`).
   - The bot matches your Telegram username to a registered user in Participium.
-  - If not found, complete registration on the web app and set your username there.
+  - Then, it will ask for the Participium account password.
+  - If success, you are able to play with the bot; otherwise, specific error messages are shown.
 
 - `/new_report`: Starts a guided, multi‑step flow to submit a new report.
   - Step 1 - Location: send your location (must be inside the Municipality of Turin).
