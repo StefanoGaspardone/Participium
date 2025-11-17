@@ -14,6 +14,10 @@ export class OfficeRepository {
         return this.repo.findOneBy({ id });
     }
 
+    findOrganizationOffice = async (): Promise<OfficeDAO | null> => {
+        return this.repo.findOneBy({name : "Organization"});
+    }
+
     findAllOffices = async (): Promise<OfficeDAO[]> => {
         return this.repo.find();  // add {relations: ['categories', 'users']} if needed, in case remember to update OfficeRoleDTO
     }

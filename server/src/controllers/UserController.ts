@@ -106,7 +106,7 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      console.log(req.body);
+      //console.log(req.body);
 
       if (
         !req.body.email ||
