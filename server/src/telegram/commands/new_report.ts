@@ -30,11 +30,9 @@ export class NewReport {
     }
 
     private startReportFlow = async (ctx: CustomContext) => {
-        const userId = ctx.session.user!.id;
-
         ctx.session.report = {
             step: 'location', 
-            data: { userId },
+            data: { },
             categories: []
         };
 
@@ -81,12 +79,13 @@ export class NewReport {
     }
 
     private handleText = async (ctx: CustomContext) => {
-        const upd: any = ctx.update;
-        const msg: any = (upd && 'message' in upd) ? upd.message : null;
-        
-        if(!msg || typeof msg.text !== 'string') return;
-        
-        const text: string = msg.text.trim();
+        if(ctx.session.auth?.awaitingPassword) return;
+
+        const msg: any = ctx.message;
+        const text: string | undefined = msg?.text;
+        if(!text) return;
+        if(text.startsWith('/')) return;
+
         const reportState = ctx.session.report;
 
         if (!reportState || ['location', 'awaiting_photos', 'anonymous', 'complete'].includes(reportState.step)) return;
@@ -236,7 +235,7 @@ export class NewReport {
 
         const finalReport = {
             ...reportState.data,
-            userId: ctx.session.user!.id,
+            userId: ctx.session.auth.user!.id,
             images: reportState.data.images || [],
         };
 
