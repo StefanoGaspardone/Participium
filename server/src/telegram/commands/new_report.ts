@@ -4,20 +4,6 @@ import { requireAppUser } from '@telegram/middlewares/authMiddleware';
 import { CONFIG } from '@config';
 import { isPointInTurin } from '@utils/geo_turin';
 
-interface UploadSignResponse {
-    apiKey: string;
-    timestamp: number;
-    signature: string;
-    cloudName: string;
-    defaultFolder?: string;
-    uploadPreset?: string;
-}
-
-interface CloudinaryUploadResponse {
-    secure_url?: string;
-    url?: string;
-}
-
 export class NewReport {
     public register = (bot: Telegraf<CustomContext>): void => {
         bot.command('new_report', requireAppUser, this.startReportFlow);
@@ -51,7 +37,6 @@ export class NewReport {
             );
 
         } catch(error) {
-            const msg = (error instanceof Error) ? error.message : 'Unknown error';
             return ctx.reply('*Error* during initial loading. Please try again later.', { parse_mode: 'Markdown' });
         }
     }
@@ -205,7 +190,6 @@ export class NewReport {
         
         if(currentStep === 'category' && callbackData.startsWith('category_')) {
             const categoryId = parseInt(callbackData.substring(9));
-            const selectedCategory = (reportState.categories as Array<{id:number; name:string}>).find((c:{id:number; name:string}) => c.id === categoryId);
             
             reportState.data.categoryId = categoryId;
             reportState.step = 'awaiting_photos';
