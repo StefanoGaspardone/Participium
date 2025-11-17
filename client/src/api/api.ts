@@ -1,4 +1,4 @@
-import type { Category, Office } from "../models/models";
+import type { Category, Office, User } from "../models/models";
 import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
@@ -240,5 +240,34 @@ export const getOffices = async (): Promise<Office[]> => {
   }));
 
   return offices;
+};
+
+export interface UpdateUserPayload {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  username?: string;
+  image?: string | null;
+  telegramUsername?: string | null;
+}
+
+export const updateUser = async (
+    id: number,
+    payload: UpdateUserPayload
+): Promise<{ message: string; user: User }> => {
+  const res = await fetch(`${BASE_URL}/users/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+
+  return res.json();
 };
 
