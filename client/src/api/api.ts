@@ -23,6 +23,7 @@ export interface RegisterPayload {
   username: string;
   image?: string | null;
   telegramUsername?: string | null;
+  emailNotificationsEnabled: boolean;
 }
 
 export interface LoginPayload {
@@ -249,6 +250,7 @@ export interface UpdateUserPayload {
   username?: string;
   image?: string | null;
   telegramUsername?: string | null;
+  emailNotificationsEnabled?: boolean;
 }
 
 export const updateUser = async (

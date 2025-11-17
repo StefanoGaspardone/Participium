@@ -37,7 +37,7 @@ export class UserService {
         user.userType = UserType.CITIZEN;
         user.image = payload.image;
         user.telegramUsername = payload.telegramUsername;
-
+        user.emailNotificationsEnabled = payload.emailNotificationsEnabled;
         const salt = await bcrypt.genSalt(10);
         user.passwordHash = await bcrypt.hash(payload.password, salt);
 
@@ -99,7 +99,7 @@ export class UserService {
         if(updateData.username !== undefined) user.username = updateData.username;
         if(updateData.image !== undefined) user.image = updateData.image;
         if(updateData.telegramUsername !== undefined) user.telegramUsername = updateData.telegramUsername;
-
+        if(updateData.emailNotificationsEnabled !== undefined) user.emailNotificationsEnabled = updateData.emailNotificationsEnabled;
         const updatedUser = await this.userRepo.updateUser(user);
         return MapUserDAOtoDTO(updatedUser);
     }

@@ -12,6 +12,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
     const [telegram, setTelegram] = useState("");
     const [profilePic, setProfilePic] = useState<File | null>(null);
+    const [emailNotifications, setEmailNotifications] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
@@ -35,6 +36,7 @@ export default function RegisterPage() {
                 username: username.trim(),
                 image: imageUrl,
                 telegramUsername: telegram.trim() || null,
+                emailNotificationsEnabled: emailNotifications
             };
 
             await registerUser(payload);
@@ -138,6 +140,14 @@ export default function RegisterPage() {
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                             setProfilePic(e.target.files ? e.target.files[0] : null)
                                         }
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3" controlId="formEmailNotifications">
+                                    <Form.Check
+                                        type="switch"
+                                        label="Receive email notifications"
+                                        checked={emailNotifications}
+                                        onChange={(e) => setEmailNotifications(e.target.checked)}
                                     />
                                 </Form.Group>
                                 <Button variant="primary" type="submit" className="w-100 mt-3" disabled={loading}>

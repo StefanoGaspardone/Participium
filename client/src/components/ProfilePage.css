@@ -333,6 +333,127 @@
     cursor: not-allowed;
 }
 
+/* Email Notifications Toggle Styles */
+.profile-notifications-toggle {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px solid #e9ecef;
+}
+
+.profile-toggle-label {
+    cursor: pointer;
+    display: block;
+    margin: 0;
+}
+
+.profile-toggle-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.profile-toggle-content:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.profile-toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+}
+
+.profile-toggle-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-toggle-description {
+    font-size: 13px;
+    color: #6c757d;
+    font-weight: 400;
+}
+
+.profile-toggle-switch {
+    position: relative;
+    width: 56px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.profile-toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.profile-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 28px;
+}
+
+.profile-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.profile-toggle-input:checked + .profile-toggle-slider {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.profile-toggle-input:focus + .profile-toggle-slider {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.profile-toggle-input:checked + .profile-toggle-slider:before {
+    transform: translateX(28px);
+}
+
+/* Animation for toggle */
+.profile-toggle-slider {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+}
+
+.profile-toggle-input:checked + .profile-toggle-slider {
+    animation: none;
+}
+
 @media (max-width: 768px) {
     .profile-page {
         padding: 20px 10px;
@@ -375,6 +496,16 @@
     .profile-button {
         width: 100%;
         justify-content: center;
+    }
+
+    .profile-toggle-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .profile-toggle-switch {
+        align-self: flex-end;
     }
 }
 

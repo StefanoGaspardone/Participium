@@ -52,10 +52,11 @@ export class UserController {
         !req.body.password ||
         !req.body.firstName ||
         !req.body.lastName ||
-        !req.body.username
+        !req.body.username ||
+        !req.body.emailNotificationsEnabled
       ) {
         throw new BadRequestError(
-          "Missing one or more required fields: email, password, firstName, lastName, username"
+          "Missing one or more required fields: email, password, firstName, lastName, username, emailNotificationsEnabled"
         );
       }
       const payload = {} as NewUserDTO;
@@ -66,6 +67,7 @@ export class UserController {
       payload.username = req.body.username;
       payload.image = req.body.image;
       payload.telegramUsername = req.body.telegramUsername;
+      payload.emailNotificationsEnabled = req.body.emailNotificationsEnabled;
       const newUser = await this.userService.signUpUser(payload);
       res.status(201).json({ message: "User created" });
     } catch (error) {
@@ -191,7 +193,7 @@ export class UserController {
 
           // check that in the requst body there are only fields that can be updated
           for(const key in req.body){
-              if(!Object.values(["firstName", "lastName", "username", "email", "image", "telegramUsername"]).includes(key)){
+              if(!Object.values(["firstName", "lastName", "username", "email", "image", "telegramUsername", "emailNotificationsEnabled"]).includes(key)){
                   throw new BadRequestError(`Field ${key} cannot be updated.`);
               }
               if(req.body[key] === ''){
@@ -206,13 +208,12 @@ export class UserController {
           if (req.body.email !== undefined) updateData.email = req.body.email;
           if (req.body.image !== undefined) updateData.image = req.body.image;
           if (req.body.telegramUsername !== undefined) updateData.telegramUsername = req.body.telegramUsername;
-
+          if (req.body.emailNotificationsEnabled !== undefined) updateData.emailNotificationsEnabled = req.body.emailNotificationsEnabled;
           const user = await this.userService.updateUser(userId, updateData);
           res.status(200).json({ message: "User updated successfully" , user});
       } catch (error) {
           if (error instanceof QueryFailedError && (error as any).code === "23505") {
-              if(req.body.telegramUsername === '') return next(new ConflictError("Email or username already exists"));
-              else return next(new ConflictError("Email, username or telegram username already exists"));
+              return next(new ConflictError("Email, username or telegram username already exists"));
           }
           next(error);
       }

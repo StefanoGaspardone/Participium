@@ -17,6 +17,7 @@ export interface User {
     image?: string | null;
     telegramUsername?: string | null;
     userType: string;
+    emailNotificationsEnabled: boolean;
     // office?: string | null;
     // createdAt: Date;
 }

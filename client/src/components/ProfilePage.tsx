@@ -20,6 +20,7 @@ export default function ProfilePage() {
         email: user?.email || "",
         username: user?.username || "",
         telegramUsername: user?.telegramUsername || "",
+        emailNotifications: user?.emailNotificationsEnabled || false,
     });
 
     if (!isLoggedIn || !user) {
@@ -55,6 +56,7 @@ export default function ProfilePage() {
             email: user.email,
             username: user.username,
             telegramUsername: user.telegramUsername || "",
+            emailNotifications: user.emailNotificationsEnabled || false,
         });
     };
 
@@ -107,6 +109,7 @@ export default function ProfilePage() {
                 email: formData.email,
                 username: formData.username,
                 telegramUsername: formData.telegramUsername || null,
+                emailNotificationsEnabled: formData.emailNotifications
             };
             if (imageUrl) {
                 payload.image = imageUrl;
@@ -216,6 +219,10 @@ export default function ProfilePage() {
                                             <span className="profile-info-value">@{user.telegramUsername}</span>
                                         </div>
                                     )}
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">Receive email notifications</span>
+                                        <span className="profile-info-value">{user.emailNotificationsEnabled? "yes" : "no"}</span>
+                                    </div>
                                 </div>
                             ) : (
                                 <form onSubmit={handleSubmit} className="profile-edit-form">
@@ -290,6 +297,28 @@ export default function ProfilePage() {
                                                 placeholder="Optional"
                                             />
                                         </div>
+                                    </div>
+                                    <div className="profile-form-group profile-notifications-toggle">
+                                        <label className="profile-toggle-label">
+                                            <div className="profile-toggle-content">
+                                                <div className="profile-toggle-info">
+                                                    <span className="profile-toggle-title">Email Notifications</span>
+                                                    <span className="profile-toggle-description">
+                                                        Receive updates and alerts via email
+                                                    </span>
+                                                </div>
+                                                <div className="profile-toggle-switch">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="emailNotifications"
+                                                        checked={formData.emailNotifications}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, emailNotifications: e.target.checked }))}
+                                                        className="profile-toggle-input"
+                                                    />
+                                                    <span className="profile-toggle-slider"></span>
+                                                </div>
+                                            </div>
+                                        </label>
                                     </div>
                                 </form>
                             )}
