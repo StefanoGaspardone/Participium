@@ -8,6 +8,7 @@ import {UserType} from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 
 const OFFICES: string[] = [
+    'Organization',
     'Public Services Division',
     'Environmental Quality Division',
     'Green Areas, Parks and Animal Welfare Division',

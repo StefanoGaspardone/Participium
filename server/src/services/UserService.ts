@@ -4,7 +4,7 @@ import {UserDAO, UserType} from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
-import { NotFoundError } from "@errors/NotFoundError";
+import {NotFoundError} from "@errors/NotFoundError";
 
 export class UserService {
 
@@ -68,6 +68,13 @@ export class UserService {
                 const office = await this.officeRepo.findOfficeById(payload.officeId);
                 if(!office){
                     throw new BadRequestError("office not found.");
+                }
+                user.office = office;
+            }else if(payload.userType == UserType.MUNICIPAL_ADMINISTRATOR || payload.userType == UserType.PUBLIC_RELATIONS_OFFICER){
+                const office = await this.officeRepo.findOrganizationOffice();
+                console.log(office);
+                if(!office){
+                    throw new BadRequestError("Organization office not found.");
                 }
                 user.office = office;
             }
