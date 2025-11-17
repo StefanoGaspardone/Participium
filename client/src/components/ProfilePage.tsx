@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppContext } from "../contexts/AppContext.tsx";
 import "./ProfilePage.css";
 import CustomNavbar from "./CustomNavbar.tsx";
-import { updateUser, type UpdateUserPayload } from "../api/api.ts";
+import { updateUser, type UpdateUserPayload, uploadImages } from "../api/api.ts";
 
 export default function ProfilePage() {
     const { user, isLoggedIn, setUser } = useAppContext();
@@ -10,6 +10,8 @@ export default function ProfilePage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [profilePic, setProfilePic] = useState<File | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -44,6 +46,8 @@ export default function ProfilePage() {
         setIsEditing(true);
         setError(null);
         setSuccessMessage(null);
+        setProfilePic(null);
+        setPreviewImage(null);
         // Reset form data to current user data
         setFormData({
             firstName: user.firstName,
@@ -58,11 +62,29 @@ export default function ProfilePage() {
         setIsEditing(false);
         setError(null);
         setSuccessMessage(null);
+        setProfilePic(null);
+        setPreviewImage(null);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files ? e.target.files[0] : null;
+        setProfilePic(file);
+
+        // Create preview URL
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setPreviewImage(null);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -72,6 +94,13 @@ export default function ProfilePage() {
         setSuccessMessage(null);
 
         try {
+            let imageUrl: string | null = null;
+
+            // Upload new profile picture if one was selected
+            if (profilePic) {
+                imageUrl = await uploadImages(profilePic);
+            }
+
             const payload: UpdateUserPayload = {
                 firstName: formData.firstName,
                 lastName: formData.lastName,
@@ -79,7 +108,9 @@ export default function ProfilePage() {
                 username: formData.username,
                 telegramUsername: formData.telegramUsername || null,
             };
-
+            if (imageUrl) {
+                payload.image = imageUrl;
+            }
             const response = await updateUser(user.id, payload);
 
             // Update the user in context
@@ -89,11 +120,17 @@ export default function ProfilePage() {
 
             setSuccessMessage("Profile updated successfully!");
             setIsEditing(false);
+            setProfilePic(null);
+            setPreviewImage(null);
 
             // Clear success message after 3 seconds
             setTimeout(() => setSuccessMessage(null), 3000);
-        } catch (err: any) {
-            setError(err.message || "Failed to update profile");
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message || "Failed to update profile");
+            } else {
+                setError("Failed to update profile");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -102,172 +139,193 @@ export default function ProfilePage() {
 
     return (
         <>
-        <CustomNavbar/>
-        <div className="profile-page">
-            <div className="profile-container">
-                {/* Header Section */}
-                <div className="profile-header">
-                    <div className="profile-avatar-container">
-                        {user.image ? (
-                            <img
-                                src={user.image}
-                                alt={`${user.firstName} ${user.lastName}`}
-                                className="profile-avatar"
-                            />
-                        ) : (
-                            <div className="profile-avatar-placeholder">
-                                {getInitials()}
-                            </div>
-                        )}
-                    </div>
-                    <h1 className="profile-name">
-                        {user.firstName} {user.lastName}
-                    </h1>
-                    <p className="profile-username">@{user.username}</p>
-                    <div style={{ marginTop: '15px' }}>
+            <CustomNavbar/>
+            <div className="profile-page">
+                <div className="profile-container">
+                    {/* Header Section */}
+                    <div className="profile-header">
+                        <div className="profile-avatar-container">
+                            {previewImage ? (
+                                <img
+                                    src={previewImage}
+                                    alt="Preview"
+                                    className="profile-avatar"
+                                />
+                            ) : user.image ? (
+                                <img
+                                    src={user.image}
+                                    alt={`${user.firstName} ${user.lastName}`}
+                                    className="profile-avatar"
+                                />
+                            ) : (
+                                <div className="profile-avatar-placeholder">
+                                    {getInitials()}
+                                </div>
+                            )}
+                        </div>
+                        <h1 className="profile-name">
+                            {user.firstName} {user.lastName}
+                        </h1>
+                        <p className="profile-username">@{user.username}</p>
+                        <div style={{ marginTop: '15px' }}>
                         <span className={`profile-badge ${user.userType === 'admin' ? 'profile-badge-admin' : 'profile-badge-user'}`}>
                             {user.userType || 'User'}
                         </span>
+                        </div>
                     </div>
-                </div>
 
-                {/* Body Section */}
-                <div className="profile-body">
-                    {/* Success/Error Messages */}
-                    {successMessage && (
-                        <div className="profile-message profile-message-success">
-                            {successMessage}
-                        </div>
-                    )}
-                    {error && (
-                        <div className="profile-message profile-message-error">
-                            {error}
-                        </div>
-                    )}
-
-                    {/* Personal Information */}
-                    <div className="profile-info-card">
-                        <h2 className="profile-info-title">Personal Information</h2>
-
-                        {!isEditing ? (
-                            <div className="profile-info-grid">
-                                <div className="profile-info-item">
-                                    <span className="profile-info-label">First Name</span>
-                                    <span className="profile-info-value">{user.firstName}</span>
-                                </div>
-                                <div className="profile-info-item">
-                                    <span className="profile-info-label">Last Name</span>
-                                    <span className="profile-info-value">{user.lastName}</span>
-                                </div>
-                                <div className="profile-info-item">
-                                    <span className="profile-info-label">Username</span>
-                                    <span className="profile-info-value">{user.username}</span>
-                                </div>
-                                <div className="profile-info-item">
-                                    <span className="profile-info-label">Email</span>
-                                    <span className="profile-info-value">{user.email}</span>
-                                </div>
-                                {user.telegramUsername && (
-                                    <div className="profile-info-item">
-                                        <span className="profile-info-label">Telegram</span>
-                                        <span className="profile-info-value">@{user.telegramUsername}</span>
-                                    </div>
-                                )}
+                    {/* Body Section */}
+                    <div className="profile-body">
+                        {/* Success/Error Messages */}
+                        {successMessage && (
+                            <div className="profile-message profile-message-success">
+                                {successMessage}
                             </div>
-                        ) : (
-                            <form onSubmit={handleSubmit} className="profile-edit-form">
-                                <div className="profile-info-grid">
-                                    <div className="profile-form-group">
-                                        <label className="profile-form-label">First Name</label>
-                                        <input
-                                            type="text"
-                                            name="firstName"
-                                            value={formData.firstName}
-                                            onChange={handleInputChange}
-                                            className="profile-form-input"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="profile-form-group">
-                                        <label className="profile-form-label">Last Name</label>
-                                        <input
-                                            type="text"
-                                            name="lastName"
-                                            value={formData.lastName}
-                                            onChange={handleInputChange}
-                                            className="profile-form-input"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="profile-form-group">
-                                        <label className="profile-form-label">Username</label>
-                                        <input
-                                            type="text"
-                                            name="username"
-                                            value={formData.username}
-                                            onChange={handleInputChange}
-                                            className="profile-form-input"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="profile-form-group">
-                                        <label className="profile-form-label">Email</label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            className="profile-form-input"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="profile-form-group">
-                                        <label className="profile-form-label">Telegram Username</label>
-                                        <input
-                                            type="text"
-                                            name="telegramUsername"
-                                            value={formData.telegramUsername}
-                                            onChange={handleInputChange}
-                                            className="profile-form-input"
-                                            placeholder="Optional"
-                                        />
-                                    </div>
-                                </div>
-                            </form>
                         )}
-                    </div>
+                        {error && (
+                            <div className="profile-message profile-message-error">
+                                {error}
+                            </div>
+                        )}
 
-                    {/* Actions */}
-                    <div className="profile-actions">
-                        {!isEditing ? (
-                            <button
-                                className="profile-button profile-button-primary"
-                                onClick={handleEditClick}
-                            >
-                                Edit Profile
-                            </button>
-                        ) : (
-                            <>
+                        {/* Personal Information */}
+                        <div className="profile-info-card">
+                            <h2 className="profile-info-title">Personal Information</h2>
+
+                            {!isEditing ? (
+                                <div className="profile-info-grid">
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">First Name</span>
+                                        <span className="profile-info-value">{user.firstName}</span>
+                                    </div>
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">Last Name</span>
+                                        <span className="profile-info-value">{user.lastName}</span>
+                                    </div>
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">Username</span>
+                                        <span className="profile-info-value">{user.username}</span>
+                                    </div>
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">Email</span>
+                                        <span className="profile-info-value">{user.email}</span>
+                                    </div>
+                                    {user.telegramUsername && (
+                                        <div className="profile-info-item">
+                                            <span className="profile-info-label">Telegram</span>
+                                            <span className="profile-info-value">@{user.telegramUsername}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubmit} className="profile-edit-form">
+                                    <div className="profile-form-group" style={{ marginBottom: '20px' }}>
+                                        <label className="profile-form-label">Profile Picture</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="profile-form-input"
+                                        />
+                                        {profilePic && (
+                                            <small style={{ display: 'block', marginTop: '5px', color: '#6c757d' }}>
+                                                Selected: {profilePic.name}
+                                            </small>
+                                        )}
+                                    </div>
+
+                                    <div className="profile-info-grid">
+                                        <div className="profile-form-group">
+                                            <label className="profile-form-label">First Name</label>
+                                            <input
+                                                type="text"
+                                                name="firstName"
+                                                value={formData.firstName}
+                                                onChange={handleInputChange}
+                                                className="profile-form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="profile-form-group">
+                                            <label className="profile-form-label">Last Name</label>
+                                            <input
+                                                type="text"
+                                                name="lastName"
+                                                value={formData.lastName}
+                                                onChange={handleInputChange}
+                                                className="profile-form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="profile-form-group">
+                                            <label className="profile-form-label">Username</label>
+                                            <input
+                                                type="text"
+                                                name="username"
+                                                value={formData.username}
+                                                onChange={handleInputChange}
+                                                className="profile-form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="profile-form-group">
+                                            <label className="profile-form-label">Email</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleInputChange}
+                                                className="profile-form-input"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="profile-form-group">
+                                            <label className="profile-form-label">Telegram Username</label>
+                                            <input
+                                                type="text"
+                                                name="telegramUsername"
+                                                value={formData.telegramUsername}
+                                                onChange={handleInputChange}
+                                                className="profile-form-input"
+                                                placeholder="Optional"
+                                            />
+                                        </div>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="profile-actions">
+                            {!isEditing ? (
                                 <button
                                     className="profile-button profile-button-primary"
-                                    onClick={handleSubmit}
-                                    disabled={isLoading}
+                                    onClick={handleEditClick}
                                 >
-                                    {isLoading ? "Saving..." : "Save Changes"}
+                                    Edit Profile
                                 </button>
-                                <button
-                                    className="profile-button profile-button-secondary"
-                                    onClick={handleCancelEdit}
-                                    disabled={isLoading}
-                                >
-                                    Cancel
-                                </button>
-                            </>
-                        )}
+                            ) : (
+                                <>
+                                    <button
+                                        className="profile-button profile-button-primary"
+                                        onClick={handleSubmit}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? "Saving..." : "Save Changes"}
+                                    </button>
+                                    <button
+                                        className="profile-button profile-button-secondary"
+                                        onClick={handleCancelEdit}
+                                        disabled={isLoading}
+                                    >
+                                        Cancel
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         </>
     );
 }

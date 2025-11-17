@@ -29,7 +29,7 @@
 }
 
 .profile-header {
-    background: linear-gradient(135deg, #3061cd 0%, #2b3da3 100%);
+    background: linear-gradient(135deg, rgba(var(--bs-primary-rgb)) 0%, #2f3da3 100%);
     padding: 20px 4px 40px;
     text-align: center;
     position: relative;
