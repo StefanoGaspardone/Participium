@@ -18,6 +18,13 @@ export interface AuthRequest extends Request {
     token?: UserPayload;
 }
 
+export interface UpdateUserRequest extends Request {
+    params: {
+        id: string;
+    };
+    token?: UserPayload;
+}
+
 export const authMiddleware = (allowedRoles: string[]) => {
     return (req: AuthRequest, res: Response, next: NextFunction) => {
         const authHeader = req.headers.authorization;
