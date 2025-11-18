@@ -32,21 +32,13 @@ describe("1. Test suite for home page :", () => {
   /** LOGGED user tests */
   it("1.3 As a logged user i should be able to click the map and select a location (identified b latitude and longitude)", () => {
     performLoginAsCitizen();
-    cy.get('[id="selected-location"]').should(
-      "contain.text",
-      "Click on the map to pick a location"
-    );
     cy.get('[id="map-container"]').click();
-    cy.get('[id="selected-location"]').should(
-      "contain.text",
-      "Selected location"
-    );
-    // the location is the "default" based on how the click action is performed by cypress on the Map Component
+    cy.get('[alt="Marker"]').should('be.visible');
   });
 
   it("1.4 As a logged user i should be able to go onto the upload a new report page", () => {
     performLoginAsCitizen();
-    cy.get('[id="upload-new-report-button"]').click();
+    homePage.clickNewReport();
     cy.url().should("equal", UPLOADREPORTPAGE_URL);
   });
 });
