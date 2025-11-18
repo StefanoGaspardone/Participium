@@ -50,6 +50,9 @@ export class UserDAO {
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
 
+    @Column({ type: 'boolean', default: false })
+    emailNotificationsEnabled: boolean;
+
     @ManyToOne(() => OfficeDAO, office => office.users, { nullable: true })
     @JoinColumn({ name: 'office_id' })
     @ValidateIf(o => o.userType === UserType.TECHNICAL_STAFF_MEMBER)

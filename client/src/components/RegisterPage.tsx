@@ -12,6 +12,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
     const [telegram, setTelegram] = useState("");
     const [profilePic, setProfilePic] = useState<File | null>(null);
+    const [emailNotifications, setEmailNotifications] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
@@ -35,6 +36,7 @@ export default function RegisterPage() {
                 username: username.trim(),
                 image: imageUrl,
                 telegramUsername: telegram.trim() || null,
+                emailNotificationsEnabled: emailNotifications
             };
 
             await registerUser(payload);
@@ -120,8 +122,6 @@ export default function RegisterPage() {
                                 </Form.Group>
 
                                 <hr />
-
-                                {/* Optional fields 
                                 <Form.Group className="mb-3" controlId="formTelegram">
                                     <Form.Label>Telegram Username (Optional)</Form.Label>
                                     <Form.Control
@@ -142,8 +142,14 @@ export default function RegisterPage() {
                                         }
                                     />
                                 </Form.Group>
-                                */}
-                                
+                                <Form.Group className="mb-3" controlId="formEmailNotifications">
+                                    <Form.Check
+                                        type="switch"
+                                        label="Receive email notifications"
+                                        checked={emailNotifications}
+                                        onChange={(e) => setEmailNotifications(e.target.checked)}
+                                    />
+                                </Form.Group>
                                 <Button variant="primary" type="submit" className="w-100 mt-3" disabled={loading}>
                                     {loading ? "Registering..." : "Register"}
                                 </Button>

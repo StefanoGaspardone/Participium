@@ -9,6 +9,7 @@ export interface UserDTO {
     image?: string | null;
     telegramUsername?: string | null;
     userType: string;
+    emailNotificationsEnabled?: boolean;
     office?: string | null;
     createdAt: Date;
 }
@@ -23,6 +24,7 @@ export const MapUserDAOtoDTO = (user: UserDAO): UserDTO => {
         image: user.image,
         telegramUsername: user.telegramUsername,
         userType: user.userType,
+        emailNotificationsEnabled: user.emailNotificationsEnabled,
         office: user.office? user.office.name : null,
         createdAt: new Date(user.createdAt),
         passwordHash: user.passwordHash
@@ -38,6 +40,7 @@ export interface NewUserDTO {
     password: string;
     image?: string;
     telegramUsername?: string;
+    emailNotificationsEnabled: boolean;
 }
 
 export interface NewMunicipalityUserDTO {

@@ -97,11 +97,11 @@ export default function CustomNavbar() {
                     color: '#00205B',
                   }}
                 >
-                  {/*
-                  <Dropdown.Item as={Link} to="/profile">
+                  {user?.userType === 'CITIZEN' &&
+                  <Dropdown.Item as={Link} to={"/profile"}>
                     Profile
                   </Dropdown.Item>
-                  */}
+                  }
 
                   { /*<Dropdown.Divider />*/}
                   <Dropdown.Item
