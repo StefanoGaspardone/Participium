@@ -117,15 +117,15 @@ describe("Reports e2e tests", () => {
 		expect(res.status).toBe(201);
 	});
 
-	it("POST /api/reports => 201 with lat/long at allowed boundaries", async () => {
+	it("POST /api/reports => 201 with valid Turin coordinates", async () => {
 		const payload = {
 			payload: {
-				title: "Boundary coords E2E",
-				description: "Using boundary latitude and longitude",
+				title: "Valid coords E2E",
+				description: "Using valid Turin latitude and longitude",
 				categoryId: categoryId,
 				images: ["http://example.com/1.jpg"],
-				lat: CONFIG.TURIN.MIN_LAT,
-				long: CONFIG.TURIN.MAX_LONG,
+				lat: 45.0703,
+				long: 7.6869,
 				anonymous: false,
 			},
 		};
@@ -134,15 +134,15 @@ describe("Reports e2e tests", () => {
 		expect(res.status).toBe(201);
 	});
 
-	it("POST /api/reports => 400 when lat is below minimum", async () => {
+	it("POST /api/reports => 400 when coordinates are outside Turin", async () => {
 		const payload = {
 			payload: {
-				title: "Bad lat E2E",
-				description: "Latitude too small",
+				title: "Bad location E2E",
+				description: "Coordinates outside Turin",
 				categoryId: categoryId,
 				images: ["http://example.com/1.jpg"],
-				lat: CONFIG.TURIN.MIN_LAT - 0.001,
-				long: CONFIG.TURIN.MIN_LONG,
+				lat: 40.0,
+				long: 8.0,
 				anonymous: false,
 			},
 		};
@@ -150,18 +150,18 @@ describe("Reports e2e tests", () => {
 		const res = await request(app).post("/api/reports").set("Authorization", `Bearer ${token}`).send(payload);
 		expect(res.status).toBe(400);
 		expect(res.body).toHaveProperty("errors");
-		expect(res.body.errors).toHaveProperty("lat");
+		expect(res.body.errors).toHaveProperty("location");
 	});
 
-	it("POST /api/reports => 400 when long is above maximum", async () => {
+	it("POST /api/reports => 400 when coordinates are outside Turin (south)", async () => {
 		const payload = {
 			payload: {
-				title: "Bad long E2E",
-				description: "Longitude too large",
+				title: "Bad location south E2E",
+				description: "Coordinates outside Turin boundaries",
 				categoryId: categoryId,
 				images: ["http://example.com/1.jpg"],
-				lat: CONFIG.TURIN.MIN_LAT,
-				long: CONFIG.TURIN.MAX_LONG + 0.001,
+				lat: 44.5,
+				long: 7.6869,
 				anonymous: false,
 			},
 		};
@@ -169,7 +169,7 @@ describe("Reports e2e tests", () => {
 		const res = await request(app).post("/api/reports").set("Authorization", `Bearer ${token}`).send(payload);
 		expect(res.status).toBe(400);
 		expect(res.body).toHaveProperty("errors");
-		expect(res.body.errors).toHaveProperty("long");
+		expect(res.body.errors).toHaveProperty("location");
 	});
 
 	it("POST /api/reports => 404 when categoryId does not exist", async () => {
@@ -179,8 +179,8 @@ describe("Reports e2e tests", () => {
 				description: "Category id does not exist",
 				categoryId: 999999,
 				images: ["http://example.com/1.jpg"],
-				lat: CONFIG.TURIN.MIN_LAT,
-				long: CONFIG.TURIN.MIN_LONG,
+				lat: 45.0703,
+				long: 7.6869,
 				anonymous: false,
 			},
 		};

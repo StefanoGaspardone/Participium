@@ -45,6 +45,8 @@ export const createReportDTO = (report: ReportDAO): ReportDTO => {
         description: report.description,
         category: createCategoryDTO(report.category),
         images: report.images,
+        lat: report.lat,
+        long: report.long,
         status: report.status,
         anonymous: report.anonymous,
         rejectedDescription: report.rejectedDescription || null,

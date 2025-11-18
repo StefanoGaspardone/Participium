@@ -28,7 +28,20 @@ describe('ReportService (mock)', () => {
     const service = new ReportService();
 
     const fakeCategory = { id: 7, name: 'Cat' };
-    const createReportMock = jest.fn().mockResolvedValue(undefined);
+    const mockReportDAO = {
+      id: 1,
+      title: 'My Title',
+      description: 'Some description',
+      category: fakeCategory,
+      images: ['one', 'two'],
+      lat: 12.34,
+      long: 56.78,
+      status: ReportStatus.PendingApproval,
+      anonymous: true,
+      createdBy: { id: 123 },
+      createdAt: new Date(),
+    };
+    const createReportMock = jest.fn().mockResolvedValue(mockReportDAO);
 
     // inject mocks
     // @ts-ignore
