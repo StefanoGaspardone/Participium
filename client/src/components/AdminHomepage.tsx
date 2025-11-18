@@ -218,7 +218,7 @@ export default function AdminHomepage() {
                 >
                   <option value="" disabled>Select a technical office</option>
                   {offices.map((office) => (
-                    <option id="select-office"key={office.id} value={String(office.id)}>
+                    <option id={"select-office"+office.id.toString()} key={office.id} value={String(office.id)}>
                       {office.name}
                     </option>
                   ))}
