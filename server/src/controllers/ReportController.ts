@@ -4,6 +4,7 @@ import { reportService, ReportService } from '@services/ReportService';
 import { Response, NextFunction, Request } from 'express';
 import type { AuthRequest } from '@middlewares/authenticationMiddleware';
 import { isPointInTurin } from '@utils/geo_turin';
+import { ReportStatus } from '@daos/ReportDAO';
 
 export class ReportController {
 
@@ -19,14 +20,14 @@ export class ReportController {
             const userId = req.token?.user?.id;
 
             const errors: Record<string, string> = {};
-            if(typeof payload.title !== 'string') errors.title = 'Title must be a non-empty string';
-            if(typeof payload.description !== 'string') errors.description = 'Description must be a not-empty string';
-            if(typeof payload.categoryId !== 'number' || Number.isNaN(payload.categoryId) || payload.categoryId <= 0) errors.categoryId = 'CategoryId must be a positive number';
-            if(!Array.isArray(payload.images) || payload.images.length < 1 || payload.images.length > 3) errors.images = 'Images must be an array with 1 to 3 items';
-            if(typeof payload.lat !== 'number' || Number.isNaN(payload.lat) || typeof payload.long !== 'number' || Number.isNaN(payload.long) || !isPointInTurin(payload.lat, payload.long)) errors.location = 'The location has to be inside the Municipality of Turin';
-            if(typeof payload.anonymous !== 'boolean') errors.anonymous = 'Anonymous must be a boolean';
+            if (typeof payload.title !== 'string') errors.title = 'Title must be a non-empty string';
+            if (typeof payload.description !== 'string') errors.description = 'Description must be a not-empty string';
+            if (typeof payload.categoryId !== 'number' || Number.isNaN(payload.categoryId) || payload.categoryId <= 0) errors.categoryId = 'CategoryId must be a positive number';
+            if (!Array.isArray(payload.images) || payload.images.length < 1 || payload.images.length > 3) errors.images = 'Images must be an array with 1 to 3 items';
+            if (typeof payload.lat !== 'number' || Number.isNaN(payload.lat) || typeof payload.long !== 'number' || Number.isNaN(payload.long) || !isPointInTurin(payload.lat, payload.long)) errors.location = 'The location has to be inside the Municipality of Turin';
+            if (typeof payload.anonymous !== 'boolean') errors.anonymous = 'Anonymous must be a boolean';
 
-            if(Object.keys(errors).length > 0) {
+            if (Object.keys(errors).length > 0) {
                 const err: any = new BadRequestError('Validation failed');
                 err.errors = errors;
                 return next(err);
@@ -34,7 +35,7 @@ export class ReportController {
 
             await this.reportService.createReport(userId as number, payload);
             res.status(201).json({ message: 'Report successfully created' });
-        } catch(error) {
+        } catch (error) {
             next(error);
         }
     }
@@ -56,7 +57,88 @@ export class ReportController {
 
             const report = await this.reportService.createReport(userId as number, payloadDto);
             res.status(201).json({ message: 'Report successfully created', reportId: report.id });
-        } catch(error) {
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    getReportsByStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const statusParam = String(req.query.status || '').trim();
+
+            const errors: Record<string, string> = {};
+            const validStatuses = Object.values(ReportStatus);
+            if (!statusParam) errors.status = 'Query parameter "status" is required';
+            else if (!validStatuses.includes(statusParam as ReportStatus)) errors.status = `Invalid status. Must be one of: ${validStatuses.join(', ')}`;
+
+            if (Object.keys(errors).length > 0) {
+                const err: any = new BadRequestError('Validation failed');
+                err.errors = errors;
+                return next(err);
+            }
+
+            const reports = await this.reportService.listReportsByStatus(statusParam as ReportStatus);
+            res.status(200).json({ reports });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    updateReportStatus = async (
+        req: AuthRequest & { params: { id: string }, body: { status?: string; rejectedDescription?: string } },
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const idParam = Number(req.params.id);
+            const { status, rejectedDescription } = req.body || {};
+
+            const errors: Record<string, string> = {};
+            if (Number.isNaN(idParam) || idParam <= 0) errors.id = 'Report id must be a positive number';
+
+            const allowed = [ReportStatus.Assigned, ReportStatus.Rejected];
+            if (!status || typeof status !== 'string' || !allowed.includes(status as ReportStatus)) {
+                errors.status = `Status must be one of: ${allowed.join(', ')}`;
+            }
+            if (status === ReportStatus.Rejected && (!rejectedDescription || !rejectedDescription.trim())) {
+                errors.rejectedDescription = 'rejectedDescription is required when rejecting a report';
+            }
+
+            if (Object.keys(errors).length > 0) {
+                const err: any = new BadRequestError('Validation failed');
+                err.errors = errors;
+                return next(err);
+            }
+
+            const updated = await this.reportService.updateReportStatus(
+                idParam,
+                status as ReportStatus,
+                rejectedDescription
+            );
+            res.status(200).json({ message: 'Report status updated', report: updated });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    updateReportCategory = async (req: AuthRequest & { params: { id: string }, body: { categoryId: number } }, res: Response, next: NextFunction) => {
+        try {
+            const idParam = Number(req.params.id);
+            const { categoryId } = req.body || {};
+
+            const errors: Record<string, string> = {};
+            if (Number.isNaN(idParam) || idParam <= 0) errors.id = 'Report id must be a positive number';
+            if (typeof categoryId !== 'number' || Number.isNaN(categoryId) || categoryId <= 0) errors.categoryId = 'CategoryId must be a positive number';
+
+            if (Object.keys(errors).length > 0) {
+                const err: any = new BadRequestError('Validation failed');
+                err.errors = errors;
+                return next(err);
+            }
+
+            const report = await this.reportService.updateReportCategory(idParam, categoryId);
+            res.status(200).json({ message: 'Report category updated', report });
+        } catch (error) {
             next(error);
         }
     }

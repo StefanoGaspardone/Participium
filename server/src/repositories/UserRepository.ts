@@ -1,6 +1,7 @@
 import { AppDataSource } from "@database";
 import { Repository } from "typeorm";
-import { UserDAO } from "@daos/UserDAO";
+import { UserDAO, UserType } from "@daos/UserDAO";
+import { ReportStatus } from "@daos/ReportDAO";
 import * as bcrypt from "bcryptjs";
 
 export class UserRepository {
@@ -31,7 +32,26 @@ export class UserRepository {
     return null;
   };
 
-  
+  findLeastLoadedStaffForOffice = async (officeId: number): Promise<UserDAO | null> => {
+    const qb = this.repo
+      .createQueryBuilder('u')
+      .leftJoin('u.assignedReports', 'r', 'r.status IN (:...statuses)', {
+        statuses: [ReportStatus.Assigned, ReportStatus.InProgress, ReportStatus.Suspended],
+      })
+      .where('u.userType = :type', { type: UserType.TECHNICAL_STAFF_MEMBER })
+      .andWhere('u.office_id = :officeId', { officeId })
+      .select(['u.id', 'u.firstName', 'u.lastName', 'u.username', 'u.email', 'u.userType'])
+      .addSelect('COUNT(r.id)', 'assignedCount')
+      .groupBy('u.id')
+      .orderBy('assignedCount', 'ASC')
+      .addOrderBy('u.lastName', 'ASC')
+      .addOrderBy('u.firstName', 'ASC')
+      .addOrderBy('u.username', 'ASC')
+      .limit(1);
+
+    const res = await qb.getRawAndEntities();
+    return res.entities[0] || null;
+  }
 }
 
 export const userRepository = new UserRepository();

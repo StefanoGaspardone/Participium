@@ -91,6 +91,7 @@ export const AppProvider = ({ children }: PropsInterface) => {
     useEffect(() => {
         if(user?.userType === 'CITIZEN') navigate('/');
         else if(user?.userType === 'ADMINISTRATOR') navigate('/admin');
+        else if(user?.userType === 'PUBLIC_RELATIONS_OFFICER') navigate('/pro');
     }, [user]);
 
     return (

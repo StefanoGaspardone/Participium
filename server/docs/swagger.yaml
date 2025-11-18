@@ -132,7 +132,7 @@ components:
         token:
           type: string
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
 
     Category:
       type: object
@@ -184,7 +184,7 @@ components:
         description:
           type: string
         category:
-          $ref: '#/components/schemas/Category'
+          $ref: "#/components/schemas/Category"
         images:
           type: array
           items:
@@ -201,7 +201,7 @@ components:
           type: string
           nullable: true
         createdBy:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
         createdAt:
           type: string
           format: date-time
@@ -232,7 +232,7 @@ paths:
       tags: [Users]
       summary: List users (Dev)
       responses:
-        '200':
+        "200":
           description: list of users
           content:
             application/json:
@@ -242,7 +242,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: "#/components/schemas/User"
     post:
       tags: [Users]
       summary: (unused) placeholder
@@ -256,14 +256,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewUser'
+              $ref: "#/components/schemas/NewUser"
       responses:
-        '201':
+        "201":
           description: User created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                $ref: "#/components/schemas/MessageResponse"
 
   /users/login:
     post:
@@ -274,14 +274,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        '200':
+        "200":
           description: Login successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
+                $ref: "#/components/schemas/LoginResponse"
 
   /users/employees:
     post:
@@ -294,14 +294,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewMunicipalityUser'
+              $ref: "#/components/schemas/NewMunicipalityUser"
       responses:
-        '201':
+        "201":
           description: Municipality user created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                $ref: "#/components/schemas/MessageResponse"
 
   /users/me:
     post:
@@ -310,7 +310,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Current user and token
           content:
             application/json:
@@ -322,7 +322,7 @@ paths:
                   token:
                     type: string
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: "#/components/schemas/User"
 
   /categories:
     get:
@@ -331,7 +331,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: list of categories
           content:
             application/json:
@@ -341,35 +341,66 @@ paths:
                   categories:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Category'
+                      $ref: "#/components/schemas/Category"
 
   /offices:
     get:
       tags: [Offices]
       summary: List offices
       responses:
-        '200':
+        "200":
           description: list of offices
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Office'
+                  $ref: "#/components/schemas/Office"
 
   /uploads/sign:
     post:
       tags: [Uploads]
       summary: Get Cloudinary signature and parameters for client upload
       responses:
-        '200':
+        "200":
           description: Signing parameters
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UploadSignResponse'
+                $ref: "#/components/schemas/UploadSignResponse"
 
   /reports:
+    get:
+      tags: [Reports]
+      summary: List reports filtered by status
+      parameters:
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                PendingApproval,
+                Assigned,
+                InProgress,
+                Suspended,
+                Rejected,
+                Resolved,
+              ]
+          description: Filter reports by status
+      responses:
+        "200":
+          description: List of reports with the specified status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Report"
     post:
       tags: [Reports]
       summary: Create a report (citizen only)
@@ -380,13 +411,91 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateReport'
+              $ref: "#/components/schemas/CreateReport"
       responses:
-        '201':
+        "201":
           description: Report successfully created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                $ref: "#/components/schemas/MessageResponse"
+
+  /reports/{id}/category:
+    put:
+      tags: [Reports]
+      summary: Update report category (public relations officer, municipal administrator)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categoryId]
+              properties:
+                categoryId:
+                  type: integer
+    /reports/{id}/status:
+      put:
+        tags: [Reports]
+        summary: Change report status (public relations officer)
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: id
+            required: true
+            schema:
+              type: integer
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [Assigned, Rejected]
+                  rejectedDescription:
+                    type: string
+                    nullable: true
+                    description: Required when status is Rejected
+        description: |
+          Accept (Assigned) or reject (Rejected) a report currently in PendingApproval.
+          When accepted, the report is automatically assigned to the least-loaded technical staff member
+          of the office associated with the report's category (tie-breaker alphabetical).
+        responses:
+          "200":
+            description: Report status updated
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                    report:
+                      $ref: "#/components/schemas/Report"
+      responses:
+        "200":
+          description: Report category updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  report:
+                    $ref: "#/components/schemas/Report"
 
 components_x_generated_from: server

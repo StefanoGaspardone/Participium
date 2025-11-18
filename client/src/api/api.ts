@@ -1,4 +1,4 @@
-import type { Category, Office } from "../models/models";
+import type { Category, Office, Report } from "../models/models";
 import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
@@ -240,5 +240,52 @@ export const getOffices = async (): Promise<Office[]> => {
   }));
 
   return offices;
+};
+
+// Reports management (PRO homepage)
+export const getReportsByStatus = async (status: string): Promise<Report[]> => {
+  const res = await fetch(`${BASE_URL}/reports?status=${encodeURIComponent(status)}`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${getToken()}` }
+  });
+  if (!res.ok) throw await toApiError(res);
+  const data = await res.json();
+  const reports: Report[] = Array.isArray(data?.reports) ? data.reports : [];
+  return reports.map(r => ({
+    ...r,
+    createdAt: r.createdAt,
+    category: r.category,
+    images: Array.isArray(r.images) ? r.images : [],
+  }));
+};
+
+export const updateReportCategory = async (reportId: number, categoryId: number): Promise<Report> => {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/category`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`
+    },
+    body: JSON.stringify({ categoryId })
+  });
+  if (!res.ok) throw await toApiError(res);
+  const data = await res.json();
+  return data.report as Report;
+};
+
+export const updateReportStatus = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<Report> => {
+  const body: any = { status };
+  if (status === 'Rejected') body.rejectedDescription = rejectedDescription;
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/status`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw await toApiError(res);
+  const data = await res.json();
+  return data.report as Report;
 };
 
