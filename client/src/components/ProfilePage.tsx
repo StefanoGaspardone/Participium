@@ -114,7 +114,7 @@ export default function ProfilePage() {
             if (imageUrl) {
                 payload.image = imageUrl;
             }
-            const response = await updateUser(user.id, payload);
+            const response = await updateUser(payload);
 
             // Update the user in context
             if (response.user) {

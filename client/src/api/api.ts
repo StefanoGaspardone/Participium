@@ -254,10 +254,9 @@ export interface UpdateUserPayload {
 }
 
 export const updateUser = async (
-    id: number,
     payload: UpdateUserPayload
 ): Promise<{ message: string; user: User }> => {
-  const res = await fetch(`${BASE_URL}/users/${id}`, {
+  const res = await fetch(`${BASE_URL}/users/me`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

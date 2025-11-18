@@ -183,13 +183,7 @@ export class UserController {
           const decodedAny = req.token;
           let userDto = decodedAny?.user || null;
           if (!userDto) throw new UnauthorizedError('User not found');
-
-          const userId = parseInt(req.params.id, 10);
-          if (isNaN(userId)) {
-              throw new BadRequestError("Invalid user ID");
-          }
-
-          if(userDto.id!==userId) throw new BadRequestError("You can update only your profile.");
+          const userId = userDto.id;
 
           // check that in the requst body there are only fields that can be updated
           for(const key in req.body){
