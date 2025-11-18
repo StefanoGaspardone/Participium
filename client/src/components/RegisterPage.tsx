@@ -66,6 +66,7 @@ export default function RegisterPage() {
                                         <Form.Group className="mb-3" controlId="formName">
                                             <Form.Label>First Name</Form.Label>
                                             <Form.Control
+                                                id="first-name"
                                                 type="text"
                                                 placeholder="Mario"
                                                 value={name}
@@ -78,6 +79,7 @@ export default function RegisterPage() {
                                         <Form.Group className="mb-3" controlId="formSurname">
                                             <Form.Label>Last Name</Form.Label>
                                             <Form.Control
+                                                id="last-name"
                                                 type="text"
                                                 placeholder="Rossi"
                                                 value={surname}
@@ -91,6 +93,7 @@ export default function RegisterPage() {
                                 <Form.Group className="mb-3" controlId="formUsername">
                                     <Form.Label>Username</Form.Label>
                                     <Form.Control
+                                        id="username"
                                         type="text"
                                         placeholder="mario.rossi"
                                         value={username}
@@ -102,6 +105,7 @@ export default function RegisterPage() {
                                 <Form.Group className="mb-3" controlId="formEmail">
                                     <Form.Label>Email</Form.Label>
                                     <Form.Control
+                                        id="email"
                                         type="email"
                                         placeholder="mario.rossi@mail.com"
                                         value={email}
@@ -113,6 +117,7 @@ export default function RegisterPage() {
                                 <Form.Group className="mb-3" controlId="formSignupPassword">
                                     <Form.Label>Password</Form.Label>
                                     <Form.Control
+                                        id="password"
                                         type="password"
                                         placeholder="Password"
                                         value={password}
@@ -125,6 +130,7 @@ export default function RegisterPage() {
                                 <Form.Group className="mb-3" controlId="formTelegram">
                                     <Form.Label>Telegram Username (Optional)</Form.Label>
                                     <Form.Control
+                                        id="tg_username"
                                         type="text"
                                         placeholder="@mario_rossi"
                                         value={telegram}
@@ -135,6 +141,7 @@ export default function RegisterPage() {
                                 <Form.Group className="mb-3" controlId="formProfilePic">
                                     <Form.Label>Profile Picture (Optional)</Form.Label>
                                     <Form.Control
+                                        id="image"
                                         type="file"
                                         accept="image/*"
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -150,12 +157,12 @@ export default function RegisterPage() {
                                         onChange={(e) => setEmailNotifications(e.target.checked)}
                                     />
                                 </Form.Group>
-                                <Button variant="primary" type="submit" className="w-100 mt-3" disabled={loading}>
+                                <Button id="submit-button" variant="primary" type="submit" className="w-100 mt-3" disabled={loading}>
                                     {loading ? "Registering..." : "Register"}
                                 </Button>
                             </Form>
                             <div className="mt-3 text-center">
-                                Already have an account? <Link to="/login">Log in</Link>
+                                Already have an account? <Link id="login-redirect" to="/login">Log in</Link>
                             </div>
                         </Card.Body>
                     </Card>

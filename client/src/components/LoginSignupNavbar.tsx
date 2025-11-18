@@ -34,6 +34,7 @@ export default function LoginSignupNavbar() {
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="ms-auto">
                         <Button
+                            id="go-to-homepage-button"
                             variant="warning"
                             onClick={() => navigate("/")}
                             onMouseEnter={() => setHover(true)}

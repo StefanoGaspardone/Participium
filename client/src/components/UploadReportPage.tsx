@@ -21,9 +21,7 @@ type Props = {
   setSelected: React.Dispatch<React.SetStateAction<Coord>>;
 };
 
-export default function UploadReport({
-  selected,
-  setSelected}: Props) {
+export default function UploadReport({ selected, setSelected }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -86,10 +84,15 @@ export default function UploadReport({
     if (!canSubmitRequired) {
       setFieldErrors((prev) => ({
         ...prev,
-        ...(selected ? {} : { lat: "Select a location on the map", long: "Select a location on the map" }),
+        ...(selected
+          ? {}
+          : {
+              lat: "Select a location on the map",
+              long: "Select a location on the map",
+            }),
       }));
       setGeneralError("Please fill all required fields.");
-      
+
       setTimeout(() => {
         if (!selected) {
           latRef.current?.focus();
@@ -129,8 +132,8 @@ export default function UploadReport({
       alert("Report successfully created!");
       navigate("/");
     } catch (err: unknown) {
-      if(isApiError(err)) {
-        if(err.errors) {
+      if (isApiError(err)) {
+        if (err.errors) {
           setFieldErrors(err.errors);
 
           setTimeout(() => {
@@ -191,10 +194,11 @@ export default function UploadReport({
 
   return (
     <>
-      <CustomNavbar/>
+      <CustomNavbar />
       <main className="upload-container">
         <section className="upload-form">
           <Button
+            id="go-to-homepage-button"
             className="w-100 mb-3"
             variant="secondary"
             onClick={() => navigate("/")}
@@ -209,43 +213,50 @@ export default function UploadReport({
               <Col md={6}>
                 <Form.Group>
                   <Form.Label>Latitude</Form.Label>
-          <Form.Control
-            type="text"
-            value={selected ? selected.lat : ""}
-            readOnly
-            isInvalid={Boolean(fieldErrors.lat)}
-            ref={latRef}
-            tabIndex={0}
-          />
-                    {fieldErrors.lat && (
-                      <Form.Control.Feedback type="invalid">
-                        {Array.isArray(fieldErrors.lat) ? fieldErrors.lat.join(', ') : fieldErrors.lat}
-                      </Form.Control.Feedback>
-                    )}
+                  <Form.Control
+                    id="latitude-field"
+                    type="text"
+                    value={selected ? selected.lat : ""}
+                    readOnly
+                    isInvalid={Boolean(fieldErrors.lat)}
+                    ref={latRef}
+                    tabIndex={0}
+                  />
+                  {fieldErrors.lat && (
+                    <Form.Control.Feedback type="invalid">
+                      {Array.isArray(fieldErrors.lat)
+                        ? fieldErrors.lat.join(", ")
+                        : fieldErrors.lat}
+                    </Form.Control.Feedback>
+                  )}
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group>
                   <Form.Label>Longitude</Form.Label>
-          <Form.Control
-            type="text"
-            value={selected ? selected.lng : ""}
-            readOnly
-            isInvalid={Boolean(fieldErrors.long)}
-            ref={longRef}
-            tabIndex={0}
-          />
-                    {fieldErrors.long && (
-                      <Form.Control.Feedback type="invalid">
-                        {Array.isArray(fieldErrors.long) ? fieldErrors.long.join(', ') : fieldErrors.long}
-                      </Form.Control.Feedback>
-                    )}
+                  <Form.Control
+                    id="longitude-field"
+                    type="text"
+                    value={selected ? selected.lng : ""}
+                    readOnly
+                    isInvalid={Boolean(fieldErrors.long)}
+                    ref={longRef}
+                    tabIndex={0}
+                  />
+                  {fieldErrors.long && (
+                    <Form.Control.Feedback type="invalid">
+                      {Array.isArray(fieldErrors.long)
+                        ? fieldErrors.long.join(", ")
+                        : fieldErrors.long}
+                    </Form.Control.Feedback>
+                  )}
                 </Form.Group>
               </Col>
             </Row>
             <Form.Group className="mb-3">
               <Form.Label>Title</Form.Label>
               <Form.Control
+                id="title-field"
                 type="text"
                 placeholder="Enter a title"
                 value={title}
@@ -264,6 +275,7 @@ export default function UploadReport({
             <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <Form.Control
+                id="description-field"
                 as="textarea"
                 rows={3}
                 placeholder="Describe the issue"
@@ -284,6 +296,7 @@ export default function UploadReport({
             <Form.Group className="mb-3">
               <Form.Label>Category</Form.Label>
               <Form.Select
+                id="select-category"
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 isInvalid={Boolean(fieldErrors.categoryId)}
@@ -293,7 +306,11 @@ export default function UploadReport({
                   Select a category
                 </option>
                 {categories.map((category) => (
-                  <option key={category.id} value={String(category.id)}>
+                  <option
+                    id={"category-" + category.id.toString()}
+                    key={category.id}
+                    value={String(category.id)}
+                  >
                     {category.name}
                   </option>
                 ))}
@@ -332,6 +349,7 @@ export default function UploadReport({
                 {images.length < 3 && (
                   <Col xs={12} sm={6} md={4}>
                     <div
+                      id="add-image-button"
                       role="button"
                       onClick={onClickAddImage}
                       onKeyDown={(e) => {
@@ -347,6 +365,7 @@ export default function UploadReport({
                 )}
               </Row>
               <input
+                id="image-input"
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
@@ -383,6 +402,7 @@ export default function UploadReport({
               </div>
             )}
             <Button
+              id="submit-button"
               variant="primary"
               type="submit"
               className={`w-100 d-inline-flex align-items-center justify-content-center gap-2 ${
