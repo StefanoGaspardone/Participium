@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import { UPLOADREPORTPAGE_URL } from "../support/utils";
 
 const reportPage = {
@@ -26,8 +27,14 @@ const reportPage = {
     if (qty < 1 || qty > 3) {
       return;
     }
-    cy.get('[id="add-image-button"]').focus().click();
+    cy.get('[id="image-input"]').selectFile("cypress\\e2e\\singlePagesTests\\toUploadImages\\toUp.png", {force: true});
   }, //
+  submitForm: () => {
+    cy.get('[id="submit-button"]').focus().click();
+  },
+  submitFormNotVisible: () => {
+    cy.get('[id="submit-button"]').should('be.disabled');
+  },
   acceptAlertValid: () => {
     cy.on("window:confirm", (text) => {
       expect(text).to.contain("Report successfully created!");

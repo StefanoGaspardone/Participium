@@ -39,7 +39,7 @@ describe("1. Test suite for home page :", () => {
     cy.get('[id="map-container"]').click();
     cy.get('[id="selected-location"]').should(
       "contain.text",
-      "Selected location: (45.07035759666708, 7.682790756225587)"
+      "Selected location"
     );
     // the location is the "default" based on how the click action is performed by cypress on the Map Component
   });

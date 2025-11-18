@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import {HOMEPAGE_URL} from "../support/utils"
 
 const homePage = {

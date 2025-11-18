@@ -365,6 +365,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
                 )}
               </Row>
               <input
+                id="image-input"
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
@@ -401,6 +402,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
               </div>
             )}
             <Button
+              id="submit-button"
               variant="primary"
               type="submit"
               className={`w-100 d-inline-flex align-items-center justify-content-center gap-2 ${

@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import {
   LOGINPAGE_URL,
   REGISTERPAGE_URL,
