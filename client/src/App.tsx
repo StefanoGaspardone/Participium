@@ -8,6 +8,7 @@ import "./App.css";
 import "./custom_theme.scss";
 import AdminHomepage from "./components/AdminHomepage";
 import PROHomepage from "./components/PROHomepage";
+import TechnicalStaffHomepage from "./components/TechnicalStaffHomepage";
 import { useAppContext } from "./contexts/AppContext";
 
 function App() {
@@ -52,6 +53,18 @@ function App() {
             isLoggedIn ? (
               user?.userType === 'PUBLIC_RELATIONS_OFFICER' && (
                 <PROHomepage />
+              )
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/tech"
+          element={
+            isLoggedIn ? (
+              user?.userType === 'TECHNICAL_STAFF_MEMBER' && (
+                <TechnicalStaffHomepage />
               )
             ) : (
               <Navigate to="/" />

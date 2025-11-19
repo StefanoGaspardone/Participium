@@ -97,6 +97,11 @@ export class ReportService {
         const updated = await this.reportRepo.save(report);
         return createReportDTO(updated);
     }
+
+    listAssignedReports = async (userId: number): Promise<ReportDTO[]> => {
+        const reports = await this.reportRepo.findReportsAssignedTo(userId);
+        return reports.map(createReportDTO);
+    }
 }
 
 export const reportService = new ReportService();

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import CustomNavbar from './CustomNavbar';
 import { Accordion, Card, Container, Row, Col, Form, Button, Alert, Spinner, Image } from 'react-bootstrap';
+import ReportMiniMap from './ReportMiniMap';
 import { getReportsByStatus, getCategories, updateReportCategory, updateReportStatus } from '../api/api';
 import type { Report, Category } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
@@ -21,7 +22,6 @@ export default function PROHomepage() {
     const [rejectReason, setRejectReason] = useState<Record<number, string>>({});
     const [expanded, setExpanded] = useState<number | null>(null);
 
-    // Lightbox state: slides array and current index
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
     const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -93,7 +93,6 @@ export default function PROHomepage() {
         }
     };
 
-    // Open lightbox for a report's images at a specific index
     const openLightbox = (images: string[], index: number) => {
         setLightboxSlides(images.map(src => ({ src })));
         setLightboxIndex(index);
@@ -142,6 +141,29 @@ export default function PROHomepage() {
                                     <Row>
                                         <Col md={8}>
                                             <p><strong>Description:</strong> {r.description}</p>
+                                            {r.images.slice(0, 3).length > 0 && (
+                                                <div className="d-flex flex-wrap gap-2 mb-3">
+                                                    {r.images.slice(0, 3).map((img, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            type="button"
+                                                            className="p-0 border-0 bg-transparent"
+                                                            onClick={() => openLightbox(r.images, idx)}
+                                                            aria-label={`Open image ${idx + 1}`}
+                                                        >
+                                                            <Image
+                                                                src={img}
+                                                                alt={`Report image ${idx + 1}`}
+                                                                thumbnail
+                                                                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                                                            />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {r.images.slice(0, 3).length === 0 && (
+                                                <p className="text-muted fst-italic">No images</p>
+                                            )}
                                             <p><strong>Category:</strong> {r.category.name}</p>
 
                                             <Form.Group className="mb-3">
@@ -193,25 +215,8 @@ export default function PROHomepage() {
                                             </div>
                                         </Col>
 
-                                        <Col md={4}>
-                                            <div className="d-flex flex-wrap gap-2">
-                                                {r.images.slice(0, 3).map((img, idx) => (
-                                                    <button
-                                                        key={idx}
-                                                        type="button"
-                                                        className="p-0 border-0 bg-transparent"
-                                                        onClick={() => openLightbox(r.images, idx)}
-                                                        aria-label={`Open image ${idx + 1}`}
-                                                    >
-                                                        <Image
-                                                            src={img}
-                                                            alt={`Report image ${idx + 1}`}
-                                                            thumbnail
-                                                            style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                                                        />
-                                                    </button>
-                                                ))}
-                                            </div>
+                                        <Col md={4} className="mt-2">
+                                            <ReportMiniMap lat={Number(r.lat)} long={Number(r.long)} />
                                         </Col>
                                     </Row>
                                 </Accordion.Body>
@@ -220,8 +225,6 @@ export default function PROHomepage() {
                     ))}
                 </Accordion>
             </Container>
-
-            {/* Lightbox: slides + index enable arrow navigation; controller enables click-on-backdrop to close */}
             <Lightbox
                 open={lightboxOpen}
                 close={() => setLightboxOpen(false)}
@@ -229,7 +232,6 @@ export default function PROHomepage() {
                 index={lightboxIndex}
                 controller={{ closeOnBackdropClick: true }}
                 on={(
-                    // keep internal index in sync if user navigates with arrows/keyboard
                     { index: (newIndex: number) => setLightboxIndex(newIndex) } as any
                 )}
             />

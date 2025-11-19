@@ -25,6 +25,14 @@ export class ReportRepository {
     save = async (report: ReportDAO): Promise<ReportDAO> => {
         return this.repo.save(report);
     }
+
+    findReportsAssignedTo = async (userId: number): Promise<ReportDAO[]> => {
+        return this.repo.find({
+            where: { assignedTo: { id: userId } as any },
+            relations: ["category", "createdBy", "assignedTo"],
+            order: { createdAt: "DESC" }
+        });
+    }
 }
 
 export const reportRepository = new ReportRepository();

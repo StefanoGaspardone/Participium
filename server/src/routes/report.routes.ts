@@ -19,4 +19,10 @@ router.put(
     reportController.updateReportStatus
 );
 
+router.get(
+    '/assigned',
+    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
+    reportController.getAssignedReports
+);
+
 export const reportRouter = router;

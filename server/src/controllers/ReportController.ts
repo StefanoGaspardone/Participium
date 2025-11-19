@@ -142,6 +142,22 @@ export class ReportController {
             next(error);
         }
     }
+
+    getAssignedReports = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const userId = req.token?.user?.id;
+            if (!userId) {
+                const err: any = new BadRequestError('Validation failed');
+                err.errors = { auth: 'Missing user id in token' };
+                return next(err);
+            }
+
+            const reports = await this.reportService.listAssignedReports(userId);
+            res.status(200).json({ reports });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export const reportController = new ReportController();

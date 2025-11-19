@@ -289,3 +289,21 @@ export const updateReportStatus = async (reportId: number, status: 'Assigned' | 
   return data.report as Report;
 };
 
+// Reports assigned to the logged technical staff member
+export const getAssignedReports = async (): Promise<Report[]> => {
+  const res = await fetch(`${BASE_URL}/reports/assigned`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${getToken()}` }
+  });
+  if (!res.ok) throw await toApiError(res);
+  const data = await res.json();
+  const reports: Report[] = Array.isArray(data?.reports) ? data.reports : [];
+  return reports.map(r => ({
+    ...r,
+    createdAt: r.createdAt,
+    category: r.category,
+    images: Array.isArray(r.images) ? r.images : [],
+    assignedTo: r.assignedTo ?? null,
+  }));
+};
+
