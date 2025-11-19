@@ -53,7 +53,7 @@ export class UserController {
         !req.body.firstName ||
         !req.body.lastName ||
         !req.body.username ||
-        !req.body.emailNotificationsEnabled
+        req.body.emailNotificationsEnabled === undefined // Check for undefined (not !value) to allow false values (citizen not wanting email notifications upon registration)
       ) {
         throw new BadRequestError(
           "Missing one or more required fields: email, password, firstName, lastName, username, emailNotificationsEnabled"

@@ -22,6 +22,7 @@ describe("Users e2e tests : Login and Registration", () => {
       username: "protest",
       image: "randomUrl",
       telegramUsername: "randomUrl",
+      emailNotificationsEnabled: true,
     };
     const res = await request(app).post("/api/users/signup").send(newUser);
     expect(res.status).toBe(201);
@@ -36,6 +37,7 @@ describe("Users e2e tests : Login and Registration", () => {
       username: "protest",
       image: "randomUrl",
       telegramUsername: "randomUrl",
+      emailNotificationsEnabled: false,
     };
     const res = await request(app).post("/api/users/signup").send(newUser);
     expect(res.status).toBe(409);
@@ -48,6 +50,7 @@ describe("Users e2e tests : Login and Registration", () => {
       firstName: "prova2",
       lastName: "test2",
       username: "protest2",
+      emailNotificationsEnabled: false,
     };
     const res = await request(app).post("/api/users/signup").send(newUser);
     expect(res.status).toBe(201);
@@ -181,5 +184,168 @@ describe("Users e2e tests : Login and Registration", () => {
     expect(res.status).toBe(403);
     expect(res.body).toHaveProperty('message');
     expect(String(res.body.message).toLowerCase()).toMatch(/insufficient|permission/);
+  });
+});
+
+describe("Users e2e tests : Update User Profile", () => {
+  let citizenToken: string;
+
+  beforeAll(async () => {
+    await f.default.beforeAll();
+
+    // Create a citizen user for update tests
+    const newUser = {
+      email: "updatetest@test.e2e",
+      password: "password",
+      firstName: "Update",
+      lastName: "Test",
+      username: "updatetest",
+      emailNotificationsEnabled: false,
+    };
+    await request(app).post("/api/users/signup").send(newUser);
+
+    // Login to get token
+    const loginRes = await request(app).post('/api/users/login').send({
+      username: 'updatetest',
+      password: 'password'
+    });
+    citizenToken = loginRes.body.token;
+
+    // Create another citizen for conflict tests
+    const anotherUser = {
+      email: "another@test.e2e",
+      password: "password",
+      firstName: "Another",
+      lastName: "User",
+      username: "anotherupdate",
+      emailNotificationsEnabled: true,
+    };
+    await request(app).post("/api/users/signup").send(anotherUser);
+  });
+
+  afterAll(async () => {
+    await f.default.afterAll();
+  });
+
+  it("PATCH /users/me => 200 (successfully update own profile)", async () => {
+    const updatePayload = {
+      firstName: "UpdatedName",
+      lastName: "UpdatedLast",
+      emailNotificationsEnabled: true,
+    };
+
+    const res = await request(app)
+      .patch('/api/users/me')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send(updatePayload);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message', 'User updated successfully');
+    expect(res.body).toHaveProperty('user');
+    expect(res.body.user.firstName).toBe('UpdatedName');
+    expect(res.body.user.lastName).toBe('UpdatedLast');
+    expect(res.body.user.emailNotificationsEnabled).toBe(true);
+  });
+
+  it("PATCH /users/me => 200 (update telegram username)", async () => {
+    const updatePayload = {
+      telegramUsername: "newtelegram",
+    };
+
+    const res = await request(app)
+      .patch('/api/users/me')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send(updatePayload);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message', 'User updated successfully');
+    expect(res.body).toHaveProperty('user');
+    expect(res.body.user.telegramUsername).toBe('newtelegram');
+  });
+
+  it("PATCH /users/me => 200 (update email and username)", async () => {
+    const updatePayload = {
+      email: "newemail@test.e2e",
+      username: "newusername",
+    };
+
+    const res = await request(app)
+      .patch('/api/users/me')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send(updatePayload);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message', 'User updated successfully');
+    expect(res.body).toHaveProperty('user');
+    expect(res.body.user.email).toBe('newemail@test.e2e');
+    expect(res.body.user.username).toBe('newusername');
+  });
+
+  it("PATCH /users/me => 400 (trying to update invalid field)", async () => {
+    const updatePayload = {
+      userType: "ADMINISTRATOR", // Not allowed
+    };
+
+    const res = await request(app)
+      .patch('/api/users/me')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send(updatePayload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/cannot be updated/i);
+  });
+
+  it("PATCH /users/me => 400 (empty field validation)", async () => {
+    const updatePayload = {
+      firstName: "",
+    };
+
+    const res = await request(app)
+      .patch('/api/users/me')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send(updatePayload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/cannot be empty/i);
+  });
+
+  it("PATCH /users/me => 409 (conflict when email already exists)", async () => {
+    const updatePayload = {
+      email: "another@test.e2e", // Email of anotherCitizen
+    };
+
+    const res = await request(app)
+      .patch('/api/users/me')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send(updatePayload);
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/already exists/i);
+  });
+
+  it("PATCH /users/me => 409 (conflict when username already exists)", async () => {
+    const updatePayload = {
+      username: "anotherupdate", // Username of anotherCitizen
+    };
+
+    const res = await request(app)
+      .patch('/api/users/me')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send(updatePayload);
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/already exists/i);
+  });
+
+  it("PATCH /users/me => 401 (no authentication token)", async () => {
+    const updatePayload = {
+      firstName: "NoAuth",
+    };
+
+    const res = await request(app)
+      .patch('/api/users/me')
+      .send(updatePayload);
+
+    expect(res.status).toBe(401);
   });
 });
