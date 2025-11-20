@@ -63,7 +63,7 @@ export default function CustomNavbar() {
           <Nav className="ms-auto d-flex align-items-center">
             {isLoggedIn ? (
               <>
-                <Notifications />
+              {user?.userType==="CITIZEN" && <Notifications />}
                 <Dropdown align="end" className="me-3">
                   <Dropdown.Toggle
                     as="div"
