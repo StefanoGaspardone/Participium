@@ -10,16 +10,33 @@ export interface Office {
 
 export interface User {
 	id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-    username: string;
-    image?: string | null;
-    telegramUsername?: string | null;
-    userType: string;
-    emailNotificationsEnabled: boolean;
-    // office?: string | null;
-    // createdAt: Date;
+	firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  image?: string | null;
+  telegramUsername?: string | null;
+  userType: string;
+  emailNotificationsEnabled: boolean;
+  // office?: string | null;
+  // createdAt: Date;
+}
+
+
+export interface Report {
+	id: number;
+	title: string;
+	description: string;
+	category: Category;
+	images: string[];
+	lat: number;
+	long: number;
+	status: string;
+	anonymous?: boolean;
+	rejectedDescription?: string | null;
+	createdBy?: Partial<User>;
+	createdAt: string | Date;
+	assignedTo?: Partial<User> | null;
 }
 
 export type FieldErrors = Record<string, string | string[]>;

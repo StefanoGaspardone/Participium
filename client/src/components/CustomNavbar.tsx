@@ -21,8 +21,9 @@ export default function CustomNavbar() {
   };
 
   const handleBrandClick = () => {
-    // If admin, send to /admin, otherwise to homepage '/'
     if (user?.userType === "ADMINISTRATOR") navigate("/admin");
+    else if (user?.userType === "PUBLIC_RELATIONS_OFFICER") navigate("/pro");
+    else if (user?.userType === "TECHNICAL_STAFF_MEMBER") navigate("/tech");
     else navigate("/");
   };
 

@@ -1,6 +1,7 @@
 import { AppDataSource } from "@database";
 import { Repository } from "typeorm";
-import { UserDAO } from "@daos/UserDAO";
+import { UserDAO, UserType } from "@daos/UserDAO";
+import { ReportStatus } from "@daos/ReportDAO";
 import * as bcrypt from "bcryptjs";
 
 export class UserRepository {
@@ -35,15 +36,35 @@ export class UserRepository {
     return null;
   };
 
-    updateUser = async (user: UserDAO): Promise<UserDAO> => {
-        await this.repo.update(user.id, user);
-        const updatedUser = await this.repo.findOneBy({ id:user.id });
-        if (!updatedUser) {
-            throw new Error(`User with id ${user.id} not found`);
-        }
-        console.log(updatedUser);
-        return updatedUser;
+  findLeastLoadedStaffForOffice = async (officeId: number): Promise<UserDAO | null> => {
+    const qb = this.repo
+      .createQueryBuilder('u')
+      .leftJoin('u.assignedReports', 'r', 'r.status IN (:...statuses)', {
+        statuses: [ReportStatus.Assigned, ReportStatus.InProgress, ReportStatus.Suspended],
+      })
+      .where('u.userType = :type', { type: UserType.TECHNICAL_STAFF_MEMBER })
+      .andWhere('u.office_id = :officeId', { officeId })
+      .select(['u.id', 'u.firstName', 'u.lastName', 'u.username', 'u.email', 'u.userType'])
+      .addSelect('COUNT(r.id)', 'assigned_count')
+      .groupBy('u.id')
+      .orderBy('assigned_count', 'ASC')
+      .addOrderBy('u.lastName', 'ASC')
+      .addOrderBy('u.firstName', 'ASC')
+      .addOrderBy('u.username', 'ASC')
+      .limit(1);
+
+    const res = await qb.getRawAndEntities();
+    return res.entities[0] || null;
+};
+
+updateUser = async (user: UserDAO): Promise<UserDAO> => {
+    await this.repo.update(user.id, user);
+    const updatedUser = await this.repo.findOneBy({ id:user.id });
+    if (!updatedUser) {
+        throw new Error(`User with id ${user.id} not found`);
     }
-}
+    console.log(updatedUser);
+    return updatedUser;
+};
 
 export const userRepository = new UserRepository();

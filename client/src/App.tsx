@@ -7,6 +7,8 @@ import UploadReport from "./components/UploadReportPage";
 import "./App.css";
 import "./custom_theme.scss";
 import AdminHomepage from "./components/AdminHomepage";
+import PROHomepage from "./components/PROHomepage";
+import TechnicalStaffHomepage from "./components/TechnicalStaffHomepage";
 import { useAppContext } from "./contexts/AppContext";
 import ProfilePage from "./components/ProfilePage.tsx";
 
@@ -16,9 +18,9 @@ function App() {
   const [selected, setSelected] = useState<{ lat: number; lng: number } | null>(
     null
   );
-  
+
   const { user, isLoggedIn } = useAppContext();
-  
+
   return (
     <>
       <Routes>
@@ -39,10 +41,34 @@ function App() {
           element={
             isLoggedIn ? (
               user?.userType === 'ADMINISTRATOR' && (
-                <AdminHomepage/>
+                <AdminHomepage />
               )
             ) : (
-              <Navigate to="/"/>
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/pro"
+          element={
+            isLoggedIn ? (
+              user?.userType === 'PUBLIC_RELATIONS_OFFICER' && (
+                <PROHomepage />
+              )
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/tech"
+          element={
+            isLoggedIn ? (
+              user?.userType === 'TECHNICAL_STAFF_MEMBER' && (
+                <TechnicalStaffHomepage />
+              )
+            ) : (
+              <Navigate to="/" />
             )
           }
         />
@@ -50,7 +76,7 @@ function App() {
         <Route
           path="/login"
           element={
-            <LoginPage/>
+            <LoginPage />
           }
         />
         <Route path="/register" element={<RegisterPage />} />
@@ -63,7 +89,7 @@ function App() {
                 <UploadReport selected={selected} setSelected={setSelected} />
               )
             ) : (
-              <Navigate to="/"/>
+              <Navigate to="/" />
             )
           }
         />
