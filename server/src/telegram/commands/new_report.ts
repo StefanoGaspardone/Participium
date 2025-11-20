@@ -32,8 +32,9 @@ export class NewReport {
 
             if(!categories.length) return ctx.reply('Unable to create report: no categories found.');
             
-            return ctx.reply(
-                '*STEP 1/6: Submit Location*\nPlease attach the location (must be within the Muncipality of Turin).', { parse_mode: 'Markdown' }
+            return ctx.reply( // TODO for anonymous
+                // '*STEP 1/6: Submit Location*\nPlease attach the location (must be within the Muncipality of Turin).', { parse_mode: 'Markdown' }
+                '*STEP 1/5: Submit Location*\nPlease attach the location (must be within the Muncipality of Turin).', { parse_mode: 'Markdown' }
             );
 
         } catch(error) {
@@ -57,7 +58,10 @@ export class NewReport {
             reportState.data.longitude = longitude;
             reportState.step = 'title';
             
-            return ctx.reply('*Step 2/6: Enter Title* \nNow enter a short *title* for your report.', { parse_mode: 'Markdown' });
+            return ctx.reply( // TODO for anonymous
+                // '*Step 2/6: Enter Title* \nNow enter a short *title* for your report.', { parse_mode: 'Markdown' }
+                '*Step 2/5: Enter Title* \nNow enter a short *title* for your report.', { parse_mode: 'Markdown' }
+            );
         } else {
             return ctx.reply('*Attention!*\nThe selected location is outside the Turin city limits. Choose a location *within* the city.', { parse_mode: 'Markdown' });
         }
@@ -79,7 +83,10 @@ export class NewReport {
         if(reportState.step === 'title') {
             reportState.data.title = text.substring(0, 50);
             reportState.step = 'description';
-            return ctx.reply('*STEP 3/6: Enter Description*\nProvide a detailed *description*.', { parse_mode: 'Markdown' });
+            return ctx.reply( // TODO anonymous
+                // '*STEP 3/6: Enter Description*\nProvide a detailed *description*.', { parse_mode: 'Markdown' }
+                '*STEP 3/5: Enter Description*\nProvide a detailed *description*.', { parse_mode: 'Markdown' }
+            );
         }
 
         if(reportState.step === 'description') {
@@ -89,7 +96,10 @@ export class NewReport {
             const categories = reportState.categories as Array<{id:number; name:string}>;
             const categoryButtons = categories.map((c: {id:number; name:string}) => Markup.button.callback(c.name, `category_${c.id}`));
             
-            return ctx.reply('*STEP 4/6: Choose Category*\nSelect the most appropriate *category*:', {
+            return ctx.reply( // TODO for anonymous
+                // '*STEP 4/6: Choose Category*\nSelect the most appropriate *category*:',
+                '*STEP 4/5: Choose Category*\nSelect the most appropriate *category*:',
+                {
                 parse_mode: 'Markdown',
                 ...Markup.inlineKeyboard(categoryButtons, { columns: 2 })
             });
@@ -163,18 +173,21 @@ export class NewReport {
 
         if(!reportState || reportState.step !== 'awaiting_photos') return ctx.reply('The command is invalid at this stage. Are you running a report? Use /new_report.');
         if(!reportState.data.images || reportState.data.images.length === 0) return ctx.reply('You must submit *at least 1 photo* before completing the report. Submit an image.', { parse_mode: 'Markdown' });
-    
-        reportState.step = 'anonymous';
-        return ctx.reply(
-            '*STEP 6/6: Anonymous Report?*\nDo you want this report to be sent anonymously? Select YES or NO to finish.', {
-                parse_mode: 'Markdown',
-                ...Markup.removeKeyboard(),
-                ...Markup.inlineKeyboard([
-                    Markup.button.callback('Yes', 'anon_true'),
-                    Markup.button.callback('No', 'anon_false')
-                ], { columns: 2 }),
-            }
-        );
+
+        return this.uploadReport(ctx);
+        
+        // TODO for anonymous
+        // reportState.step = 'anonymous';
+        // return ctx.reply(
+        //     '*STEP 6/6: Anonymous Report?*\nDo you want this report to be sent anonymously? Select YES or NO to finish.', {
+        //         parse_mode: 'Markdown',
+        //         ...Markup.removeKeyboard(),
+        //         ...Markup.inlineKeyboard([
+        //             Markup.button.callback('Yes', 'anon_true'),
+        //             Markup.button.callback('No', 'anon_false')
+        //         ], { columns: 2 }),
+        //     }
+        // );
     }
 
     private handleCallbackQuery = async (ctx: CustomContext) => {
@@ -195,8 +208,9 @@ export class NewReport {
             reportState.step = 'awaiting_photos';
             reportState.data.images = [];
             
-            return ctx.reply(
-                '*STEP 5/6: Submit Images*\nPlease submit *1-3 photos* for the report. Once submitted, click /done to continue.', {
+            return ctx.reply( // TODO for anonymous
+                // '*STEP 5/6: Submit Images*\nPlease submit *1-3 photos* for the report. Once submitted, click /done to continue.', {
+                '*STEP 5/5: Submit Images*\nPlease submit *1-3 photos* for the report. Once submitted, click /done to continue.', {
                     parse_mode: 'Markdown',
                    ...Markup.keyboard([['/done']]).resize()
                 }
