@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString, IsUrl, Max, Min, ValidateIf } from 'class-validator';
 import { UserDAO } from '@daos/UserDAO';
+import {NotificationDAO} from "@daos/Notifications";
 
 export enum ReportStatus {
     PendingApproval = 'PendingApproval', 
@@ -68,6 +69,9 @@ export class ReportDAO {
     @JoinColumn({ name: 'assigned_to_id' })
     @ValidateIf(o => [ReportStatus.Assigned, ReportStatus.InProgress, ReportStatus.Resolved, ReportStatus.Rejected, ReportStatus.Suspended].includes(o.status))
     assignedTo: UserDAO;
+
+    @OneToMany(() => NotificationDAO, notification => notification.report)
+    notifications: NotificationDAO[];
 
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;

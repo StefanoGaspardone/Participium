@@ -4,8 +4,11 @@ import { AppDataSource, initializeDatabase, closeDatabase } from '@database';
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { logInfo, logError } from '@utils/logger';
-import {UserType} from "@daos/UserDAO";
+import { UserType } from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
+import { NotificationDAO } from '@daos/Notifications';
+import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
+import { UserDAO } from '@daos/UserDAO';
 
 const OFFICES: string[] = [
     'Organization',
@@ -16,7 +19,7 @@ const OFFICES: string[] = [
     'General Services Division',
 ];
 
-const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType }> = [
+const USERS: Array<{ username: string; email: string; password: string; firstName: string; lastName: string; userType: UserType }> = [
     { username: 'admin', email: 'admin@gmail.com', firstName: 'Stefano', lastName: 'Lo Russo', password: 'admin', userType: UserType.ADMINISTRATOR },
     { username: 'user', email: 'user@gmail.com', firstName: 'Francesco', lastName: 'Totti', password: 'user', userType: UserType.CITIZEN }
 ];
@@ -33,19 +36,19 @@ const CATEGORIES: Array<{ name: string; office: string }> = [
     { name: 'Other', office: 'General Services Division' },
 ];
 
-async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType }>) {
+async function upsertUsers(users: Array<{ username: string; email: string; password: string; firstName: string; lastName: string; userType: UserType }>) {
     const repo = AppDataSource.getRepository('UserDAO');
 
-    for(const { username, email, password, firstName, lastName, userType } of users) {
+    for (const { username, email, password, firstName, lastName, userType } of users) {
         const trimmedUsername = username.trim();
         const trimmedEmail = email.trim();
-        if(!trimmedUsername || !trimmedEmail) continue;
+        if (!trimmedUsername || !trimmedEmail) continue;
 
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
         let user = await repo.findOne({ where: { username: trimmedUsername } });
-        if(!user) {
+        if (!user) {
             user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType });
             user = await repo.save(user);
 
@@ -59,22 +62,22 @@ async function upsertUsers(users: Array<{ username:string; email:string; passwor
 async function upsertOffices(offices: string[]) {
     const repo = AppDataSource.getRepository(OfficeDAO);
     const map = new Map<string, OfficeDAO>();
-    
-    for(const name of offices) {
+
+    for (const name of offices) {
         const trimmed = name.trim();
-        if(!trimmed) continue;
+        if (!trimmed) continue;
 
         let office = await repo.findOne({ where: { name: trimmed } });
-        if(!office) {
-                office = repo.create({ name: trimmed });
-                office = await repo.save(office);
-                
-                logInfo(`[populate-db] Inserted office: ${trimmed} (id=${office.id})`);
+        if (!office) {
+            office = repo.create({ name: trimmed });
+            office = await repo.save(office);
+
+            logInfo(`[populate-db] Inserted office: ${trimmed} (id=${office.id})`);
         } else {
             logInfo(`[populate-db] Office already exists: ${trimmed} (id=${office.id})`);
         }
-            map.set(trimmed, office);
-        }
+        map.set(trimmed, office);
+    }
 
     return map;
 }
@@ -82,33 +85,173 @@ async function upsertOffices(offices: string[]) {
 async function upsertCategories(items: Array<{ name: string; office: string }>, rolesByName: Map<string, OfficeDAO>) {
     const repo = AppDataSource.getRepository(CategoryDAO);
 
-    for(const { name, office } of items) {
+    for (const { name, office } of items) {
         const trimmedName = name.trim();
         const trimmedOffice = office.trim();
-        if(!trimmedName || !trimmedOffice) continue;
+        if (!trimmedName || !trimmedOffice) continue;
 
         const role = rolesByName.get(trimmedOffice);
-        if(!role) {
+        if (!role) {
             logError(`[populate-db] Skipping category '${trimmedName}': office '${trimmedOffice}' not found in OFFICES.`);
             continue;
         }
 
         let cat = await repo.findOne({ where: { name: trimmedName } });
-        if(!cat) {
+        if (!cat) {
             cat = repo.create({ name: trimmedName, office: role });
             cat = await repo.save(cat);
-            
+
             logInfo(`[populate-db] Inserted category: ${trimmedName} (id=${cat.id}) -> office=${role.name}`);
         } else {
-            if(!cat.office || cat.office.id !== role.id) {
+            if (!cat.office || cat.office.id !== role.id) {
                 cat.office = role;
                 await repo.save(cat);
-                
+
                 logInfo(`[populate-db] Updated category office: ${trimmedName} -> office=${role.name}`);
             } else {
                 logInfo(`[populate-db] Category already exists: ${trimmedName} (id=${cat.id})`);
             }
         }
+    }
+}
+
+async function upsertReports() {
+    const userRepo = AppDataSource.getRepository('UserDAO');
+    const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+    const reportRepo = AppDataSource.getRepository(ReportDAO);
+
+    // Choose a creator (prefer 'user')
+    const creator = await userRepo.findOne({ where: { username: 'user' } }) || await userRepo.findOne({});
+    if (!creator) {
+        logError('[populate-db] No users found to attach reports to. Skipping reports.');
+        return;
+    }
+
+    // Prepare a couple of sample reports using existing categories
+    // Try to pick two meaningful categories from the DB (based on CATEGORIES list)
+    const desiredCategoryNames = CATEGORIES.slice(0, 2).map(c => c.name);
+    const categories: Array<any> = [];
+    for (const name of desiredCategoryNames) {
+        const cat = await categoryRepo.findOne({ where: { name } });
+        if (cat) categories.push(cat);
+    }
+
+    if (categories.length === 0) {
+        logError('[populate-db] No categories found to attach reports to. Skipping reports.');
+        return;
+    }
+
+    const samples = [
+        {
+            title: 'Pothole near central square',
+            description: 'Large pothole next to the crosswalk causing danger to cyclists.',
+            category: categories[0],
+            images: ['https://via.placeholder.com/800x600.png?text=pothole'],
+            lat: 45.0703,
+            long: 7.6869,
+            anonymous: false,
+            status: ReportStatus.PendingApproval
+        },
+        {
+            title: 'Broken street light on via Roma',
+            description: 'Street light not working for several nights.',
+            category: categories[1] || categories[0],
+            images: ['https://via.placeholder.com/800x600.png?text=streetlight'],
+            lat: 45.0685,
+            long: 7.6939,
+            anonymous: false,
+            status: ReportStatus.Assigned
+        }
+    ];
+
+    for (const s of samples) {
+        try {
+            const existing = await reportRepo.findOne({ where: { title: s.title } });
+            if (existing) {
+                logInfo(`[populate-db] Report already exists: ${s.title} (id=${existing.id})`);
+                continue;
+            }
+
+            const r = reportRepo.create({
+                title: s.title,
+                description: s.description,
+                category: s.category,
+                images: s.images,
+                lat: s.lat,
+                long: s.long,
+                anonymous: s.anonymous,
+                status: s.status,
+                createdAt: new Date(),
+                createdBy: creator
+            });
+
+            const saved = await reportRepo.save(r);
+            logInfo(`[populate-db] Inserted report: ${saved.title} (id=${saved.id})`);
+        } catch (err) {
+            logError('[populate-db] Error inserting sample report:', err);
+        }
+    }
+}
+
+async function upsertNotifications() {
+    const userRepo = AppDataSource.getRepository('UserDAO');
+    const reportRepo = AppDataSource.getRepository(ReportDAO);
+    const notifRepo = AppDataSource.getRepository(NotificationDAO);
+
+    const user1 = await userRepo.findOne({ where: { username: 'user' } }) || await userRepo.findOne({});
+    const user2 = await userRepo.findOne({ where: { username: 'admin' } }) || null;
+
+    if (!user1) {
+        logError('[populate-db] No users found to attach notifications to. Skipping notifications.');
+        return;
+    }
+
+    const reports = await reportRepo.find({ take: 2 });
+    if (!reports || reports.length === 0) {
+        logError('[populate-db] No reports found. Skipping notifications.');
+        return;
+    }
+
+    // First notification
+    try {
+        const exists1 = await notifRepo.findOne({ where: { username: { id: user1.id }, report: { id: reports[0].id }, previousStatus: ReportStatus.PendingApproval, newStatus: ReportStatus.Assigned }, relations: ['username', 'report'] });
+        if (!exists1) {
+            const notif1 = notifRepo.create({
+                username: user1,
+                report: reports[0],
+                previousStatus: ReportStatus.PendingApproval,
+                newStatus: ReportStatus.Assigned,
+                seen: false,
+            });
+            await notifRepo.save(notif1);
+            logInfo(`[populate-db] Inserted notification id=${notif1.id} for user=${user1.username} reportId=${reports[0].id}`);
+        } else {
+            logInfo(`[populate-db] Notification already exists for user=${user1.username} reportId=${reports[0].id}`);
+        }
+    } catch (err) {
+        logError('[populate-db] Error inserting first notification:', err);
+    }
+
+    // Second notification
+    try {
+        const targetUser = user2 || user1;
+        const secondReport = reports[1] || reports[0];
+        const exists2 = await notifRepo.findOne({ where: { username: { id: targetUser.id }, report: { id: secondReport.id }, previousStatus: ReportStatus.Assigned, newStatus: ReportStatus.Resolved }, relations: ['username', 'report'] });
+        if (!exists2) {
+            const notif2 = notifRepo.create({
+                username: targetUser,
+                report: secondReport,
+                previousStatus: ReportStatus.Assigned,
+                newStatus: ReportStatus.Resolved,
+                seen: false,
+            });
+            await notifRepo.save(notif2);
+            logInfo(`[populate-db] Inserted notification id=${notif2.id} for user=${targetUser.username} reportId=${secondReport.id}`);
+        } else {
+            logInfo(`[populate-db] Notification already exists for user=${targetUser.username} reportId=${secondReport.id}`);
+        }
+    } catch (err) {
+        logError('[populate-db] Error inserting second notification:', err);
     }
 }
 
@@ -119,10 +262,13 @@ async function main() {
         const rolesByName = await upsertOffices(OFFICES);
         await upsertCategories(CATEGORIES, rolesByName);
 
-        await  upsertUsers(USERS);
+        await upsertUsers(USERS);
+
+        await upsertReports();
+        await upsertNotifications();
 
         logInfo('[populate-db] Done.');
-    } catch(err) {
+    } catch (err) {
         logError('[populate-db] Failed:', err);
         process.exitCode = 1;
     } finally {

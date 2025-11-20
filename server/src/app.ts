@@ -10,6 +10,7 @@ import { uploadRouter } from '@routes/upload.routes';
 import { reportRouter } from '@routes/report.routes';
 import {userRouter} from "@routes/user.routes";
 import {officeRouter} from "@routes/office.routes";
+import {notificationRouter} from "@routes/notification.routes";
 
 export const app = express();
 
@@ -44,7 +45,7 @@ app.use(CONFIG.ROUTES.UPLOADS, uploadRouter);
 app.use(CONFIG.ROUTES.REPORTS, reportRouter);
 app.use(CONFIG.ROUTES.USERS, userRouter);
 app.use(CONFIG.ROUTES.OFFICES, officeRouter);
-
+app.use(CONFIG.ROUTES.NOTIFICATIONS, notificationRouter);
 app.use(errorHandler);
 
 const jwtSecret = jwtSecretEnv
