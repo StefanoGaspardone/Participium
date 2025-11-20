@@ -1,20 +1,23 @@
 import React, { useRef, useEffect, useCallback } from "react";
 import "leaflet/dist/leaflet.css";
 import leaflet from "leaflet";
-import L from "leaflet.markercluster";
+import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "./map.css";
 import { MaptilerLayer } from "@maptiler/leaflet-maptilersdk";
 import { useAppContext } from "../contexts/AppContext";
+import type { ReportDTO } from "../models/models";
 
 type Coord = { lat: number; lng: number } | null;
 
 type Props = {
   selected: Coord;
   setSelected: React.Dispatch<React.SetStateAction<Coord>>;
+  reports?: ReportDTO[] | null;
 };
 
+// Map component WITHOUT the markers' cluster feature (just the feature to select a point on the map)
 export default function Map({ selected, setSelected }: Props) {
   const { isLoggedIn } = useAppContext();
 
@@ -231,7 +234,12 @@ export default function Map({ selected, setSelected }: Props) {
   );
 }
 
-export function HomepageMap({ selected, setSelected }: Props) {
+// Map component WITH the markers' cluster feature and the other ones
+export function HomepageMap({
+  selected,
+  setSelected,
+  reports
+}: Props) {
   const { isLoggedIn } = useAppContext();
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -445,67 +453,18 @@ export function HomepageMap({ selected, setSelected }: Props) {
       return;
     }
     const markers = leaflet.markerClusterGroup(); // we create the "layer" containing all the markers related to reports
-    const fetchedReports = [
-      // to substitute with the API call to fetch the reports
-      {
-        id: 123,
-        title: "Broken sidewalk",
-        description: "There is a large crack on the sidewalk near XY",
-        category: { id: 4, name: "Public Lighting" },
-        images: [
-          "https://cdn.example.com/1.jpg",
-          "https://cdn.example.com/2.jpg",
-        ],
-        lat: 45.070123,
-        long: 7.682345,
-        status: "PendingApproval",
-        anonymous: false,
-        rejectedDescription: null,
-        createdBy: {
-          id: 1,
-          firstName: "Alice",
-          lastName: "Rossi",
-          username: "alice",
-          userType: "CITIZEN",
-          image: null,
-        },
-        createdAt: "2025-01-01T12:34:56.000Z",
-      },
-      {
-        id: 123,
-        title: "Broken lamp",
-        description: "There is a large cracked lamp",
-        category: { id: 4, name: "Public Lighting" },
-        images: [
-          "https://cdn.example.com/1.jpg",
-          "https://cdn.example.com/2.jpg",
-        ],
-        lat: 45.070443,
-        long: 7.682745,
-        status: "PendingApproval",
-        anonymous: false,
-        rejectedDescription: null,
-        createdBy: {
-          id: 1,
-          firstName: "Alice",
-          lastName: "Rossi",
-          username: "alice",
-          userType: "CITIZEN",
-          image: null,
-        },
-        createdAt: "2025-01-01T12:34:56.000Z",
-      },
-    ];
-    for (let i = 0; i < fetchedReports.length; i++) {
-      const report = fetchedReports[i];
-      const title = report.title;
-      const marker = leaflet.marker([report.lat, report.long], {
-        title: title,
-      });
-      marker.bindPopup(`${title}`);
-      markers.addLayer(marker);
+    if (reports) {
+      for (let i = 0; i < reports.length; i++) {
+        const report = reports[i];
+        const title = report.title;
+        const marker = leaflet.marker([report.lat, report.long], {
+          title: title,
+        });
+        marker.bindPopup(`${title}`);
+        markers.addLayer(marker);
+      }
+      map.current!.addLayer(markers);
     }
-    map.current!.addLayer(markers);
   });
 
   return (
