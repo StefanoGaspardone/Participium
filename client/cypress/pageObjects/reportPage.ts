@@ -21,7 +21,7 @@ const reportPage = {
     cy.get('[id="select-category"]').select(cat);
   },
   clickOnMap: () => {
-    cy.get('[id="map-container"]').click();
+    cy.get('[id="map-container"]').focus().click();
   },
   insertImages: (qty: number) => {
     if (qty < 1 || qty > 3) {
@@ -30,7 +30,7 @@ const reportPage = {
     cy.get('[id="image-input"]').selectFile("cypress\\e2e\\singlePagesTests\\toUploadImages\\toUp.png", {force: true});
   }, //
   submitForm: () => {
-    cy.get('[id="submit-button"]').focus().click();
+    cy.get('[id="submit-button"]').click();
   },
   submitFormNotVisible: () => {
     cy.get('[id="submit-button"]').should('be.disabled');

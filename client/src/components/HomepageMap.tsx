@@ -229,7 +229,7 @@ export default function Map({ selected, setSelected }: Props) {
 
   return (
     <div className="map-wrap">
-      <div ref={mapContainer} className="map" />
+      <div ref={mapContainer} className="map" id="map-container"/>
     </div>
   );
 }
@@ -469,7 +469,7 @@ export function HomepageMap({
 
   return (
     <div className="map-wrap">
-      <div ref={mapContainer} className="map" />
+      <div ref={mapContainer} className="map" id="map-container"/>
     </div>
   );
 }
