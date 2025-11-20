@@ -306,6 +306,7 @@ export const getAssignedReports = async (): Promise<Report[]> => {
     images: Array.isArray(r.images) ? r.images : [],
     assignedTo: r.assignedTo ?? null,
   }));
+};
 export interface UpdateUserPayload {
   firstName?: string;
   lastName?: string;
@@ -317,7 +318,7 @@ export interface UpdateUserPayload {
 }
 
 export const updateUser = async (
-    payload: UpdateUserPayload
+  payload: UpdateUserPayload
 ): Promise<{ message: string; user: User }> => {
   const res = await fetch(`${BASE_URL}/users/me`, {
     method: "PATCH",
