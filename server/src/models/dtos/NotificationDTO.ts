@@ -14,6 +14,12 @@ export interface NotificationDTO {
     createdAt: Date;
 }
 
+export interface NewNotificationDTO {
+    previousStatus: ReportStatus;
+    newStatus: ReportStatus;
+    userId: number;
+    reportId: number;
+}
 export const createNotificationDTO = (notification: NotificationDAO): NotificationDTO => {
     return {
         id: notification.id,

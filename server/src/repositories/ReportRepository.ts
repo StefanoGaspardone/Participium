@@ -10,6 +10,10 @@ export class ReportRepository {
         this.repo = AppDataSource.getRepository(ReportDAO);
     }
 
+    findReportById = async (id: number): Promise<ReportDAO | null> => {
+        return this.repo.findOne({ where: { id }});
+    }
+
     createReport = async (report: ReportDAO): Promise<ReportDAO> => {
         return this.repo.save(report);
     }

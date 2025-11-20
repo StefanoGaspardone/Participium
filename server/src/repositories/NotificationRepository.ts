@@ -1,7 +1,6 @@
 import {Repository} from "typeorm";
 import {NotificationDAO} from "@daos/Notifications";
 import {AppDataSource} from "@database";
-import {CategoryDAO} from "@daos/CategoryDAO";
 
 
 export class NotificationRepository {
@@ -14,6 +13,15 @@ export class NotificationRepository {
 
     findAllNotifications = async (): Promise<NotificationDAO[]> => {
         return this.repo.find({relations: ['user', 'report', 'report.category', 'report.createdBy']});
+    }
+
+    createNotification = async (notification: NotificationDAO): Promise<NotificationDAO> => {
+        const saved = await this.repo.save(notification);
+        const newNotification = await this.repo.findOne({
+            where: { id: saved.id },
+            relations: ['user', 'report', 'report.category', 'report.createdBy']
+        });
+        return newNotification!;
     }
 }
 
