@@ -2,7 +2,7 @@ import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 import { CategoryDTO, createCategoryDTO } from "@dtos/CategoryDTO";
 import { UserDTO, MapUserDAOtoDTO } from "@dtos/UserDTO";
 import {createReportDTO, ReportDTO} from "@dtos/ReportDTO";
-import {NotificationDAO} from "@daos/Notifications";
+import {NotificationDAO} from "@daos/NotificationsDAO";
 
 export interface NotificationDTO {
     id: number;

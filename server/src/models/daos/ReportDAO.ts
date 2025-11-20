@@ -2,7 +2,7 @@ import {Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Prim
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString, IsUrl, Max, Min, ValidateIf } from 'class-validator';
 import { UserDAO } from '@daos/UserDAO';
-import {NotificationDAO} from "@daos/Notifications";
+import {NotificationDAO} from "@daos/NotificationsDAO";
 
 export enum ReportStatus {
     PendingApproval = 'PendingApproval', 

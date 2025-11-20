@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { IsEmail, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf, Validator } from 'class-validator';
 import { ReportDAO } from '@daos/ReportDAO';
-import {NotificationDAO} from "@daos/Notifications";
+import {NotificationDAO} from "@daos/NotificationsDAO";
 
 export enum UserType {
     CITIZEN = 'CITIZEN',

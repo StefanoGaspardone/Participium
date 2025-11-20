@@ -6,6 +6,8 @@ import {NewNotificationDTO, NotificationDTO} from "@dtos/NotificationDTO";
 import {BadRequestError} from "@errors/BadRequestError";
 import {UserType} from "@daos/UserDAO";
 import {ReportStatus} from "@daos/ReportDAO";
+import {UnauthorizedError} from "@errors/UnauthorizedError";
+import {AuthRequest} from "@middlewares/authenticationMiddleware";
 
 export class NotificationController {
     private notificationService: NotificationService;
@@ -71,6 +73,18 @@ export class NotificationController {
             await this.notificationService.updateNotificationSeen(notificationId);
             res.status(200).json({ message: "Notification marked as seen" });
         } catch(error) {
+            next(error);
+        }
+    }
+    getMyNotifications = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            if (!req.token || !req.token.user) throw new UnauthorizedError('Token is missing, not authenticated');
+            const userId = req.token.user.id;
+
+            const myNotifications = await this.notificationService.findMyNotifications(userId);
+
+            res.status(200).json({ notifications: myNotifications });
+        } catch (error) {
             next(error);
         }
     }

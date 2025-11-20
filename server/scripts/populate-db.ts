@@ -6,7 +6,7 @@ import { CategoryDAO } from '@daos/CategoryDAO';
 import { logInfo, logError } from '@utils/logger';
 import { UserType } from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
-import { NotificationDAO } from '@daos/Notifications';
+import { NotificationDAO } from '@daos/NotificationsDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import { UserDAO } from '@daos/UserDAO';
 

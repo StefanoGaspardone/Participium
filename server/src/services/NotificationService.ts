@@ -1,6 +1,6 @@
 // filepath: /Users/fede/Desktop/repos/Participium/server/src/services/NotificationService.ts
 import { notificationRepository, NotificationRepository } from '@repositories/NotificationRepository';
-import { NotificationDAO } from '@daos/Notifications';
+import { NotificationDAO } from '@daos/NotificationsDAO';
 import {createNotificationDTO, NewNotificationDTO, NotificationDTO} from "@dtos/NotificationDTO";
 import {userRepository, UserRepository} from "@repositories/UserRepository";
 import {BadRequestError} from "@errors/BadRequestError";
@@ -50,6 +50,16 @@ export class NotificationService {
             throw new BadRequestError("Notification not found");
         }
         await this.notificationRepo.updateNotificationSeen(notification);
+    }
+
+    findMyNotifications = async (userId: number): Promise<NotificationDTO[]> => {
+        const user = await this.userRepo.findUserById(userId);
+        if (!user) {
+            throw new BadRequestError("User not found");
+        }
+
+        const myNotifications = await this.notificationRepo.findMyNotifications(user);
+        return myNotifications.map(createNotificationDTO);
     }
 }
 

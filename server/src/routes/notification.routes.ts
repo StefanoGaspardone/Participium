@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { notificationController } from '@controllers/NotificationController';
 import { authMiddleware } from '@middlewares/authenticationMiddleware';
+import {UserType} from "@daos/UserDAO";
 
 const router = Router();
 
@@ -9,5 +10,6 @@ const router = Router();
 router.get('/', notificationController.findAll); //TODO add citizen auth middleware?
 router.post('/', notificationController.createNotification);
 router.patch("/seen/:id", notificationController.updateNotificationSeen);
+router.get("/my-notifications", authMiddleware([UserType.CITIZEN]), notificationController.getMyNotifications);
 export const notificationRouter = router;
 
