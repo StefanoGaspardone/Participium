@@ -15,6 +15,10 @@ export class NotificationRepository {
         return this.repo.find({relations: ['user', 'report', 'report.category', 'report.createdBy']});
     }
 
+    findNotificationById = async (id: number): Promise<NotificationDAO | null> => {
+        return await this.repo.findOne({ where: { id }});
+    }
+
     createNotification = async (notification: NotificationDAO): Promise<NotificationDAO> => {
         const saved = await this.repo.save(notification);
         const newNotification = await this.repo.findOne({
@@ -22,6 +26,10 @@ export class NotificationRepository {
             relations: ['user', 'report', 'report.category', 'report.createdBy']
         });
         return newNotification!;
+    }
+
+    updateNotificationSeen = async (notification: NotificationDAO): Promise<void> => {
+        await this.repo.update({id: notification.id}, { seen: true });
     }
 }
 

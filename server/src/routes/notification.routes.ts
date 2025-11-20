@@ -8,5 +8,6 @@ const router = Router();
 // require authentication to access notifications
 router.get('/', notificationController.findAll); //TODO add citizen auth middleware?
 router.post('/', notificationController.createNotification);
+router.patch("/seen/:id", notificationController.updateNotificationSeen);
 export const notificationRouter = router;
 

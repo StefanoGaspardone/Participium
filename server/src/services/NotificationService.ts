@@ -20,7 +20,6 @@ export class NotificationService {
 
     findAllNotifications = async (): Promise<NotificationDTO[]> => {
         const notifications = await this.notificationRepo.findAllNotifications();
-        console.log(notifications[0]);
         return notifications.map(createNotificationDTO);
     }
 
@@ -43,6 +42,14 @@ export class NotificationService {
 
         const newNotification = await this.notificationRepo.createNotification(notificationDAO);
         return createNotificationDTO(newNotification);
+    }
+
+    updateNotificationSeen = async (id: number): Promise<void> => {
+        const notification = await this.notificationRepo.findNotificationById(id);
+        if (!notification) {
+            throw new BadRequestError("Notification not found");
+        }
+        await this.notificationRepo.updateNotificationSeen(notification);
     }
 }
 

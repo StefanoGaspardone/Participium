@@ -60,6 +60,20 @@ export class NotificationController {
             next(error);
         }
     }
+
+    updateNotificationSeen = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params;
+            const notificationId = parseInt(id, 10);
+            if (isNaN(notificationId)) {
+                throw new BadRequestError("Invalid notification ID");
+            }
+            await this.notificationService.updateNotificationSeen(notificationId);
+            res.status(200).json({ message: "Notification marked as seen" });
+        } catch(error) {
+            next(error);
+        }
+    }
 }
 
 export const notificationController = new NotificationController();
