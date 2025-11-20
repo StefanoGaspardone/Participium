@@ -7,14 +7,14 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "./map.css";
 import { MaptilerLayer } from "@maptiler/leaflet-maptilersdk";
 import { useAppContext } from "../contexts/AppContext";
-import type { ReportDTO } from "../models/models";
+import type { Report } from "../models/models";
 
 type Coord = { lat: number; lng: number } | null;
 
 type Props = {
   selected: Coord;
   setSelected: React.Dispatch<React.SetStateAction<Coord>>;
-  reports?: ReportDTO[] | null;
+  reports?: Report[] | null;
 };
 
 // Map component WITHOUT the markers' cluster feature (just the feature to select a point on the map)
