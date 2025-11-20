@@ -15,44 +15,50 @@ jobs:
         with:
           fetch-depth: 0
       
-      # 1. Setup Node.js (necessario per npm)
+      # 1. Setup Node.js
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 'lts/*'
-          
-      # 2. Avviare il Database PostgreSQL con Docker Compose
-      - name: Start Test Database
-        # Questo comando viene eseguito dalla radice del progetto
-        run: npm run db:test:start
-        
-      # 3. Attesa (molto importante!)
-      - name: Wait for DB to be ready
-        # Diamo al container PostgreSQL il tempo di avviarsi completamente
-        run: sleep 10
 
-      # 4. Installazione delle dipendenze e esecuzione dei test
-      - name: Install dependencies and run tests
+      # 2. Avviare DB, Installare e Testare (Tutto dentro server/)
+      - name: Setup DB, Install dependencies, and Run tests
         run: |
+          # 1. Spostati nella cartella server/
           cd server
+          
+          # 2. Avvia il Database (il comando docker-compose.yaml è relativo a server/)
+          npm run db:test:start
+          
+          # 3. Attesa (fondamentale per dare il tempo al DB di avviarsi)
+          sleep 10
+          
+          # 4. Installazione delle dipendenze di server/
           npm ci
+          
+          # 5. Esegui i test e genera la coverage
           npm run test
         
-      # 5. Analisi SonarQube (sulla radice del progetto)
+      # 3. Analisi SonarQube (sulla radice del progetto)
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         with:
-          # Nessun projectBaseDir, analizza l'intera repository
+          # Nessun projectBaseDir.
+          # Il percorso di coverage è: [RADICE_PROGETTO]/server/coverage/lcov.info
           args: >
             -Dsonar.javascript.lcov.reportPaths=server/coverage/lcov.info
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           
-      # 6. Pulizia: Spegni il Database (IMPORTANTE)
+      # 4. Pulizia: Spegni il Database (IMPORTANTE)
       - name: Stop Test Database
-        # Devi indicare la stessa configurazione YAML per fermare il servizio.
-        # Questo comando viene eseguito dalla radice del progetto.
-        run: docker compose -f ./test/docker/postgres/docker-compose.yaml down
+        # Devi tornare nella cartella 'server' per lanciare il down
+        # o lanciare il comando con il percorso relativo a server/
+        run: |
+          cd server
+          # Assumendo che tu non abbia uno script di stop, usiamo docker compose down direttamente
+          # Adatta il percorso al tuo docker-compose.yaml relativo a server/
+          docker compose -f ./test/docker/postgres/docker-compose.yaml down
   sonarqube2:
     name: SonarQubeMac
     runs-on: macos-latest
@@ -61,41 +67,47 @@ jobs:
         with:
           fetch-depth: 0
       
-      # 1. Setup Node.js (necessario per npm)
+      # 1. Setup Node.js
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 'lts/*'
-          
-      # 2. Avviare il Database PostgreSQL con Docker Compose
-      - name: Start Test Database
-        # Questo comando viene eseguito dalla radice del progetto
-        run: npm run db:test:start
-        
-      # 3. Attesa (molto importante!)
-      - name: Wait for DB to be ready
-        # Diamo al container PostgreSQL il tempo di avviarsi completamente
-        run: sleep 10
 
-      # 4. Installazione delle dipendenze e esecuzione dei test
-      - name: Install dependencies and run tests
+      # 2. Avviare DB, Installare e Testare (Tutto dentro server/)
+      - name: Setup DB, Install dependencies, and Run tests
         run: |
+          # 1. Spostati nella cartella server/
           cd server
+          
+          # 2. Avvia il Database (il comando docker-compose.yaml è relativo a server/)
+          npm run db:test:start
+          
+          # 3. Attesa (fondamentale per dare il tempo al DB di avviarsi)
+          sleep 10
+          
+          # 4. Installazione delle dipendenze di server/
           npm ci
+          
+          # 5. Esegui i test e genera la coverage
           npm run test
         
-      # 5. Analisi SonarQube (sulla radice del progetto)
+      # 3. Analisi SonarQube (sulla radice del progetto)
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         with:
-          # Nessun projectBaseDir, analizza l'intera repository
+          # Nessun projectBaseDir.
+          # Il percorso di coverage è: [RADICE_PROGETTO]/server/coverage/lcov.info
           args: >
             -Dsonar.javascript.lcov.reportPaths=server/coverage/lcov.info
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           
-      # 6. Pulizia: Spegni il Database (IMPORTANTE)
+      # 4. Pulizia: Spegni il Database (IMPORTANTE)
       - name: Stop Test Database
-        # Devi indicare la stessa configurazione YAML per fermare il servizio.
-        # Questo comando viene eseguito dalla radice del progetto.
-        run: docker compose -f ./test/docker/postgres/docker-compose.yaml down
+        # Devi tornare nella cartella 'server' per lanciare il down
+        # o lanciare il comando con il percorso relativo a server/
+        run: |
+          cd server
+          # Assumendo che tu non abbia uno script di stop, usiamo docker compose down direttamente
+          # Adatta il percorso al tuo docker-compose.yaml relativo a server/
+          docker compose -f ./test/docker/postgres/docker-compose.yaml down
