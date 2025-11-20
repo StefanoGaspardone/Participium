@@ -15,6 +15,10 @@ export class UserRepository {
     return this.repo.find({ relations: ["office"] });
   };
 
+  findUserById = async (id: number): Promise<UserDAO | null> => {
+    return this.repo.findOne({ where: { id } });
+  }
+
   findUserByTelegramUsername = async (telegramUsername: string): Promise<UserDAO | null> => {
     return this.repo.findOne({ where: { telegramUsername } });
   }
@@ -51,7 +55,16 @@ export class UserRepository {
 
     const res = await qb.getRawAndEntities();
     return res.entities[0] || null;
-  }
-}
+};
+
+updateUser = async (user: UserDAO): Promise<UserDAO> => {
+    await this.repo.update(user.id, user);
+    const updatedUser = await this.repo.findOneBy({ id:user.id });
+    if (!updatedUser) {
+        throw new Error(`User with id ${user.id} not found`);
+    }
+    console.log(updatedUser);
+    return updatedUser;
+};
 
 export const userRepository = new UserRepository();

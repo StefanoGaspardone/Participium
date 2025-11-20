@@ -46,7 +46,7 @@ export default function HomePage({
               <div className="h-100 d-flex flex-column align-items-center justify-content-center px-3">
                 <div className="text-center">
                   <h5 className="text-primary mb-2">Log in to report</h5>
-                  <p className="mb-0">You need to <Link to="/login" className="text-primary">log in</Link> to upload new reports.</p>
+                  <p className="mb-0">You need to <Link to="/login" id="login-2" className="text-primary">log in</Link> to upload new reports.</p>
                 </div>
               </div>
             )}
@@ -55,6 +55,7 @@ export default function HomePage({
       </Container>
       {isLoggedIn && user?.userType === "CITIZEN" && (
         <button
+          id="upload-new-report-button"
           type="button"
           className="center-action-button"
           aria-label="Create new report"
@@ -65,6 +66,7 @@ export default function HomePage({
       )}
       {isLoggedIn && user?.userType === "ADMINISTRATOR" && (
         <button
+          id="go-to-admin-page-button"
           type="button"
           className="center-action-button-admin"
           aria-label="Create new report"

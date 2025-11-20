@@ -18,3 +18,4 @@ coverage/
 Thumbs.db
 .idea/
 server/src/telegram/session_db.json
+screenshots/

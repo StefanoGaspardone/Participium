@@ -11,15 +11,17 @@ export interface Office {
 export interface User {
 	id: number;
 	firstName: string;
-	lastName: string;
-	// email: string;
-	username: string;
-	image?: string | null;
-	// telegramUsername?: string | null;
-	userType: string;
-	// office?: string | null;
-	// createdAt: Date;
+  lastName: string;
+  email: string;
+  username: string;
+  image?: string | null;
+  telegramUsername?: string | null;
+  userType: string;
+  emailNotificationsEnabled: boolean;
+  // office?: string | null;
+  // createdAt: Date;
 }
+
 
 export interface Report {
 	id: number;

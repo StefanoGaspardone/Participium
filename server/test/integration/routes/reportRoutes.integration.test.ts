@@ -136,11 +136,11 @@ describe('Report routes integration tests', () => {
     const payload = {
       payload: {
         title: 'Boundary coords',
-        description: 'Using boundary latitude and longitude',
+        description: 'Using valid Turin coordinates',
         categoryId: categoryId,
         images: ['http://example.com/1.jpg'],
-        lat: CONFIG.TURIN.MIN_LAT,
-        long: CONFIG.TURIN.MAX_LONG,
+        lat: 45.0703,
+        long: 7.6869,
         anonymous: false,
       },
     };
@@ -149,19 +149,19 @@ describe('Report routes integration tests', () => {
     expect(res.status).toBe(201);
   });
 
-  it('POST /api/reports => 400 when lat is below minimum', async () => {
+  it('POST /api/reports => 400 when coordinates are outside Turin', async () => {
     const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
     const payload = {
       payload: {
-        title: 'Bad lat',
-        description: 'Latitude too small',
+        title: 'Bad location',
+        description: 'Coordinates outside Turin',
         categoryId: categoryId,
         images: ['http://example.com/1.jpg'],
-        lat: CONFIG.TURIN.MIN_LAT - 0.001,
-        long: CONFIG.TURIN.MIN_LONG,
+        lat: 40.0,
+        long: 8.0,
         anonymous: false,
       },
     };
@@ -169,22 +169,22 @@ describe('Report routes integration tests', () => {
     const res = await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('errors');
-    expect(res.body.errors).toHaveProperty('lat');
+    expect(res.body.errors).toHaveProperty('location');
   });
 
-  it('POST /api/reports => 400 when long is above maximum', async () => {
+  it('POST /api/reports => 400 when coordinates are outside Turin (south)', async () => {
     const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
     const payload = {
       payload: {
-        title: 'Bad long',
-        description: 'Longitude too large',
+        title: 'Bad location south',
+        description: 'Coordinates outside Turin boundaries',
         categoryId: categoryId,
         images: ['http://example.com/1.jpg'],
-        lat: CONFIG.TURIN.MIN_LAT,
-        long: CONFIG.TURIN.MAX_LONG + 0.001,
+        lat: 44.5,
+        long: 7.6869,
         anonymous: false,
       },
     };
@@ -192,7 +192,7 @@ describe('Report routes integration tests', () => {
     const res = await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('errors');
-    expect(res.body.errors).toHaveProperty('long');
+    expect(res.body.errors).toHaveProperty('location');
   });
 
   it('POST /api/reports => 404 when categoryId does not exist', async () => {
@@ -206,8 +206,8 @@ describe('Report routes integration tests', () => {
         description: 'Category id does not exist',
         categoryId: 999999, // non existing
         images: ['http://example.com/1.jpg'],
-        lat: CONFIG.TURIN.MIN_LAT,
-        long: CONFIG.TURIN.MIN_LONG,
+        lat: 45.0703,
+        long: 7.6869,
         anonymous: false,
       },
     };

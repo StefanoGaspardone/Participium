@@ -26,6 +26,7 @@ describe("UserService (mock)", () => {
       email: "svc@mock",
       username: "svc",
       password: "secretpw",
+      emailNotificationsEnabled: false,
     } as NewUserDTO;
 
     const saved = await service.signUpUser(payload);
@@ -112,6 +113,7 @@ describe("UserService (mock)", () => {
       email: "svc@mock",
       username: "svc",
       password: "secretpw",
+      emailNotificationsEnabled: true,
     } as NewUserDTO;
 
     await expect(service.signUpUser(payload)).rejects.toThrow("repo failure");
@@ -231,5 +233,164 @@ describe("UserService.createMunicipalityUser (mock)", () => {
     expect(createMock).toHaveBeenCalled();
     expect(officeFindMock).not.toHaveBeenCalled();
     expect(saved.id).toBeDefined();
+  });
+});
+
+describe("UserService.updateUser (mock)", () => {
+  it("should update user fields and call repo.updateUser", async () => {
+    const service = new UserService();
+
+    const existingUser = {
+      id: 10,
+      firstName: "Old",
+      lastName: "Name",
+      email: "old@email.com",
+      username: "olduser",
+      emailNotificationsEnabled: false,
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(existingUser);
+    const updateMock = jest.fn().mockImplementation(async (u: any) => u);
+
+    // inject fake repos
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    const updateData = {
+      firstName: "New",
+      lastName: "Updated",
+      email: "new@email.com",
+      emailNotificationsEnabled: true,
+    };
+
+    const result = await service.updateUser(10, updateData);
+
+    expect(findByIdMock).toHaveBeenCalledWith(10);
+    expect(updateMock).toHaveBeenCalled();
+    
+    const updatedUser = updateMock.mock.calls[0][0];
+    expect(updatedUser.firstName).toBe("New");
+    expect(updatedUser.lastName).toBe("Updated");
+    expect(updatedUser.email).toBe("new@email.com");
+    expect(updatedUser.emailNotificationsEnabled).toBe(true);
+  });
+
+  it("should throw NotFoundError when user does not exist", async () => {
+    const service = new UserService();
+
+    const findByIdMock = jest.fn().mockResolvedValue(null);
+    const updateMock = jest.fn();
+
+    // inject fake repos
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    await expect(service.updateUser(999, { firstName: "New" })).rejects.toThrow(
+      "User with id 999 not found"
+    );
+
+    expect(findByIdMock).toHaveBeenCalledWith(999);
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it("should update only provided fields", async () => {
+    const service = new UserService();
+
+    const existingUser = {
+      id: 11,
+      firstName: "Keep",
+      lastName: "This",
+      email: "keep@email.com",
+      username: "keepuser",
+      telegramUsername: "oldtelegram",
+      emailNotificationsEnabled: false,
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(existingUser);
+    const updateMock = jest.fn().mockImplementation(async (u: any) => u);
+
+    // inject fake repos
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    // Update only username and image
+    const updateData = {
+      username: "newusername",
+      image: "newimage.jpg",
+    };
+
+    await service.updateUser(11, updateData);
+
+    expect(updateMock).toHaveBeenCalled();
+    const updatedUser = updateMock.mock.calls[0][0];
+    
+    // These should be updated
+    expect(updatedUser.username).toBe("newusername");
+    expect(updatedUser.image).toBe("newimage.jpg");
+    
+    // These should remain unchanged
+    expect(updatedUser.firstName).toBe("Keep");
+    expect(updatedUser.lastName).toBe("This");
+    expect(updatedUser.email).toBe("keep@email.com");
+    expect(updatedUser.telegramUsername).toBe("oldtelegram");
+  });
+
+  it("should handle updating telegramUsername", async () => {
+    const service = new UserService();
+
+    const existingUser = {
+      id: 12,
+      telegramUsername: "oldtelegram",
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(existingUser);
+    const updateMock = jest.fn().mockImplementation(async (u: any) => u);
+
+    // inject fake repos
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    await service.updateUser(12, { telegramUsername: "newtelegram" });
+
+    expect(updateMock).toHaveBeenCalled();
+    const updatedUser = updateMock.mock.calls[0][0];
+    expect(updatedUser.telegramUsername).toBe("newtelegram");
+  });
+
+  it("should handle toggling emailNotificationsEnabled", async () => {
+    const service = new UserService();
+
+    const existingUser = {
+      id: 13,
+      emailNotificationsEnabled: false,
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(existingUser);
+    const updateMock = jest.fn().mockImplementation(async (u: any) => u);
+
+    // inject fake repos
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    await service.updateUser(13, { emailNotificationsEnabled: true });
+
+    expect(updateMock).toHaveBeenCalled();
+    const updatedUser = updateMock.mock.calls[0][0];
+    expect(updatedUser.emailNotificationsEnabled).toBe(true);
   });
 });

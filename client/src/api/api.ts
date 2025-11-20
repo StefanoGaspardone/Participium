@@ -1,4 +1,4 @@
-import type { Category, Office, Report } from "../models/models";
+import type { Category, Office, Report, User } from "../models/models";
 import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
@@ -23,6 +23,7 @@ export interface RegisterPayload {
   username: string;
   image?: string | null;
   telegramUsername?: string | null;
+  emailNotificationsEnabled: boolean;
 }
 
 export interface LoginPayload {
@@ -305,5 +306,32 @@ export const getAssignedReports = async (): Promise<Report[]> => {
     images: Array.isArray(r.images) ? r.images : [],
     assignedTo: r.assignedTo ?? null,
   }));
+export interface UpdateUserPayload {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  username?: string;
+  image?: string | null;
+  telegramUsername?: string | null;
+  emailNotificationsEnabled?: boolean;
+}
+
+export const updateUser = async (
+    payload: UpdateUserPayload
+): Promise<{ message: string; user: User }> => {
+  const res = await fetch(`${BASE_URL}/users/me`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+
+  return res.json();
 };
 

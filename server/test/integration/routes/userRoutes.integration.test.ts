@@ -64,6 +64,7 @@ describe('User routes integration tests', () => {
       firstName: 'Route',
       lastName: 'Test',
       username: 'selfroute1',
+      emailNotificationsEnabled: true,
     };
     const res = await request(app).post('/api/users/signup').send(newUser);
     expect(res.status).toBe(201);
