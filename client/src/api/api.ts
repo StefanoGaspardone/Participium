@@ -272,3 +272,58 @@ export const updateUser = async (
   return res.json();
 };
 
+export interface Notification {
+    id: number;
+    previousStatus: string;
+    newStatus: string;
+    seen: boolean;
+    createdAt: string;
+    report: {
+        id: number;
+        title: string;
+    };
+}
+type NotificationsResponse = {
+    notifications: Notification[];
+}
+export const getMyNotifications = async (): Promise<Notification[]> => {
+  const res = await fetch(`${BASE_URL}/notifications/my`, {
+    method: "GET",
+    headers: {
+        Authorization: `Bearer ${getToken()}`,
+    },
+    });
+    if (!res.ok) {
+        throw await toApiError(res);
+    }
+
+    let data: NotificationsResponse;
+    try {
+        data = await res.json();
+    } catch {
+        throw new Error("Invalid JSON in /offices response");
+    }
+
+    const notificationsArray =
+        Array.isArray(data)
+            ? data
+            : Array.isArray(data.notifications)
+                ? data.notifications
+                : [];
+
+    return notificationsArray;
+}
+
+export const markNotificationAsSeen = async (id: number) => {
+    const res = await fetch(`${BASE_URL}/notifications/seen/${id}`, {
+        method: "PATCH",
+        headers: {
+            Authorization: `Bearer ${getToken()}`,
+        }
+    });
+
+    if (!res.ok) {
+        throw await toApiError(res);
+    }
+
+}
