@@ -1,4 +1,4 @@
-import Map from "./HomepageMap";
+import { HomepageMap } from "./HomepageMap";
 import ReportList from "./ReportList";
 import CustomNavbar from "./CustomNavbar";
 import { useEffect } from "react";
@@ -37,7 +37,7 @@ export default function HomePage({
       <Container fluid className="content">
         <Row className="h-100 g-0">
           <Col xs={12} md={8} lg={9} className="h-100">
-            <Map selected={selected} setSelected={setSelected} />
+            <HomepageMap selected={selected} setSelected={setSelected} />
           </Col>
           <Col md={4} lg={3} className="d-none d-md-block h-100">
             {isLoggedIn ? (
