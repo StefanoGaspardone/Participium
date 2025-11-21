@@ -18,8 +18,8 @@ export interface User {
   telegramUsername?: string | null;
   userType: string;
   emailNotificationsEnabled: boolean;
-  // office?: string | null;
-  // createdAt: Date;
+  office?: string | null;
+  createdAt: Date;
 }
 
 export interface Report {

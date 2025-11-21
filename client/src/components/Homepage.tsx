@@ -76,7 +76,7 @@ export default function HomePage({ selected, setSelected }: Props) {
                     <Link to="/login" id="login-2" className="text-primary">
                       log in
                     </Link>{" "}
-                    to upload new reports.
+                    to upload new reports or to existing ones.
                   </p>
                 </div>
               </div>
