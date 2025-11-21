@@ -5,6 +5,7 @@ import { Response, NextFunction, Request } from 'express';
 import type { AuthRequest } from '@middlewares/authenticationMiddleware';
 import { isPointInTurin } from '@utils/geo_turin';
 import { ReportStatus } from '@daos/ReportDAO';
+import {notificationService, NotificationService} from "@services/NotificationService";
 
 export class ReportController {
 
@@ -84,7 +85,7 @@ export class ReportController {
         }
     }
 
-    updateReportStatus = async (
+    assignOrRejectReport = async (
         req: AuthRequest & { params: { id: string }, body: { status?: string; rejectedDescription?: string } },
         res: Response,
         next: NextFunction
@@ -110,7 +111,7 @@ export class ReportController {
                 return next(err);
             }
 
-            const updated = await this.reportService.updateReportStatus(
+            const updated = await this.reportService.assignOrRejectReport(
                 idParam,
                 status as ReportStatus,
                 rejectedDescription
@@ -154,6 +155,36 @@ export class ReportController {
 
             const reports = await this.reportService.listAssignedReports(userId);
             res.status(200).json({ reports });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    updateReportStatus = async (
+        req: AuthRequest & { params: { id: string }, body: { status: string } },
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const idParam = Number(req.params.id);
+            const { status } = req.body || {};
+
+            const errors: Record<string, string> = {};
+            if (Number.isNaN(idParam) || idParam <= 0) errors.id = 'Report id must be a positive number';
+
+            const allowedStatuses = Object.values(ReportStatus);
+            if (!status || typeof status !== 'string' || !allowedStatuses.includes(status as ReportStatus)) {
+                errors.status = `Status must be one of: ${allowedStatuses.join(', ')}`;
+            }
+
+            if (Object.keys(errors).length > 0) {
+                const err: any = new BadRequestError('Validation failed');
+                err.errors = errors;
+                return next(err);
+            }
+
+            const updated = await this.reportService.updateReportStatus(idParam, status as ReportStatus);
+            res.status(200).json({ message: 'Report status updated', report: updated });
         } catch (error) {
             next(error);
         }

@@ -274,10 +274,10 @@ export const updateReportCategory = async (reportId: number, categoryId: number)
   return data.report as Report;
 };
 
-export const updateReportStatus = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<Report> => {
+export const acceptOrRejectReport = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<Report> => {
   const body: any = { status };
   if (status === 'Rejected') body.rejectedDescription = rejectedDescription;
-  const res = await fetch(`${BASE_URL}/reports/${reportId}/status`, {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/status/public`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
