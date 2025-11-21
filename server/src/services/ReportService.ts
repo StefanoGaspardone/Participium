@@ -1,23 +1,27 @@
-import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
-import { ReportDTO, createReportDTO } from '@dtos/ReportDTO';
-import { UserDAO } from '@daos/UserDAO';
-import { CreateReportDTO } from '@dtos/ReportDTO';
-import { NotFoundError } from '@errors/NotFoundError';
-import { BadRequestError } from '@errors/BadRequestError';
-import { categoryRepository, CategoryRepository } from '@repositories/CategoryRepository';
-import { reportRepository, ReportRepository } from '@repositories/ReportRepository';
-import { userRepository, UserRepository } from '@repositories/UserRepository';
+import {ReportDAO, ReportStatus} from '@daos/ReportDAO';
+import {createReportDTO, CreateReportDTO, ReportDTO} from '@dtos/ReportDTO';
+import {UserDAO} from '@daos/UserDAO';
+import {NotFoundError} from '@errors/NotFoundError';
+import {BadRequestError} from '@errors/BadRequestError';
+import {categoryRepository, CategoryRepository} from '@repositories/CategoryRepository';
+import {reportRepository, ReportRepository} from '@repositories/ReportRepository';
+import {userRepository, UserRepository} from '@repositories/UserRepository';
+import {NewNotificationDTO} from "@dtos/NotificationDTO";
+import {notificationRepository} from "@repositories/NotificationRepository";
+import {notificationService, NotificationService} from "@services/NotificationService";
 
 export class ReportService {
 
     private reportRepo: ReportRepository;
     private categoryRepo: CategoryRepository;
     private userRepo: UserRepository;
+    private notificationService: NotificationService;
 
     constructor() {
         this.reportRepo = reportRepository;
         this.categoryRepo = categoryRepository;
         this.userRepo = userRepository;
+        this.notificationService = notificationService;
     }
 
     createReport = async (userId: number, inputData: CreateReportDTO): Promise<ReportDTO> => {
@@ -60,7 +64,7 @@ export class ReportService {
         return createReportDTO(updated);
     }
 
-    updateReportStatus = async (
+    assignOrRejectReport = async (
         reportId: number,
         newStatus: ReportStatus,
         rejectedDescription?: string
@@ -72,6 +76,7 @@ export class ReportService {
             throw new BadRequestError('Only reports in PendingApproval can be accepted or rejected');
         }
 
+        const previousStatus = report.status;
         if (newStatus === ReportStatus.Assigned) {
             const office = report.category?.office;
             if (!office || !office.id) throw new BadRequestError('Report category has no associated office');
@@ -95,12 +100,57 @@ export class ReportService {
         }
 
         const updated = await this.reportRepo.save(report);
+
+        const notifications:NewNotificationDTO = {
+            userId: report.createdBy.id,
+            reportId: report.id,
+            previousStatus: previousStatus,
+            newStatus: newStatus
+        };
+        await this.notificationService.createNotification(notifications);
+
         return createReportDTO(updated);
     }
 
     listAssignedReports = async (userId: number): Promise<ReportDTO[]> => {
         const reports = await this.reportRepo.findReportsAssignedTo(userId);
         return reports.map(createReportDTO);
+    }
+
+    updateReportStatus = async (
+        reportId: number,
+        newStatus: ReportStatus
+    ): Promise<ReportDTO> => {
+        const report = await this.reportRepo.findReportById(reportId);
+        if (!report) throw new NotFoundError(`Report ${reportId} not found`);
+
+        if (report.status === ReportStatus.Resolved){
+            throw new BadRequestError('Resolved reports cannot change status');
+        }
+        if (report.status === ReportStatus.Assigned && newStatus !== ReportStatus.InProgress) {
+            throw new BadRequestError('Invalid status transition. Accepted report con only move to InProgress');
+        }
+
+        if (report.status === ReportStatus.InProgress && ![ReportStatus.Resolved, ReportStatus.Suspended].includes(newStatus)) {
+            throw new BadRequestError('Invalid status transition. InProgress report can only move to Resolved or Suspended');
+        }
+
+        if(report.status === ReportStatus.Suspended && newStatus !== ReportStatus.InProgress) {
+            throw new BadRequestError('Invalid status transition. Suspended report can only move to InProgress');
+        }
+
+        const notifications:NewNotificationDTO = {
+            userId: report.createdBy.id,
+            reportId: report.id,
+            previousStatus: report.status,
+            newStatus: newStatus
+        };
+        report.status = newStatus;
+        const updated = await this.reportRepo.save(report);
+
+        await this.notificationService.createNotification(notifications);
+
+        return createReportDTO(updated);
     }
 }
 

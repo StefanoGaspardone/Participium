@@ -22,6 +22,7 @@ export const CONFIG = {
     REPORTS: `${BASE_URL}/reports`,
     USERS: `${BASE_URL}/users`,
     OFFICES: `${BASE_URL}/offices`,
+    NOTIFICATIONS: `${BASE_URL}/notifications`,
   },
   LOG: {
     LEVEL: process.env.LOG_LEVEL || "info",

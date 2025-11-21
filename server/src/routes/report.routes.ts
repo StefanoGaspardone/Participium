@@ -14,15 +14,21 @@ router.put(
     reportController.updateReportCategory
 );
 router.put(
-    '/:id/status',
+    '/:id/status/public',
     authMiddleware([UserType.PUBLIC_RELATIONS_OFFICER]),
-    reportController.updateReportStatus
+    reportController.assignOrRejectReport
 );
 
 router.get(
     '/assigned',
     authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
     reportController.getAssignedReports
+);
+
+router.put(
+    '/:id/status/technical',
+    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
+    reportController.updateReportStatus
 );
 
 export const reportRouter = router;
