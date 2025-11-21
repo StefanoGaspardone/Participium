@@ -40,7 +40,7 @@ export interface Report {
 
 export interface Coord {
   lat: number;
-  long: number;
+  lng: number;
   address?: string;
 }
 

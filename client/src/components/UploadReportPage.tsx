@@ -121,7 +121,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
         categoryId: Number(categoryId),
         images: imageUrls,
         lat: selected!.lat,
-        long: selected!.long,
+        long: selected!.lng,
         anonymous,
       };
       await createReport(payload);
