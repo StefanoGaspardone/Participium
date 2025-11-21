@@ -241,7 +241,7 @@ const MapUpdater = ({ position }: { position: Coord | null }) => {
 // Map component WITHOUT the markers' cluster feature (just the feature to select a point on the map)
 export default function Map({ selected, setSelected }: Props) {
     const center = { lat: 45.06985, lng: 7.68228 };
-    const zoom = 12;
+    const zoom = 11;
     const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
 
 	useEffect(() => {
@@ -294,7 +294,7 @@ export default function Map({ selected, setSelected }: Props) {
 // Map component WITH the markers' cluster feature and the other ones
 export function HomepageMap({ selected, setSelected, reports }: Props) {
     const center = { lat: 45.06985, lng: 7.68228 };
-    const zoom = 12;
+    const zoom = 11;
     const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
 
     useEffect(() => {
