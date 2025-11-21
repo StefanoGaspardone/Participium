@@ -28,8 +28,10 @@ function App() {
               <HomePage selected={selected} setSelected={setSelected} />
             ) : user?.userType === 'ADMINISTRATOR' ? (
               <Navigate to="/admin" />
-            ) : (
-              <Navigate to="/login" />
+            ) : user?.userType === 'PUBLIC_RELATIONS_OFFICER' ? (
+              <Navigate to="/pro" />
+            ) : user?.userType === 'TECHNICAL_STAFF_MEMBER' && (
+              <Navigate to="/tech" />
             )
           }
         />
