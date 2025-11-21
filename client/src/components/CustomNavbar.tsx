@@ -6,6 +6,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { Image } from "react-bootstrap";
 import { Dropdown } from 'react-bootstrap';
 import "./CustomNavbar.css";
+import Notifications from "./Notifications";
 
 export default function CustomNavbar() {
   const { user, setUser, isLoggedIn, setIsLoggedIn } = useAppContext();
@@ -62,14 +63,16 @@ export default function CustomNavbar() {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto d-flex align-items-center">
             {isLoggedIn ? (
-              <Dropdown align="end" className="me-3">
-                <Dropdown.Toggle
-                  as="div"
-                  id="profile-dropdown"
-                  className="profile-toggle d-inline-flex align-items-center justify-content-center text-white fw-semibold"
-                  role="button"
-                  tabIndex={0}
-                >
+              <>
+              {user?.userType==="CITIZEN" && <Notifications />}
+                <Dropdown align="end" className="me-3">
+                  <Dropdown.Toggle
+                    as="div"
+                    id="profile-dropdown"
+                    className="profile-toggle d-inline-flex align-items-center justify-content-center text-white fw-semibold"
+                    role="button"
+                    tabIndex={0}
+                  >
                   {/* username on the left of the icon */}
                   {user?.username && (
                     <span className="profile-username">{user.username}</span>
@@ -118,6 +121,7 @@ export default function CustomNavbar() {
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
+              </>
             ) : (
               <Link
                 id="login-1"

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import CustomNavbar from './CustomNavbar';
 import { Accordion, Card, Container, Row, Col, Form, Button, Alert, Spinner, Image } from 'react-bootstrap';
 import ReportMiniMap from './ReportMiniMap';
-import { getReportsByStatus, getCategories, updateReportCategory, updateReportStatus } from '../api/api';
+import { getReportsByStatus, getCategories, updateReportCategory, assignOrRejectReport } from '../api/api';
 import type { Report, Category } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
 
@@ -67,7 +67,7 @@ export default function PROHomepage() {
     const acceptReport = async (report: PendingReport) => {
         try {
             setStatusUpdatingId(report.id);
-            await updateReportStatus(report.id, 'Assigned');
+            await assignOrRejectReport(report.id, 'Assigned');
             setReports(rs => rs.filter(r => r.id !== report.id));
         } catch (e: any) {
             alert(e?.message || 'Accept failed');
@@ -84,7 +84,7 @@ export default function PROHomepage() {
         }
         try {
             setStatusUpdatingId(report.id);
-            await updateReportStatus(report.id, 'Rejected', reason);
+            await assignOrRejectReport(report.id, 'Rejected', reason);
             setReports(rs => rs.filter(r => r.id !== report.id));
         } catch (e: any) {
             alert(e?.message || 'Reject failed');

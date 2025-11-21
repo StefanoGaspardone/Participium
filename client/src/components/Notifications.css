@@ -1,0 +1,157 @@
+.notifications-dropdown {
+    margin-right: 1rem;
+}
+
+.notifications-toggle {
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.notifications-toggle:hover {
+    transform: scale(1.1);
+}
+
+.bell-icon {
+    color: white;
+    transition: color 0.2s ease;
+}
+
+.bell-icon-active {
+    color: #ffc107;
+    animation: bellRing 0.5s ease;
+}
+
+@keyframes bellRing {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
+}
+
+.notification-badge {
+    top: 0;
+    right: 0;
+    font-size: 0.65rem;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem 0.4rem;
+}
+
+.notifications-menu {
+    width: 380px;
+    max-height: 500px;
+    border: none !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    margin-top: 0.5rem !important;
+}
+
+.notifications-header {
+    padding: 1rem;
+    background-color: #00205B;
+    color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.notifications-body {
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+}
+
+.notifications-list {
+    padding: 0;
+}
+
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: white;
+}
+
+.notification-item:hover {
+    background-color: #ced5e1;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left: 3px solid #0d6efd;
+
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #00205B;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.notification-status {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.status-label {
+    font-weight: 500;
+}
+
+.status-old {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.status-new {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.notification-time {
+    font-size: 0.75rem;
+    color: #adb5bd;
+}
+
+.unread-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    flex-shrink: 0;
+}
+
+/* Scrollbar styling */
+.notifications-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.notifications-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.notifications-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
