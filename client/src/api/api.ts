@@ -274,7 +274,7 @@ export const updateReportCategory = async (reportId: number, categoryId: number)
   return data.report as Report;
 };
 
-export const acceptOrRejectReport = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<Report> => {
+export const assignOrRejectReport = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<Report> => {
   const body: any = { status };
   if (status === 'Rejected') body.rejectedDescription = rejectedDescription;
   const res = await fetch(`${BASE_URL}/reports/${reportId}/status/public`, {
@@ -289,6 +289,25 @@ export const acceptOrRejectReport = async (reportId: number, status: 'Assigned' 
   const data = await res.json();
   return data.report as Report;
 };
+
+interface StatusUpdatePayload {
+    status: "InProgress" | "Suspended" | "Resolved";
+}
+export const updateReportStatus = async (reportId: number, status: "InProgress" | "Suspended" | "Resolved",): Promise<Report> => {
+    const body: StatusUpdatePayload = { status };
+    const res = await fetch(`${BASE_URL}/reports/${reportId}/status/technical`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(body)
+    });
+    if (!res.ok) throw await toApiError(res);
+    const data = await res.json();
+    return data.report as Report;
+};
+
 
 // Reports assigned to the logged technical staff member
 export const getAssignedReports = async (): Promise<Report[]> => {
