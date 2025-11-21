@@ -12,8 +12,8 @@ import type { Report } from "../models/models";
 type Coord = { lat: number; lng: number } | null;
 
 type Props = {
-  selected: Coord;
-  setSelected: React.Dispatch<React.SetStateAction<Coord>>;
+  selected?: Coord | null;
+  setSelected?: React.Dispatch<React.SetStateAction<Coord | null>> | null;
   reports?: Report[] | null;
 };
 
@@ -196,7 +196,10 @@ export default function Map({ selected, setSelected }: Props) {
       const snapped = inside ? { lat, lng } : nearestPointOnTurin(lat, lng);
       if (!snapped) return;
 
-      setSelected(snapped);
+      if (setSelected) {
+        console.log("QUA ENTRIAMO");
+        setSelected(snapped);
+      }
 
       if (!map.current) return;
       if (!markerRef.current) {
@@ -229,17 +232,13 @@ export default function Map({ selected, setSelected }: Props) {
 
   return (
     <div className="map-wrap">
-      <div ref={mapContainer} className="map" id="map-container"/>
+      <div ref={mapContainer} className="map" id="map-container" />
     </div>
   );
 }
 
 // Map component WITH the markers' cluster feature and the other ones
-export function HomepageMap({
-  selected,
-  setSelected,
-  reports
-}: Props) {
+export function HomepageMap({ selected, setSelected, reports }: Props) {
   const { isLoggedIn } = useAppContext();
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -405,6 +404,7 @@ export function HomepageMap({
 
   useEffect(() => {
     if (!map.current) return;
+    if (setSelected === null) return;
 
     const onClick = (e: leaflet.LeafletMouseEvent) => {
       if (!isLoggedIn) return;
@@ -417,7 +417,9 @@ export function HomepageMap({
       const snapped = inside ? { lat, lng } : nearestPointOnTurin(lat, lng);
       if (!snapped) return;
 
-      setSelected(snapped);
+      if (setSelected) {
+        setSelected(snapped);
+      }
 
       if (!map.current) return;
       if (!markerRef.current) {
@@ -460,6 +462,7 @@ export function HomepageMap({
         const marker = leaflet.marker([report.lat, report.long], {
           title: title,
         });
+        console.log("MARKER AT " + report.lat + ", " + report.long);
         marker.bindPopup(`${title}`);
         markers.addLayer(marker);
       }
@@ -469,7 +472,7 @@ export function HomepageMap({
 
   return (
     <div className="map-wrap">
-      <div ref={mapContainer} className="map" id="map-container"/>
+      <div ref={mapContainer} className="map" id="map-container" />
     </div>
   );
 }
