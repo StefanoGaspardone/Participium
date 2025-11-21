@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./components/Homepage";
 import LoginPage from "./components/LoginPage";
@@ -17,6 +17,10 @@ function App() {
   const [selected, setSelected] = useState<Coord | null>(null);
 
   const { user, isLoggedIn } = useAppContext();
+
+  useEffect(() => {
+    if(!user) setSelected(null);
+  }, [user]);
 
   return (
     <>

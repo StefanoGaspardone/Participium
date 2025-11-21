@@ -49,7 +49,9 @@ export default function HomePage({ selected, setSelected }: Props) {
         return;
       }
     };
-    fetchReports();
+
+    if(user) fetchReports();
+    else setReports(null);
   }, [setReports, user]);
 
   return (
