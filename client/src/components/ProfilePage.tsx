@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAppContext } from "../contexts/AppContext.tsx";
 import "./ProfilePage.css";
 import CustomNavbar from "./CustomNavbar.tsx";
@@ -29,7 +30,7 @@ export default function ProfilePage() {
                 <CustomNavbar/>
                 <div className="profile-container">
                     <div className="profile-body">
-                        <h2>Please log in to view your profile</h2>
+                        <h2>Please <Link to = '/login'>log in</Link> to view your profile</h2>
                     </div>
                 </div>
             </div>
@@ -216,7 +217,7 @@ export default function ProfilePage() {
                                     {user.telegramUsername && (
                                         <div className="profile-info-item">
                                             <span className="profile-info-label">Telegram</span>
-                                            <span className="profile-info-value">@{user.telegramUsername}</span>
+                                            <span className="profile-info-value">{user.telegramUsername}</span>
                                         </div>
                                     )}
                                     <div className="profile-info-item">
