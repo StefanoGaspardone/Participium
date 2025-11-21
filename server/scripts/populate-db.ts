@@ -16,9 +16,18 @@ const OFFICES: string[] = [
     'General Services Division',
 ];
 
-const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType }> = [
+const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number }> = [
     { username: 'admin', email: 'admin@gmail.com', firstName: 'Stefano', lastName: 'Lo Russo', password: 'admin', userType: UserType.ADMINISTRATOR },
-    { username: 'user', email: 'user@gmail.com', firstName: 'Francesco', lastName: 'Totti', password: 'user', userType: UserType.CITIZEN }
+    { username: 'user', email: 'user@gmail.com', firstName: 'Francesco', lastName: 'Totti', password: 'user', userType: UserType.CITIZEN },
+    { username: 'giack.team5', email: 'giack@five.se', firstName: 'Giacomo', lastName: 'Pirlo', password: 'password', userType: UserType.CITIZEN},
+    { username: 'tsm1', email: 'tsm1@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 1},
+    { username: 'tsm2', email: 'tsm2@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 2},
+    { username: 'tsm3', email: 'tsm3@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 3},
+    { username: 'tsm4', email: 'tsm4@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 4},
+    { username: 'tsm5', email: 'tsm5@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 5},
+    { username: 'tsm6', email: 'tsm6@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 6},
+    { username: 'munadm', email: 'munadm@part.se', firstName: 'Giorgio', lastName: 'Turio', password: 'password', userType: UserType.MUNICIPAL_ADMINISTRATOR},
+    { username: 'pro', email: 'pro@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.PUBLIC_RELATIONS_OFFICER}
 ];
 
 const CATEGORIES: Array<{ name: string; office: string }> = [
@@ -33,10 +42,10 @@ const CATEGORIES: Array<{ name: string; office: string }> = [
     { name: 'Other', office: 'General Services Division' },
 ];
 
-async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType }>) {
+async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number }>) {
     const repo = AppDataSource.getRepository('UserDAO');
 
-    for(const { username, email, password, firstName, lastName, userType } of users) {
+    for(const { username, email, password, firstName, lastName, userType, office } of users) {
         const trimmedUsername = username.trim();
         const trimmedEmail = email.trim();
         if(!trimmedUsername || !trimmedEmail) continue;
@@ -46,8 +55,13 @@ async function upsertUsers(users: Array<{ username:string; email:string; passwor
 
         let user = await repo.findOne({ where: { username: trimmedUsername } });
         if(!user) {
-            user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType });
-            user = await repo.save(user);
+            if(!office){
+                user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType });
+                user = await repo.save(user);
+            } else {
+                user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType, office });
+                user = await repo.save(user);
+            }
 
             logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
         } else {
@@ -112,9 +126,19 @@ async function upsertCategories(items: Array<{ name: string; office: string }>, 
     }
 }
 
+async function deleteActualState() {
+    const tables = ['users', 'reports', 'office_roles', 'categories'];
+    tables.forEach(table => {
+        const sql = 'TRUNCATE TABLE ' + table + ' RESTART IDENTITY CASCADE';
+        AppDataSource.query(sql);     
+    });
+}
+
 async function main() {
     try {
         await initializeDatabase();
+
+        await deleteActualState();
 
         const rolesByName = await upsertOffices(OFFICES);
         await upsertCategories(CATEGORIES, rolesByName);
