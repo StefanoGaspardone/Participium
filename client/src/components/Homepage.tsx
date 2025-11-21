@@ -5,10 +5,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import { useAppContext } from "../contexts/AppContext";
-import type { Report } from "../models/models";
+import type { Coord, Report } from "../models/models";
 import { getReportsByStatus } from "../api/api";
-
-type Coord = { lat: number; lng: number } | null;
 
 type Props = {
   selected: Coord | null;
@@ -51,13 +49,15 @@ export default function HomePage({ selected, setSelected }: Props) {
         return;
       }
     };
-    fetchReports();
+
+    if(user) fetchReports();
+    else setReports(null);
   }, [setReports, user]);
 
   return (
     <>
       <CustomNavbar />
-      <Container fluid className="content">
+      <Container fluid className="content p-0">
         <Row className="h-100 g-0">
           <Col xs={12} md={8} lg={9} className="h-100">
             <HomepageMap
@@ -78,7 +78,7 @@ export default function HomePage({ selected, setSelected }: Props) {
                     <Link to="/login" id="login-2" className="text-primary">
                       log in
                     </Link>{" "}
-                    to upload new reports.
+                    to upload new reports or to existing ones.
                   </p>
                 </div>
               </div>

@@ -18,8 +18,8 @@ export interface User {
   telegramUsername?: string | null;
   userType: string;
   emailNotificationsEnabled: boolean;
-  // office?: string | null;
-  // createdAt: Date;
+  office?: string | null;
+  createdAt: Date;
 }
 
 export interface Report {
@@ -36,6 +36,12 @@ export interface Report {
 	createdBy?: Partial<User>;
 	createdAt: string | Date;
 	assignedTo?: Partial<User> | null;
+}
+
+export interface Coord {
+  lat: number;
+  lng: number;
+  address?: string;
 }
 
 export type FieldErrors = Record<string, string | string[]>;
