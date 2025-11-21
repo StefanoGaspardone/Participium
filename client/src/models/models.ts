@@ -38,6 +38,12 @@ export interface Report {
 	assignedTo?: Partial<User> | null;
 }
 
+export interface Coord {
+  lat: number;
+  long: number;
+  address?: string;
+}
+
 export type FieldErrors = Record<string, string | string[]>;
 
 export class ApiError extends Error {

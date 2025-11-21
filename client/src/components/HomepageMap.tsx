@@ -7,13 +7,11 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "./map.css";
 import { MaptilerLayer } from "@maptiler/leaflet-maptilersdk";
 import { useAppContext } from "../contexts/AppContext";
-import type { Report } from "../models/models";
-
-type Coord = { lat: number; lng: number } | null;
+import type { Coord, Report } from "../models/models";
 
 type Props = {
-  selected: Coord;
-  setSelected: React.Dispatch<React.SetStateAction<Coord>>;
+  selected: Coord | null;
+  setSelected: React.Dispatch<React.SetStateAction<Coord | null>>;
   reports?: Report[] | null;
 };
 
@@ -217,14 +215,14 @@ export default function Map({ selected, setSelected }: Props) {
   useEffect(() => {
     if (!map.current || !selected) return;
 
-    const { lat, lng } = selected;
+    const { lat, long } = selected;
     if (!markerRef.current) {
-      markerRef.current = leaflet.marker([lat, lng]).addTo(map.current);
+      markerRef.current = leaflet.marker([lat, long]).addTo(map.current);
     } else {
-      markerRef.current.setLatLng([lat, lng]);
+      markerRef.current.setLatLng([lat, long]);
     }
 
-    map.current.setView([lat, lng], map.current.getZoom());
+    map.current.setView([lat, long], map.current.getZoom());
   }, [selected]);
 
   return (
@@ -438,14 +436,14 @@ export function HomepageMap({
   useEffect(() => {
     if (!map.current || !selected) return;
 
-    const { lat, lng } = selected;
+    const { lat, long } = selected;
     if (!markerRef.current) {
-      markerRef.current = leaflet.marker([lat, lng]).addTo(map.current);
+      markerRef.current = leaflet.marker([lat, long]).addTo(map.current);
     } else {
-      markerRef.current.setLatLng([lat, lng]);
+      markerRef.current.setLatLng([lat, long]);
     }
 
-    map.current.setView([lat, lng], map.current.getZoom());
+    map.current.setView([lat, long], map.current.getZoom());
   }, [selected]);
 
   useEffect(() => {

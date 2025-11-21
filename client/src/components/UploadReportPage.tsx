@@ -11,14 +11,12 @@ import {
   createReport,
   type CreateReportPayload,
 } from "../api/api";
-import type { Category } from "../models/models";
+import type { Category, Coord } from "../models/models";
 import { isApiError, type FieldErrors } from "../models/models";
 
-type Coord = { lat: number; lng: number } | null;
-
 type Props = {
-  selected: Coord;
-  setSelected: React.Dispatch<React.SetStateAction<Coord>>;
+  selected: Coord | null;
+  setSelected: React.Dispatch<React.SetStateAction<Coord | null>>;
 };
 
 export default function UploadReport({ selected, setSelected }: Props) {
@@ -34,14 +32,13 @@ export default function UploadReport({ selected, setSelected }: Props) {
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const latRef = useRef<HTMLInputElement | null>(null);
-  const longRef = useRef<HTMLInputElement | null>(null);
+  const addressRef = useRef<HTMLInputElement | null>(null);
   const titleRef = useRef<HTMLInputElement | null>(null);
+  const descRef = useRef<HTMLTextAreaElement | null>(null);
   const categoryRef = useRef<HTMLSelectElement | null>(null);
 
   const navigate = useNavigate();
-
-  const descRef = useRef<HTMLTextAreaElement | null>(null);
+  
   const autoGrow = () => {
     const el = descRef.current;
     if (!el) return;
@@ -95,7 +92,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
 
       setTimeout(() => {
         if (!selected) {
-          latRef.current?.focus();
+          addressRef.current?.focus();
         } else if (title.trim().length === 0) {
           titleRef.current?.focus();
         } else if (description.trim().length === 0) {
@@ -124,7 +121,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
         categoryId: Number(categoryId),
         images: imageUrls,
         lat: selected!.lat,
-        long: selected!.lng,
+        long: selected!.long,
         anonymous,
       };
       await createReport(payload);
@@ -138,10 +135,8 @@ export default function UploadReport({ selected, setSelected }: Props) {
 
           setTimeout(() => {
             const keys = Object.keys(err.errors as Record<string, unknown>);
-            if (keys.includes("lat")) {
-              latRef.current?.focus();
-            } else if (keys.includes("long")) {
-              longRef.current?.focus();
+            if (keys.includes("location")) {
+              addressRef.current?.focus();
             } else if (keys.includes("title")) {
               titleRef.current?.focus();
             } else if (keys.includes("description")) {
@@ -210,44 +205,23 @@ export default function UploadReport({ selected, setSelected }: Props) {
               <Map selected={selected} setSelected={setSelected} />
             </section>
             <Row className="mb-3">
-              <Col md={6}>
+              <Col md={12}>
                 <Form.Group>
-                  <Form.Label>Latitude</Form.Label>
+                  <Form.Label>Address</Form.Label>
                   <Form.Control
-                    id="latitude-field"
+                    id="address-field"
                     type="text"
-                    value={selected ? selected.lat : ""}
+                    value={selected ? selected.address : ""}
                     readOnly
-                    isInvalid={Boolean(fieldErrors.lat)}
-                    ref={latRef}
+                    isInvalid={Boolean(fieldErrors.location)}
+                    ref={addressRef}
                     tabIndex={0}
                   />
-                  {fieldErrors.lat && (
+                  {fieldErrors.location && (
                     <Form.Control.Feedback type="invalid">
-                      {Array.isArray(fieldErrors.lat)
-                        ? fieldErrors.lat.join(", ")
-                        : fieldErrors.lat}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Longitude</Form.Label>
-                  <Form.Control
-                    id="longitude-field"
-                    type="text"
-                    value={selected ? selected.lng : ""}
-                    readOnly
-                    isInvalid={Boolean(fieldErrors.long)}
-                    ref={longRef}
-                    tabIndex={0}
-                  />
-                  {fieldErrors.long && (
-                    <Form.Control.Feedback type="invalid">
-                      {Array.isArray(fieldErrors.long)
-                        ? fieldErrors.long.join(", ")
-                        : fieldErrors.long}
+                      {Array.isArray(fieldErrors.location)
+                        ? fieldErrors.location.join(", ")
+                        : fieldErrors.location}
                     </Form.Control.Feedback>
                   )}
                 </Form.Group>

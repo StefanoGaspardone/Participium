@@ -5,10 +5,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import { useAppContext } from "../contexts/AppContext";
-import type { Report } from "../models/models";
+import type { Coord, Report } from "../models/models";
 import { getReportsByStatus } from "../api/api";
-
-type Coord = { lat: number; lng: number } | null;
 
 type Props = {
   selected: Coord | null;
