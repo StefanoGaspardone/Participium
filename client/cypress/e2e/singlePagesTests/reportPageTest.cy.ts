@@ -25,6 +25,7 @@ describe("4. Test suite for report page :", () => {
     const d = generateRandomString(20);
     homePage.clickNewReport();
     cy.url().should('equal', UPLOADREPORTPAGE_URL);
+    cy.wait(2000);
     reportPage.clickOnMap();
     reportPage.insertTitle(t);
     reportPage.insertDescription(d);

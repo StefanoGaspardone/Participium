@@ -4,6 +4,7 @@ import { getAssignedReports } from '../api/api';
 import type { Report } from '../models/models';
 import { Accordion, Badge, Spinner, Alert } from 'react-bootstrap';
 import ReportMiniMap from './ReportMiniMap';
+import { HomepageMap } from './HomepageMap';
 
 export default function TechnicalStaffHomepage() {
     const [reports, setReports] = useState<Report[]>([]);
@@ -80,7 +81,7 @@ export default function TechnicalStaffHomepage() {
                                             <p className="mb-2"><strong>Created At:</strong> {new Date(r.createdAt).toLocaleString()}</p>
                                         </div>
                                         <div className="col-md-4 mt-2">
-                                            <ReportMiniMap lat={Number(r.lat)} long={Number(r.long)} />
+                                            <HomepageMap selected={null} setSelected={null} reports={[r]} />
                                         </div>
                                     </div>
                                 </Accordion.Body>
