@@ -94,7 +94,7 @@ export class UserController {
         const userDto = MapUserDAOtoDTO(user);
         // include full user object inside token under `user` key
         const payload = { user: userDto } as any;
-        const token = jwt.sign(payload, CONFIG.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign(payload, CONFIG.JWT_SECRET, { expiresIn: "1d" });
         res.status(200).json({ message: "Login successful", token });
       }
     } catch (error) {
@@ -169,7 +169,7 @@ export class UserController {
         ? authHeader.split(' ')[1]
         : undefined;
 
-      const token = rawToken ?? jwt.sign({ user: userDto } as any, CONFIG.JWT_SECRET, { expiresIn: '1h' });
+      const token = rawToken ?? jwt.sign({ user: userDto } as any, CONFIG.JWT_SECRET, { expiresIn: '1d' });
 
       res.status(200).json({ message: 'Login successful', token });
     } catch (error) {

@@ -55,7 +55,7 @@ export default function HomePage({ selected, setSelected }: Props) {
   return (
     <>
       <CustomNavbar />
-      <Container fluid className="content">
+      <Container fluid className="content p-0">
         <Row className="h-100 g-0">
           <Col xs={12} md={8} lg={9} className="h-100">
             <HomepageMap

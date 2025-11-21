@@ -1,17 +1,17 @@
-import React, { useRef, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, Polygon } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import React, { useRef, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, Polygon } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import "leaflet.markercluster";
-import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-import "./map.css";
-import { MaptilerLayer } from "@maptiler/leaflet-maptilersdk";
-import { useAppContext } from "../contexts/AppContext";
-import type { Coord, Report } from "../models/models";
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import './map.css';
+import { useAppContext } from '../contexts/AppContext';
+import type { Coord, Report } from '../models/models';
 
 const DefaultIcon = L.icon({
     iconUrl: icon,
@@ -80,150 +80,6 @@ type Props = {
 	reports?: Report[] | null;
 };
 
-// Map component WITHOUT the markers' cluster feature (just the feature to select a point on the map)
-export default function Map({ selected, setSelected }: Props) {
-	const { isLoggedIn } = useAppContext();
-
-	const mapContainer = useRef<HTMLDivElement | null>(null);
-	const map = useRef<L.Map | null>(null);
-
-	const markerRef = useRef<L.Marker | null>(null);
-
-	const center = { lat: 45.06985, lng: 7.68228 };
-	const zoom = 14;
-
-	useEffect(() => {
-		if(selected) {
-			console.log("NEW COORDS : " + JSON.stringify(selected));
-		}
-	}, [selected]);
-
-  	const turinPolysRef = useRef<L.LatLng[][]>([]);
-
-	useEffect(() => {
-		if(map.current) return;
-		if(!mapContainer.current) return;
-		
-		map.current = new L.Map(mapContainer.current, {
-			center: L.latLng(center.lat, center.lng),
-			zoom: zoom,
-			minZoom: 11,
-			maxZoom: 18,
-		});
-
-    	new MaptilerLayer({ apiKey: "gb0u8xp4Dznehd1U110M" }).addTo(map.current);
-		
-		const nominatimUrl = "https://nominatim.openstreetmap.org/search.php?q=Turin%2C+Italy&polygon_geojson=1&format=jsonv2";
-		
-		type PolygonCoords = number[][][];
-		type MultiPolygonCoords = number[][][][];
-		interface NominatimResult {
-			geojson?: | { type: "Polygon"; coordinates: PolygonCoords } | { type: "MultiPolygon"; coordinates: MultiPolygonCoords };
-		}
-		
-		fetch(nominatimUrl)
-			.then(r => r.json())
-			.then((results: NominatimResult[]) => {
-				const feature = results.find(f => f.geojson && (f.geojson.type === "Polygon" || f.geojson.type === "MultiPolygon"));
-				if(!feature || !feature.geojson) throw new Error("No polygon found for Turin");
-        		
-				const gj = feature.geojson;
-				const holes: [number, number][][] = [];
-        	
-				if(gj && gj.type === "Polygon") {
-					const rawOuter = (gj.coordinates as PolygonCoords)[0];
-					const outer: [number, number][] = rawOuter.map((pair) => {
-						const [lng, lat] = pair as [number, number];
-						return [lat, lng];
-          			});
-					
-					holes.push(outer.slice().reverse());
-					turinPolysRef.current = [
-						outer.map((pair: [number, number]) => L.latLng(pair[0], pair[1])),
-					];
-        		} else if(gj && gj.type === "MultiPolygon") {
-					const rawMulti = gj.coordinates as MultiPolygonCoords;
-					const polys: L.LatLng[][] = [];
-			
-					rawMulti.forEach((poly) => {
-						const rawOuter = poly[0];
-						const outer: [number, number][] = rawOuter.map((pair) => {
-							const [lng, lat] = pair as [number, number];
-							return [lat, lng];
-            			});
-
-						holes.push(outer.slice().reverse());
-						polys.push(outer.map((pair) => L.latLng(pair[0], pair[1])));
-					});
-
-					turinPolysRef.current = polys;
-				}
-				
-				const borderLayer = L
-					.geoJSON(gj as unknown as GeoJSON.GeoJsonObject, {
-						style: { color: "#0057A0", weight: 4, fillOpacity: 0 },
-					})
-					.addTo(map.current!);
-				
-				map.current!.fitBounds(borderLayer.getBounds(), { padding: [20, 20] });
-      		})
-      		.catch((err) => console.error("Failed to load Turin boundary:", err));
-  	}, [center.lng, center.lat, zoom, setSelected]);
-
-  useEffect(() => {
-    if (!map.current) return;
-
-    const onClick = async (e: L.LeafletMouseEvent) => {
-      if (!isLoggedIn) return;
-      if (!turinPolysRef.current.length) return;
-
-      const { lat, lng } = e.latlng;
-      const inside = turinPolysRef.current.some((poly) =>
-        pointInPolygon(lat, lng, poly)
-      );
-      const snapped = inside ? { lat, lng } : nearestPointOnTurin(lat, lng, turinPolysRef.current);
-      if (!snapped) return;
-
-	  const address = await fetchAddress(lat, lng);
-
-      setSelected({ ...snapped, address });
-
-      if (!map.current) return;
-      if (!markerRef.current) {
-        markerRef.current = L
-          .marker([snapped.lat, snapped.lng])
-          .addTo(map.current);
-      } else {
-        markerRef.current.setLatLng([snapped.lat, snapped.lng]);
-      }
-    };
-
-    map.current.on("click", onClick);
-    return () => {
-      map.current?.off("click", onClick);
-    };
-  }, [isLoggedIn, setSelected]);
-
-  useEffect(() => {
-    if (!map.current || !selected) return;
-
-    const { lat, lng } = selected;
-    if (!markerRef.current) {
-      markerRef.current = L.marker([lat, lng]).addTo(map.current);
-    } else {
-      markerRef.current.setLatLng([lat, lng]);
-    }
-
-    map.current.setView([lat, lng], map.current.getZoom());
-  }, [selected]);
-
-  return (
-    <div className="map-wrap">
-      <div ref={mapContainer} className="map" />
-    </div>
-  );
-}
-
 const fetchAddress = async (lat: number, lng: number): Promise<string> => {
 	try {
 		const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`);
@@ -231,9 +87,9 @@ const fetchAddress = async (lat: number, lng: number): Promise<string> => {
 		if(!res.ok) return 'Not available';
 		
 		const data = await res.json();
-		const road = data.address?.road || data.address?.pedestrian || "";
-		const houseNumber = data.address?.house_number || "";
-		const address = `${road} ${houseNumber}`.trim() || data.display_name || "";
+		const road = data.address?.road || data.address?.pedestrian || '';
+		const houseNumber = data.address?.house_number || '';
+		const address = `${road} ${houseNumber}`.trim() || data.display_name || '';
 
     	return address || 'Not available';
 	} catch(error) {
@@ -242,78 +98,197 @@ const fetchAddress = async (lat: number, lng: number): Promise<string> => {
 	}
 }
 
-function LocationMarker({ selected, setSelected, turinPolys }: { selected: Coord | null, setSelected: (c: Coord | null) => void, turinPolys: L.LatLng[][] }) {
+const LocationMarker = ({ selected, setSelected, turinPolys }: { selected: Coord | null, setSelected: (c: Coord | null) => void, turinPolys: L.LatLng[][] }) => {
     const { isLoggedIn } = useAppContext();
+    const markerRef = useRef<L.Marker>(null);
+
+	const location = useLocation();
     const navigate = useNavigate();
 
-    const map = useMap();
-    
-	const markerRef = useRef<L.Marker>(null);
-    
-	const [address, setAddress] = useState<string>("");
-
     useMapEvents({
-        click(e) {
+        async click(e) {
             if(!isLoggedIn || !turinPolys.length) return;
 
             const { lat, lng } = e.latlng;
             const inside = turinPolys.some((poly) => pointInPolygon(lat, lng, poly));
             const snapped = inside ? { lat, lng } : nearestPointOnTurin(lat, lng, turinPolys);
 
-            if(snapped) setSelected({ lat: snapped.lat, lng: snapped.lng });
-        }
+            if(snapped) {
+				setSelected({ lat: snapped.lat, lng: snapped.lng, address: 'Fetching address...' });
+                const addr = await fetchAddress(snapped.lat, snapped.lng);
+                setSelected({ lat: snapped.lat, lng: snapped.lng, address: addr });
+
+                setTimeout(() => {
+                    if(markerRef.current) {
+                        markerRef.current.openPopup();
+                    }
+                }, 100);
+            }
+        },
     });
 
-    useEffect(() => {
-        if(selected) {
-            if(!selected.address) {
-                 setAddress("Fetching address...");
-                 fetchAddress(selected.lat, selected.lng).then(addr => {
-                     setAddress(addr);
-                     setSelected({ ...selected, address: addr });
-                 });
-            } else {
-                setAddress(selected.address);
-            }
-        }
-    }, [selected, setSelected]);
-
-    useEffect(() => {
-        if(selected && markerRef.current) {
-            markerRef.current.openPopup();
-        }
-    }, [selected, address]);
-
-    useEffect(() => {
-        if(selected) {
-            map.flyTo([selected.lat, selected.lng], map.getZoom());
-        }
-    }, [selected, map]);
-
     return selected === null ? null : (
-        <Marker position={[selected.lat, selected.lng]} ref={markerRef}>
-            <Popup>
-                <div style={{ textAlign: "center" }}>
-                    <p style={{ margin: "0 0 5px 0", fontWeight: "bold" }}>{address || "Not available"}</p>
-                    <button
-                            onClick={() => navigate("/reports/new")}
-                            style={{
-                                backgroundColor: "#0057A0",
-                                color: "white",
-                                border: "none",
-                                padding: "5px 5px",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "12px",
-                                width: "100%"
-                            }}
-                        >
-                            + New Report
-                        </button>
-                </div>
-            </Popup>
+        <Marker position = { [selected.lat, selected.lng] } ref = { markerRef }>
+			<Popup>
+				<div style = {{ textAlign: 'center' }}>
+					<p style = {{ margin: '0 0 5px 0', fontWeight: 'bold' }}>{selected.address || 'Not available'}</p>
+					{location.pathname === '/' && (
+						<button
+							onClick = { () => navigate('/reports/new') }
+							style = {{
+								backgroundColor: '#0057A0',
+								color: 'white',
+								border: 'none',
+								padding: '5px 5px',
+								borderRadius: '4px',
+								cursor: 'pointer',
+								fontSize: '12px',
+								width: '100%'
+							}}>
+							+ New Report
+						</button>
+					)}
+				</div>
+			</Popup>
         </Marker>
     );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createClusterCustomIcon = (cluster: any) => {
+	const count = cluster.getChildCount();
+  	let color;
+	
+	if(count < 10) color = '#10B981'; // green
+	else if(count < 25) color = '#EAB308'; // yellow
+    else if(count < 50) color = '#F59E0B'; // orange
+  	else if(count < 100) color = '#EF4444'; // red
+    else color = '#991B1B'; // dark red
+  
+	return L.divIcon({
+		html: `
+			<div style='
+				width: 40px;
+				height: 40px;
+				background-color: ${color}DD;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: white;
+				font-weight: bold;
+				font-size: 16px;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+			'>${count}</div>
+		`,
+		className: 'custom-cluster-icon',
+		iconSize: L.point(50, 50, true),
+	});
+};
+
+const REPORT_STATUS: Record<string, { color: string }> = {
+//   'PendingApproval': { color: '#6B7280' }, // Gray
+  	'Assigned': { color: '#F59E0B' }, // Orange
+	'InProgress': { color: '#3B82F6' }, // Blue
+	'Suspended': { color: '#8B5CF6' }, // Purple
+//   'Rejected': { color: '#EF4444' }, // Red
+  	'Resolved': { color: '#10B981' } // Green
+};
+
+const createReportIcon = (status: string) => {
+	const statusInfo = REPORT_STATUS[status] || { color: '#6B7280' };
+	return L.divIcon({
+		className: 'custom-report-marker',
+		html: `
+			<div style='
+				width: 30px;
+				height: 30px;
+				background-color: ${statusInfo.color};
+				border-radius: 50%;
+				box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+			'></div>
+		`,
+		iconSize: [30, 30],
+		iconAnchor: [15, 15],
+		popupAnchor: [0, -15]
+	});
+}
+
+const MapUpdater = ({ position }: { position: Coord | null }) => {
+	const map = useMap();
+  	const prevPosition = useRef<Coord | null>(null);
+
+	useEffect(() => {
+    	if(!position) return;
+	
+		if(prevPosition.current && prevPosition.current.lat === position.lat && prevPosition.current.lng === position.lng) return;
+    
+    	prevPosition.current = position;
+    
+    	try {
+			map.setView([position.lat, position.lng], map.getZoom(), {
+				animate: true,
+				duration: 1.5
+			});
+		} catch(error) {
+			console.error('Error in setView:', error);
+    	}
+  	}, [position, map]);
+  
+  	return null;
+}
+
+// Map component WITHOUT the markers' cluster feature (just the feature to select a point on the map)
+export default function Map({ selected, setSelected }: Props) {
+    const center = { lat: 45.06985, lng: 7.68228 };
+    const zoom = 12;
+    const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
+
+	useEffect(() => {
+        const nominatimUrl = 'https://nominatim.openstreetmap.org/search.php?q=Turin%2C+Italy&polygon_geojson=1&format=jsonv2';
+        
+        type PolygonCoords = number[][][];
+        type MultiPolygonCoords = number[][][][];
+        interface NominatimResult {
+            geojson?: | { type: 'Polygon'; coordinates: PolygonCoords } | { type: 'MultiPolygon'; coordinates: MultiPolygonCoords };
+        }
+
+        fetch(nominatimUrl)
+            .then(r => r.json())
+            .then((results: NominatimResult[]) => {
+                const feature = results.find(f => f.geojson && (f.geojson.type === 'Polygon' || f.geojson.type === 'MultiPolygon'));
+                if (!feature || !feature.geojson) return;
+
+                const gj = feature.geojson;
+                const polys: L.LatLng[][] = [];
+
+                if (gj.type === 'Polygon') {
+                    const rawOuter = (gj.coordinates as PolygonCoords)[0];
+                    polys.push(rawOuter.map((pair) => L.latLng(pair[1], pair[0])));
+                } else if (gj.type === 'MultiPolygon') {
+                    const rawMulti = gj.coordinates as MultiPolygonCoords;
+                    rawMulti.forEach((poly) => {
+                        const rawOuter = poly[0];
+                        polys.push(rawOuter.map((pair) => L.latLng(pair[1], pair[0])));
+                    });
+                }
+                setTurinPolys(polys);
+            })
+            .catch(err => console.error('Failed to load Turin boundary:', err));
+    }, []);
+
+	return (
+		<div className = 'map-wrap'>
+			<MapContainer center = { [center.lat, center.lng] } zoom = { zoom } scrollWheelZoom = { true } className = 'map'>
+                <TileLayer attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'/>
+                {turinPolys.length > 0 && (
+                    <Polygon positions = { turinPolys } pathOptions = {{ color: '#0057A0', weight: 4, fillOpacity: 0 }}/>
+                )}
+        		<MapUpdater position = { selected }/>
+				<LocationMarker selected = { selected } setSelected = { setSelected } turinPolys = { turinPolys }/>
+            </MapContainer>
+		</div>
+	);
 }
 
 // Map component WITH the markers' cluster feature and the other ones
@@ -323,27 +298,27 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
     const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
 
     useEffect(() => {
-        const nominatimUrl = "https://nominatim.openstreetmap.org/search.php?q=Turin%2C+Italy&polygon_geojson=1&format=jsonv2";
+        const nominatimUrl = 'https://nominatim.openstreetmap.org/search.php?q=Turin%2C+Italy&polygon_geojson=1&format=jsonv2';
         
         type PolygonCoords = number[][][];
         type MultiPolygonCoords = number[][][][];
         interface NominatimResult {
-            geojson?: | { type: "Polygon"; coordinates: PolygonCoords } | { type: "MultiPolygon"; coordinates: MultiPolygonCoords };
+            geojson?: | { type: 'Polygon'; coordinates: PolygonCoords } | { type: 'MultiPolygon'; coordinates: MultiPolygonCoords };
         }
 
         fetch(nominatimUrl)
             .then(r => r.json())
             .then((results: NominatimResult[]) => {
-                const feature = results.find(f => f.geojson && (f.geojson.type === "Polygon" || f.geojson.type === "MultiPolygon"));
+                const feature = results.find(f => f.geojson && (f.geojson.type === 'Polygon' || f.geojson.type === 'MultiPolygon'));
                 if (!feature || !feature.geojson) return;
 
                 const gj = feature.geojson;
                 const polys: L.LatLng[][] = [];
 
-                if (gj.type === "Polygon") {
+                if (gj.type === 'Polygon') {
                     const rawOuter = (gj.coordinates as PolygonCoords)[0];
                     polys.push(rawOuter.map((pair) => L.latLng(pair[1], pair[0])));
-                } else if (gj.type === "MultiPolygon") {
+                } else if (gj.type === 'MultiPolygon') {
                     const rawMulti = gj.coordinates as MultiPolygonCoords;
                     rawMulti.forEach((poly) => {
                         const rawOuter = poly[0];
@@ -352,31 +327,25 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
                 }
                 setTurinPolys(polys);
             })
-            .catch(err => console.error("Failed to load Turin boundary:", err));
+            .catch(err => console.error('Failed to load Turin boundary:', err));
     }, []);
 
     return (
-        <div className="map-wrap">
-            <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom={true} className="map">
-                <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                
+        <div className = 'map-wrap'>
+            <MapContainer center = { [center.lat, center.lng] } zoom = { zoom } scrollWheelZoom = { true } className = 'map'>
+                <TileLayer attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'/>
                 {turinPolys.length > 0 && (
-                    <Polygon
-                        positions={turinPolys}
-                        pathOptions={{ color: "#0057A0", weight: 4, fillOpacity: 0 }}
-                    />
+                    <Polygon positions = { turinPolys } pathOptions = {{ color: '#0057A0', weight: 4, fillOpacity: 0 }}/>
                 )}
-                
-                <LocationMarker selected={selected} setSelected={setSelected} turinPolys={turinPolys} />
-
-                {reports && reports.map((report) => (
-                    <Marker key={report.id} position={[report.lat, report.long]}>
-                        <Popup>{report.title}</Popup>
-                    </Marker>
-                ))}
+        		<MapUpdater position = { selected }/>
+				<LocationMarker selected = { selected } setSelected = { setSelected } turinPolys = { turinPolys }/>
+				<MarkerClusterGroup chunkedLoading iconCreateFunction = { createClusterCustomIcon } maxClusterRadius = { 80 } spiderfyOnMaxZoom = { true } showCoverageOnHover = { false }>
+                    {reports && reports.map((report) => (
+                        <Marker key = { report.id } position = { [report.lat, report.long] } icon = { createReportIcon(report.status) }>
+                            <Popup>{report.title}</Popup>
+                        </Marker>
+                    ))}
+                </MarkerClusterGroup>
             </MapContainer>
         </div>
     );
