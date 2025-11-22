@@ -82,7 +82,7 @@ export default function TechnicalStaffHomepage() {
                             <Accordion.Item eventKey={String(idx)} key={r.id}>
                                 <Accordion.Header>
                                     <div className="d-flex flex-column flex-md-row w-100">
-                                        <span className="fw-semibold me-3" style={{ color: '#00205B' }}>{r.title}</span>
+                                        <span id="report-title" className="fw-semibold me-3" style={{ color: '#00205B' }}>{r.title}</span>
                                         <div className="ms-md-auto d-flex align-items-center gap-2">
                                             <Badge bg="secondary">{r.category?.name}</Badge>
                                             <Badge bg={r.status === 'Assigned' ? 'primary' :

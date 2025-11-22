@@ -6,25 +6,25 @@ import { getReportsByStatus, getCategories, updateReportCategory, assignOrReject
 import type { Report, Category } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
 
-import Lightbox from 'yet-another-react-lightbox';
-import 'yet-another-react-lightbox/styles.css';
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
-interface PendingReport extends Report { }
+interface PendingReport extends Report {}
 
 export default function PROHomepage() {
-    const { user } = useAppContext();
-    const [reports, setReports] = useState<PendingReport[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [updatingId, setUpdatingId] = useState<number | null>(null);
-    const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
-    const [rejectReason, setRejectReason] = useState<Record<number, string>>({});
-    const [expanded, setExpanded] = useState<number | null>(null);
+  const { user } = useAppContext();
+  const [reports, setReports] = useState<PendingReport[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState<Record<number, string>>({});
+  const [expanded, setExpanded] = useState<number | null>(null);
 
-    const [lightboxOpen, setLightboxOpen] = useState(false);
-    const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
-    const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
     useEffect(() => {
         const bootstrap = async () => {
@@ -99,142 +99,182 @@ export default function PROHomepage() {
         setLightboxOpen(true);
     };
 
-    if (user?.userType !== 'PUBLIC_RELATIONS_OFFICER') {
-        return (
-            <>
-                <CustomNavbar />
-                <Container className="mt-4">
-                    <Alert variant="danger" className="text-center">
-                        Access denied: this page is reserved for Public Relations Officers.
-                    </Alert>
-                </Container>
-            </>
-        );
-    }
-
+  if (user?.userType !== "PUBLIC_RELATIONS_OFFICER") {
     return (
-        <>
-            <CustomNavbar />
-            <Container className="mt-4">
-                <h2 className="mb-3 text-center">Pending Reports</h2>
-                {error && <Alert variant="danger">{error}</Alert>}
-                {loading && (
-                    <div className="d-flex justify-content-center my-4">
-                        <Spinner animation="border" role="status" aria-label="Loading reports" />
-                    </div>
-                )}
-                {!loading && reports.length === 0 && (
-                    <Alert variant="info">No reports pending approval.</Alert>
-                )}
-
-                <Accordion activeKey={expanded ? String(expanded) : undefined} alwaysOpen>
-                    {reports.map(r => (
-                        <Card key={r.id} className="mb-2 shadow-sm">
-                            <Accordion.Item eventKey={String(r.id)}>
-                                <Accordion.Header onClick={() => handleToggle(r.id)}>
-                                    <div className="d-flex flex-column flex-md-row w-100">
-                                        <strong className="me-auto">{r.title}</strong>
-                                        <small className="text-muted">{new Date(r.createdAt).toLocaleString()}</small>
-                                    </div>
-                                </Accordion.Header>
-                                <Accordion.Body>
-                                    <Row>
-                                        <Col md={8}>
-                                            <p><strong>Description:</strong> {r.description}</p>
-                                            {r.images.slice(0, 3).length > 0 && (
-                                                <div className="d-flex flex-wrap gap-2 mb-3">
-                                                    {r.images.slice(0, 3).map((img, idx) => (
-                                                        <button
-                                                            key={idx}
-                                                            type="button"
-                                                            className="p-0 border-0 bg-transparent"
-                                                            onClick={() => openLightbox(r.images, idx)}
-                                                            aria-label={`Open image ${idx + 1}`}
-                                                        >
-                                                            <Image
-                                                                src={img}
-                                                                alt={`Report image ${idx + 1}`}
-                                                                thumbnail
-                                                                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                                                            />
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {r.images.slice(0, 3).length === 0 && (
-                                                <p className="text-muted fst-italic">No images</p>
-                                            )}
-                                            <p><strong>Category:</strong> {r.category.name}</p>
-
-                                            <Form.Group className="mb-3">
-                                                <Form.Label>Change Category</Form.Label>
-                                                <Form.Select
-                                                    disabled={updatingId === r.id || statusUpdatingId === r.id}
-                                                    defaultValue={r.category.id}
-                                                    onChange={e => handleCategoryChange(r, e.target.value)}
-                                                    aria-label="Select new category"
-                                                >
-                                                    {categories.map(c => (
-                                                        <option key={c.id} value={c.id}>
-                                                            {c.name}
-                                                        </option>
-                                                    ))}
-                                                </Form.Select>
-                                                {updatingId === r.id && <small className="text-primary">Updating category…</small>}
-                                            </Form.Group>
-
-                                            <Form.Group className="mb-3">
-                                                <Form.Label>Rejection Reason (only if rejecting)</Form.Label>
-                                                <Form.Control
-                                                    as="textarea"
-                                                    rows={3}
-                                                    placeholder="Enter reason to reject this report"
-                                                    disabled={statusUpdatingId === r.id}
-                                                    value={rejectReason[r.id] || ''}
-                                                    onChange={e => setRejectReason(prev => ({ ...prev, [r.id]: e.target.value }))}
-                                                />
-                                            </Form.Group>
-
-                                            <div className="d-flex gap-2">
-                                                <Button
-                                                    variant="success"
-                                                    size="sm"
-                                                    disabled={statusUpdatingId === r.id}
-                                                    onClick={() => acceptReport(r)}
-                                                >
-                                                    {statusUpdatingId === r.id ? 'Processing…' : 'Accept'}
-                                                </Button>
-                                                <Button
-                                                    variant="danger"
-                                                    size="sm"
-                                                    disabled={statusUpdatingId === r.id}
-                                                    onClick={() => rejectReport(r)}
-                                                >
-                                                    {statusUpdatingId === r.id ? 'Processing…' : 'Reject'}
-                                                </Button>
-                                            </div>
-                                        </Col>
-
-                                        <Col md={4} className="mt-2">
-                                            <ReportMiniMap lat={Number(r.lat)} long={Number(r.long)} />
-                                        </Col>
-                                    </Row>
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        </Card>
-                    ))}
-                </Accordion>
-            </Container>
-            <Lightbox
-                open={lightboxOpen}
-                close={() => setLightboxOpen(false)}
-                slides={lightboxSlides}
-                index={lightboxIndex}
-                controller={{ closeOnBackdropClick: true }}
-                on={(
-                    { index: (newIndex: number) => setLightboxIndex(newIndex) } as any
-                )}
-            />
-        </>
+      <>
+        <CustomNavbar />
+        <Container className="mt-4">
+          <Alert variant="danger" className="text-center">
+            Access denied: this page is reserved for Public Relations Officers.
+          </Alert>
+        </Container>
+      </>
     );
+  }
+
+  return (
+    <>
+      <CustomNavbar />
+      <Container className="mt-4">
+        <h2 className="mb-3 text-center">Pending Reports</h2>
+        {error && <Alert variant="danger">{error}</Alert>}
+        {loading && (
+          <div className="d-flex justify-content-center my-4">
+            <Spinner
+              animation="border"
+              role="status"
+              aria-label="Loading reports"
+            />
+          </div>
+        )}
+        {!loading && reports.length === 0 && (
+          <Alert variant="info">No reports pending approval.</Alert>
+        )}
+
+        <Accordion
+          activeKey={expanded ? String(expanded) : undefined}
+          alwaysOpen
+        >
+          {reports.map((r) => (
+            <Card key={r.id} className="mb-2 shadow-sm">
+              <Accordion.Item eventKey={String(r.id)}>
+                <Accordion.Header
+                  onClick={() => handleToggle(r.id)}
+                >
+                  <div className="d-flex flex-column flex-md-row w-100">
+                    <strong id={"report-title-"+r.title} className="me-auto">{r.title}</strong>
+                    <small className="text-muted">
+                      {new Date(r.createdAt).toLocaleString()}
+                    </small>
+                  </div>
+                </Accordion.Header>
+                <Accordion.Body>
+                  <Row>
+                    <Col md={8}>
+                      <p>
+                        <strong>Description:</strong> {r.description}
+                      </p>
+                      {r.images.slice(0, 3).length > 0 && (
+                        <div className="d-flex flex-wrap gap-2 mb-3">
+                          {r.images.slice(0, 3).map((img, idx) => (
+                            <button
+                              key={idx}
+                              id={"click-expand-" + r.title}
+                              type="button"
+                              className="p-0 border-0 bg-transparent"
+                              onClick={() => openLightbox(r.images, idx)}
+                              aria-label={`Open image ${idx + 1}`}
+                            >
+                              <Image
+                                src={img}
+                                alt={`Report image ${idx + 1}`}
+                                thumbnail
+                                style={{
+                                  width: "100px",
+                                  height: "100px",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {r.images.slice(0, 3).length === 0 && (
+                        <p className="text-muted fst-italic">No images</p>
+                      )}
+                      <p>
+                        <strong>Category:</strong> {r.category.name}
+                      </p>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Change Category</Form.Label>
+                        <Form.Select
+                          id="select-category"
+                          disabled={
+                            updatingId === r.id || statusUpdatingId === r.id
+                          }
+                          defaultValue={r.category.id}
+                          onChange={(e) =>
+                            handleCategoryChange(r, e.target.value)
+                          }
+                          aria-label="Select new category"
+                        >
+                          {categories.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        {updatingId === r.id && (
+                          <small className="text-primary">
+                            Updating category…
+                          </small>
+                        )}
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          Rejection Reason (only if rejecting)
+                        </Form.Label>
+                        <Form.Control
+                          id={"description-field" + r.title}
+                          as="textarea"
+                          rows={3}
+                          placeholder="Enter reason to reject this report"
+                          disabled={statusUpdatingId === r.id}
+                          value={rejectReason[r.id] || ""}
+                          onChange={(e) =>
+                            setRejectReason((prev) => ({
+                              ...prev,
+                              [r.id]: e.target.value,
+                            }))
+                          }
+                        />
+                      </Form.Group>
+
+                      <div className="d-flex gap-2">
+                        <Button
+                          variant="success"
+                          id={"accept-button"+r.title}
+                          size="sm"
+                          disabled={statusUpdatingId === r.id}
+                          onClick={() => acceptReport(r)}
+                        >
+                          {statusUpdatingId === r.id ? "Processing…" : "Accept"}
+                        </Button>
+                        <Button
+                          variant="danger"
+                          id={"reject-button"+r.title}
+                          size="sm"
+                          disabled={statusUpdatingId === r.id}
+                          onClick={() => rejectReport(r)}
+                        >
+                          {statusUpdatingId === r.id ? "Processing…" : "Reject"}
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col md={4} className="mt-2">
+                      <ReportMiniMap
+                        lat={Number(r.lat)}
+                        long={Number(r.long)}
+                      />
+                    </Col>
+                  </Row>
+                </Accordion.Body>
+              </Accordion.Item>
+            </Card>
+          ))}
+        </Accordion>
+      </Container>
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={lightboxSlides}
+        index={lightboxIndex}
+        controller={{ closeOnBackdropClick: true }}
+        on={{ index: (newIndex: number) => setLightboxIndex(newIndex) } as any}
+      />
+    </>
+  );
 }
