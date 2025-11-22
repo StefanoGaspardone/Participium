@@ -16,7 +16,7 @@ describe("2. Test suite for login page :", () => {
     cy.url().should("equal", REGISTERPAGE_URL);
   });
 
-  it("2.2 Inserting existing credentials should lead to home page + logged user", () => {
+  it("2.2 Logging in as a citizen should lead to homepage", () => {
     cy.visit(LOGINPAGE_URL);
     loginPage.insertUsername("giack.team5");
     loginPage.insertPassword("password");
@@ -58,8 +58,7 @@ describe("2. Test suite for login page :", () => {
     cy.url().should("equal", TSMPAGE_URL);
   });
   
-  it.skip("2.7 Logging in as a Municipal Administrator should lead to Techincal Staff page", () => {
-    cy.visit(LOGINPAGE_URL);
+  it.skip("2.7 Logging in as a Municipal Administrator should lead to ???", () => {
     loginPage.insertUsername('munadm');
     loginPage.insertPassword('password');
     loginPage.submitForm();

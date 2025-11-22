@@ -6,12 +6,13 @@ import {
 import { homePage } from "../../pageObjects/homePage";
 import { loginPage } from "../../pageObjects/loginPage";
 
-const performLoginAsCitizen = () => {
+export const performLoginAsCitizen = () => {
   cy.visit(LOGINPAGE_URL);
   loginPage.insertUsername("giack.team5");
   loginPage.insertPassword("password");
   loginPage.submitForm();
   loginPage.acceptAlertValid();
+  cy.wait(1500);
   cy.url().should("equal", HOMEPAGE_URL);
 };
 
@@ -32,6 +33,7 @@ describe("1. Test suite for home page :", () => {
   /** LOGGED user tests */
   it("1.3 As a logged user i should be able to click the map and select a location (identified b latitude and longitude)", () => {
     performLoginAsCitizen();
+    cy.wait(1500);
     cy.get('[id="map-container"]').click();
     cy.get('[alt="Marker"]').should('be.visible');
   });
