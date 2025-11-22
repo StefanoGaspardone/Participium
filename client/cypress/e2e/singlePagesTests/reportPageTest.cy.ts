@@ -14,6 +14,7 @@ const performLoginAsCitizen = () => {
   loginPage.insertPassword("password");
   loginPage.submitForm();
   loginPage.acceptAlertValid();
+  cy.wait(1500);
   cy.url().should("equal", HOMEPAGE_URL);
 };
 
@@ -26,7 +27,7 @@ describe("4. Test suite for report page :", () => {
     homePage.clickNewReport();
     cy.url().should('equal', UPLOADREPORTPAGE_URL);
     cy.wait(2000);
-    reportPage.clickOnMap();
+    reportPage.clickRandomOnMap();
     reportPage.insertTitle(t);
     reportPage.insertDescription(d);
     reportPage.selectCategory(3);

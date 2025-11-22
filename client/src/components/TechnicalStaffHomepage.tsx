@@ -81,11 +81,11 @@ export default function TechnicalStaffHomepage() {
                         {reports.map((r, idx) => (
                             <Accordion.Item eventKey={String(idx)} key={r.id}>
                                 <Accordion.Header>
-                                    <div className="d-flex flex-column flex-md-row w-100">
+                                    <div id={"expand-report-"+r.title} className="d-flex flex-column flex-md-row w-100">
                                         <span id="report-title" className="fw-semibold me-3" style={{ color: '#00205B' }}>{r.title}</span>
                                         <div className="ms-md-auto d-flex align-items-center gap-2">
                                             <Badge bg="secondary">{r.category?.name}</Badge>
-                                            <Badge bg={r.status === 'Assigned' ? 'primary' :
+                                            <Badge id={"current-status"+r.title} bg={r.status === 'Assigned' ? 'primary' :
                                                 r.status === 'Resolved' ? 'success' : 'warning'}>
                                                 {r.status}
                                             </Badge>
@@ -119,6 +119,7 @@ export default function TechnicalStaffHomepage() {
                                                     <div className="d-flex gap-2">
                                                         {getAvailableActions(r.status).map(action => (
                                                             <Button
+                                                                id={"switch-report-status"+r.title}
                                                                 key={action.value}
                                                                 variant={
                                                                     action.value === 'Resolved' ? 'success' :

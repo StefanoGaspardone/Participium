@@ -107,7 +107,7 @@ export default function Notifications() {
 
             <Dropdown.Menu className="notifications-menu shadow-sm">
                 <div className="notifications-header">
-                    <h6 className="mb-0">Report updates</h6>
+                    <h6 id="report-updates" className="mb-0">Report updates</h6>
                 </div>
 
                 <div className="notifications-body">

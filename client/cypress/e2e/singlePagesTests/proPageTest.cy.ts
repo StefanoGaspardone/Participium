@@ -2,14 +2,24 @@ import { PUBRELOFFPAGE_URL, HOMEPAGE_URL, LOGINPAGE_URL } from "../../support/ut
 import { loginPage } from "../../pageObjects/loginPage";
 import { homePage } from "../../pageObjects/homePage";
 import { reportPage } from "../../pageObjects/reportPage";
-import { performLoginAsCitizen } from "./homePageTest.cy";
-import { generateRandomString } from "../../pageObjects/utils";
+import { generateRandomString, TIME_AFTER_UPLOAD } from "../../pageObjects/utils";
 import { proPage } from "../../pageObjects/proPage";
+import { TIME_REPORT_LOAD } from "../../pageObjects/utils";
 
-export const createNewRandomReport = (title: string, description: string) => {
+const performLoginAsCitizen = () => {
+  cy.visit(LOGINPAGE_URL);
+  loginPage.insertUsername("giack.team5");
+  loginPage.insertPassword("password");
+  loginPage.submitForm();
+  loginPage.acceptAlertValid();
+  cy.wait(1500);
+  cy.url().should("equal", HOMEPAGE_URL);
+};
+
+const createNewRandomReport = (title: string, description: string) => {
     performLoginAsCitizen();
     homePage.clickNewReport();
-    cy.wait(2000);
+    cy.wait(TIME_REPORT_LOAD);
     reportPage.clickRandomOnMap();
     reportPage.insertTitle(title);
     reportPage.insertDescription(description);
@@ -18,14 +28,14 @@ export const createNewRandomReport = (title: string, description: string) => {
     reportPage.submitForm();
 }
 
-export const performLogout = () => {
+const performLogout = () => {
     cy.get('[id="profile-picture"]').click({force: true});
     cy.get('[id="logout-button"]').focus().click({force: true});
     cy.visit(HOMEPAGE_URL);
     cy.url().should('equal', HOMEPAGE_URL);
 }
 
-export const performLoginAsPro = () => {
+const performLoginAsPro = () => {
     cy.visit(LOGINPAGE_URL);
     loginPage.insertUsername('pro');
     loginPage.insertPassword('password');
@@ -40,7 +50,7 @@ describe("6. Test suite for Public Relations Officer page", () => {
         const randomTitle = generateRandomString(10);
         const randomDescription = generateRandomString(20);
         createNewRandomReport(randomTitle, randomDescription);
-        cy.wait(2000);
+        cy.wait(TIME_AFTER_UPLOAD);
         performLogout();
         cy.visit(HOMEPAGE_URL);
         performLoginAsPro();
@@ -51,7 +61,7 @@ describe("6. Test suite for Public Relations Officer page", () => {
         const randomTitle = generateRandomString(10);
         const randomDescription = generateRandomString(20);
         createNewRandomReport(randomTitle, randomDescription);
-        cy.wait(2000);
+        cy.wait(TIME_AFTER_UPLOAD);
         performLogout();
         cy.visit(HOMEPAGE_URL);
         performLoginAsPro();
@@ -65,7 +75,7 @@ describe("6. Test suite for Public Relations Officer page", () => {
         const randomTitle = generateRandomString(10);
         const randomDescription = generateRandomString(20);
         createNewRandomReport(randomTitle, randomDescription);
-        cy.wait(2000);
+        cy.wait(TIME_AFTER_UPLOAD);
         performLogout();
         cy.visit(HOMEPAGE_URL);
         performLoginAsPro();
@@ -76,5 +86,5 @@ describe("6. Test suite for Public Relations Officer page", () => {
         proPage.clickReject(randomTitle);
         proPage.reportShouldNotExist(randomTitle);
     });
-    
+    it.only('6.4')
 })

@@ -278,7 +278,7 @@ export default function Map({ selected, setSelected }: Props) {
     }, []);
 
 	return (
-		<div className = 'map-wrap'>
+		<div id='map-container' className = 'map-wrap'>
 			<MapContainer center = { [center.lat, center.lng] } zoom = { zoom } scrollWheelZoom = { true } className = 'map'>
                 <TileLayer attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'/>
                 {turinPolys.length > 0 && (
@@ -331,7 +331,7 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
     }, []);
 
     return (
-        <div className = 'map-wrap'>
+        <div id='map-container' className = 'map-wrap'>
             <MapContainer center = { [center.lat, center.lng] } zoom = { zoom } scrollWheelZoom = { true } className = 'map'>
                 <TileLayer attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'/>
                 {turinPolys.length > 0 && (

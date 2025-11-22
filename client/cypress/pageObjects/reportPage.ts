@@ -25,10 +25,10 @@ const reportPage = {
     cy.get('[id="select-category"]').select(cat);
   },
   clickOnMap: () => {
-    cy.get('[id="map-container"]').focus().click();
+    cy.get('[id="map-container"]').click();
   },
   clickRandomOnMap: () => {
-    cy.get('[id="map-container"]').focus().click(331, 765, {force: true});
+    cy.get('[class="leaflet-interactive"]').click(331, 765, {force: true});
   },
   /**
    * 
