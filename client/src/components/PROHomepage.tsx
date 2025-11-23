@@ -9,7 +9,7 @@ import { useAppContext } from '../contexts/AppContext';
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 
-interface PendingReport extends Report {}
+interface PendingReport extends Report { }
 
 export default function PROHomepage() {
   const { user } = useAppContext();
@@ -20,84 +20,108 @@ export default function PROHomepage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState<Record<number, string>>({});
+  const [showRejectInput, setShowRejectInput] = useState<Record<number, boolean>>({});
+  const [rejectErrors, setRejectErrors] = useState<Record<number, string>>({});
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
-    useEffect(() => {
-        const bootstrap = async () => {
-            try {
-                setLoading(true);
-                const [cats, reps] = await Promise.all([
-                    getCategories(),
-                    getReportsByStatus('PendingApproval'),
-                ]);
-                reps.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                setCategories(cats);
-                setReports(reps);
-            } catch (e: any) {
-                setError(e?.message || 'Failed to load data');
-            } finally {
-                setLoading(false);
-            }
-        };
-        bootstrap();
-    }, []);
-
-    const handleToggle = (id: number) => {
-        setExpanded(prev => (prev === id ? null : id));
+  useEffect(() => {
+    const bootstrap = async () => {
+      try {
+        setLoading(true);
+        const [cats, reps] = await Promise.all([
+          getCategories(),
+          getReportsByStatus('PendingApproval'),
+        ]);
+        reps.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setCategories(cats);
+        setReports(reps);
+      } catch (e: any) {
+        setError(e?.message || 'Failed to load data');
+      } finally {
+        setLoading(false);
+      }
     };
+    bootstrap();
+  }, []);
 
-    const handleCategoryChange = async (report: PendingReport, categoryIdStr: string) => {
-        const categoryId = Number(categoryIdStr);
-        if (!categoryId || categoryId === report.category.id) return;
-        try {
-            setUpdatingId(report.id);
-            const updated = await updateReportCategory(report.id, categoryId);
-            setReports(rs => rs.map(r => (r.id === report.id ? { ...r, category: updated.category } : r)));
-        } catch (e: any) {
-            alert(e?.message || 'Category update failed');
-        } finally {
-            setUpdatingId(null);
-        }
-    };
+  const handleToggle = (id: number) => {
+    setExpanded(prev => (prev === id ? null : id));
+  };
 
-    const acceptReport = async (report: PendingReport) => {
-        try {
-            setStatusUpdatingId(report.id);
-            await assignOrRejectReport(report.id, 'Assigned');
-            setReports(rs => rs.filter(r => r.id !== report.id));
-        } catch (e: any) {
-            alert(e?.message || 'Accept failed');
-        } finally {
-            setStatusUpdatingId(null);
-        }
-    };
+  const handleCategoryChange = async (report: PendingReport, categoryIdStr: string) => {
+    const categoryId = Number(categoryIdStr);
+    if (!categoryId) return;
+    try {
+      setUpdatingId(report.id);
+      const updated = await updateReportCategory(report.id, categoryId);
+      setReports(rs => rs.map(r => (r.id === report.id ? { ...r, category: updated.category } : r)));
+    } catch (e: any) {
+      alert(e?.message || 'Category update failed');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
-    const rejectReport = async (report: PendingReport) => {
-        const reason = rejectReason[report.id]?.trim();
-        if (!reason) {
-            alert('Please provide a rejection reason.');
-            return;
-        }
-        try {
-            setStatusUpdatingId(report.id);
-            await assignOrRejectReport(report.id, 'Rejected', reason);
-            setReports(rs => rs.filter(r => r.id !== report.id));
-        } catch (e: any) {
-            alert(e?.message || 'Reject failed');
-        } finally {
-            setStatusUpdatingId(null);
-        }
-    };
+  const acceptReport = async (report: PendingReport) => {
+    try {
+      setStatusUpdatingId(report.id);
+      await assignOrRejectReport(report.id, 'Assigned');
+      setReports(rs => rs.filter(r => r.id !== report.id));
+      // Clear any rejection reason and hide input for this report
+      setRejectReason(prev => {
+        const { [report.id]: _ignored, ...rest } = prev;
+        return rest;
+      });
+      setShowRejectInput(prev => ({ ...prev, [report.id]: false }));
+      setRejectErrors(prev => {
+        const { [report.id]: _e, ...rest } = prev;
+        return rest;
+      });
+    } catch (e: any) {
+      alert(e?.message || 'Accept failed');
+    } finally {
+      setStatusUpdatingId(null);
+    }
+  };
 
-    const openLightbox = (images: string[], index: number) => {
-        setLightboxSlides(images.map(src => ({ src })));
-        setLightboxIndex(index);
-        setLightboxOpen(true);
-    };
+  const rejectReport = async (report: PendingReport) => {
+    const reason = rejectReason[report.id]?.trim();
+    if (!reason) {
+      setRejectErrors(prev => ({ ...prev, [report.id]: 'Please insert a reason for rejection.' }));
+      return;
+    }
+    try {
+      setStatusUpdatingId(report.id);
+      await assignOrRejectReport(report.id, 'Rejected', reason);
+      setReports(rs => rs.filter(r => r.id !== report.id));
+      setRejectErrors(prev => {
+        const { [report.id]: _removed, ...rest } = prev;
+        return rest;
+      });
+    } catch (e: any) {
+      setRejectErrors(prev => ({ ...prev, [report.id]: e?.message || 'Rifiuto non riuscito.' }));
+    } finally {
+      setStatusUpdatingId(null);
+    }
+  };
+
+  const openLightbox = (images: string[], index: number) => {
+    setLightboxSlides(images.map(src => ({ src })));
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const handleRejectClick = (report: PendingReport) => {
+    if (!showRejectInput[report.id]) {
+      setShowRejectInput(prev => ({ ...prev, [report.id]: true }));
+      return;
+    }
+    rejectReport(report);
+  };
 
   if (user?.userType !== "PUBLIC_RELATIONS_OFFICER") {
     return (
@@ -142,7 +166,7 @@ export default function PROHomepage() {
                   onClick={() => handleToggle(r.id)}
                 >
                   <div className="d-flex flex-column flex-md-row w-100">
-                    <strong id={"report-title-"+r.title} className="me-auto">{r.title}</strong>
+                    <strong id={"report-title-" + r.title} className="me-auto">{r.title}</strong>
                     <small className="text-muted">
                       {new Date(r.createdAt).toLocaleString()}
                     </small>
@@ -200,8 +224,13 @@ export default function PROHomepage() {
                           aria-label="Select new category"
                         >
                           {categories.map((c) => (
-                            <option key={c.id} value={c.id}>
+                            <option
+                              key={c.id}
+                              value={c.id}
+                              disabled={c.id === r.category.id}
+                            >
                               {c.name}
+                              {c.id === r.category.id ? " (attuale)" : ""}
                             </option>
                           ))}
                         </Form.Select>
@@ -212,30 +241,42 @@ export default function PROHomepage() {
                         )}
                       </Form.Group>
 
-                      <Form.Group className="mb-3">
-                        <Form.Label>
-                          Rejection Reason (only if rejecting)
-                        </Form.Label>
-                        <Form.Control
-                          id={"description-field" + r.title}
-                          as="textarea"
-                          rows={3}
-                          placeholder="Enter reason to reject this report"
-                          disabled={statusUpdatingId === r.id}
-                          value={rejectReason[r.id] || ""}
-                          onChange={(e) =>
-                            setRejectReason((prev) => ({
-                              ...prev,
-                              [r.id]: e.target.value,
-                            }))
-                          }
-                        />
-                      </Form.Group>
+                      {showRejectInput[r.id] && (
+                        <Form.Group className="mb-3">
+                          <Form.Label>Rejection Reason</Form.Label>
+                          <Form.Control
+                            id={"description-field" + r.title}
+                            as="textarea"
+                            rows={3}
+                            placeholder="Enter reason to reject this report"
+                            disabled={statusUpdatingId === r.id}
+                            value={rejectReason[r.id] || ""}
+                            isInvalid={!!rejectErrors[r.id]}
+                            onChange={(e) =>
+                              setRejectReason((prev) => ({
+                                ...prev,
+                                [r.id]: e.target.value,
+                              }))
+                            }
+                            onInput={() =>
+                              setRejectErrors(prev => {
+                                const { [r.id]: _err, ...rest } = prev;
+                                return rest;
+                              })
+                            }
+                          />
+                          {rejectErrors[r.id] && (
+                            <Form.Control.Feedback type="invalid" className="d-block">
+                              {rejectErrors[r.id]}
+                            </Form.Control.Feedback>
+                          )}
+                        </Form.Group>
+                      )}
 
                       <div className="d-flex gap-2">
                         <Button
                           variant="success"
-                          id={"accept-button"+r.title}
+                          id={"accept-button" + r.title}
                           size="sm"
                           disabled={statusUpdatingId === r.id}
                           onClick={() => acceptReport(r)}
@@ -244,12 +285,16 @@ export default function PROHomepage() {
                         </Button>
                         <Button
                           variant="danger"
-                          id={"reject-button"+r.title}
+                          id={"reject-button" + r.title}
                           size="sm"
                           disabled={statusUpdatingId === r.id}
-                          onClick={() => rejectReport(r)}
+                          onClick={() => handleRejectClick(r)}
                         >
-                          {statusUpdatingId === r.id ? "Processing…" : "Reject"}
+                          {statusUpdatingId === r.id
+                            ? "Processing…"
+                            : showRejectInput[r.id]
+                              ? "Confirm Reject"
+                              : "Reject"}
                         </Button>
                       </div>
                     </Col>
