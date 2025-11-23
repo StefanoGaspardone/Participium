@@ -2,12 +2,16 @@ import { initializeTestDatasource, emptyTestData, closeTestDataSource } from '@t
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
+import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import * as bcrypt from 'bcryptjs';
 
 let reportController: any;
 
 describe('ReportController integration tests', () => {
   let categoryId: number | undefined;
+  let userId: number | undefined;
+  let staffId: number | undefined;
+  let reportId: number | undefined;
 
   beforeAll(async () => {
     const AppDataSource = await initializeTestDatasource();
@@ -16,6 +20,7 @@ describe('ReportController integration tests', () => {
     const roleRepo = AppDataSource.getRepository(OfficeDAO);
     const userRepo = AppDataSource.getRepository(UserDAO);
     const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+    const reportRepo = AppDataSource.getRepository(ReportDAO);
 
     const role = roleRepo.create({ name: 'Controller Test Role' });
     await roleRepo.save(role);
@@ -35,6 +40,33 @@ describe('ReportController integration tests', () => {
       userType: UserType.CITIZEN,
     });
     await userRepo.save(citizen);
+    userId = citizen.id;
+
+    const staff = userRepo.create({
+      username: 'controller_staff',
+      email: 'controller_staff@gmail.com',
+      passwordHash: userHash,
+      firstName: 'Ctrl',
+      lastName: 'Staff',
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      office: role
+    });
+    await userRepo.save(staff);
+    staffId = staff.id;
+
+    const report = reportRepo.create({
+      title: 'Initial Report',
+      description: 'Initial Description',
+      category: category,
+      images: ['http://img/1.jpg'],
+      lat: 45.07,
+      long: 7.65,
+      anonymous: false,
+      createdBy: citizen,
+      status: ReportStatus.PendingApproval
+    });
+    await reportRepo.save(report);
+    reportId = report.id;
 
     reportController = (await import('@controllers/ReportController')).reportController;
   });
@@ -57,7 +89,7 @@ describe('ReportController integration tests', () => {
           anonymous: false,
         },
       },
-      token: { user: { id: 1, role: UserType.CITIZEN } },
+      token: { user: { id: userId, role: UserType.CITIZEN } },
     };
 
     const res: any = {
@@ -74,7 +106,7 @@ describe('ReportController integration tests', () => {
   });
 
   it('createReport => invalid payload calls next with BadRequestError', async () => {
-    const req: any = { body: { payload: { title: 1 } }, token: { user: { id: 1, role: UserType.CITIZEN } } };
+    const req: any = { body: { payload: { title: 1 } }, token: { user: { id: userId, role: UserType.CITIZEN } } };
     const res: any = { status: jest.fn(), json: jest.fn() };
     const next = jest.fn();
 
@@ -99,7 +131,7 @@ describe('ReportController integration tests', () => {
           anonymous: false,
         },
       },
-      token: { user: { id: 1, role: UserType.CITIZEN } },
+      token: { user: { id: userId, role: UserType.CITIZEN } },
     };
 
     const res: any = { status: jest.fn(), json: jest.fn() };
@@ -111,5 +143,169 @@ describe('ReportController integration tests', () => {
     const err = next.mock.calls[0][0];
     expect(err).toBeDefined();
     expect(err.name).toBe('NotFoundError');
+  });
+
+  it('getReportsByStatus => valid status returns reports', async () => {
+    const req: any = { query: { status: ReportStatus.PendingApproval } };
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.getReportsByStatus(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      reports: expect.arrayContaining([
+        expect.objectContaining({ status: ReportStatus.PendingApproval })
+      ])
+    }));
+  });
+
+  it('getReportsByStatus => invalid status calls next with BadRequestError', async () => {
+    const req: any = { query: { status: 'INVALID_STATUS' } };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.getReportsByStatus(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+  });
+
+  it('updateReportCategory => valid category updates report', async () => {
+    const req: any = { 
+      params: { id: String(reportId) }, 
+      body: { categoryId: categoryId },
+      token: { user: { id: userId, role: UserType.CITIZEN } }
+    };
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.updateReportCategory(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Report category updated',
+      report: expect.objectContaining({ id: reportId })
+    }));
+  });
+
+  it('assignOrRejectReport => assign valid report', async () => {
+    const req: any = {
+      params: { id: String(reportId) },
+      body: { status: ReportStatus.Assigned },
+      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+    };
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.assignOrRejectReport(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Report status updated',
+      report: expect.objectContaining({ status: ReportStatus.Assigned })
+    }));
+  });
+
+  it('getReportsByStatus => missing status calls next with BadRequestError', async () => {
+    const req: any = { query: {} };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.getReportsByStatus(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('status');
+  });
+
+  it('assignOrRejectReport => invalid id calls next with BadRequestError', async () => {
+    const req: any = {
+      params: { id: 'invalid' },
+      body: { status: ReportStatus.Assigned },
+      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.assignOrRejectReport(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('id');
+  });
+
+  it('assignOrRejectReport => invalid status calls next with BadRequestError', async () => {
+    const req: any = {
+      params: { id: String(reportId) },
+      body: { status: 'INVALID' },
+      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.assignOrRejectReport(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('status');
+  });
+
+  it('assignOrRejectReport => rejected without description calls next with BadRequestError', async () => {
+    const req: any = {
+      params: { id: String(reportId) },
+      body: { status: ReportStatus.Rejected },
+      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.assignOrRejectReport(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('rejectedDescription');
+  });
+
+  it('updateReportCategory => invalid id calls next with BadRequestError', async () => {
+    const req: any = { 
+      params: { id: 'invalid' }, 
+      body: { categoryId: categoryId },
+      token: { user: { id: userId, role: UserType.CITIZEN } }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.updateReportCategory(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('id');
+  });
+
+  it('updateReportCategory => invalid categoryId calls next with BadRequestError', async () => {
+    const req: any = { 
+      params: { id: String(reportId) }, 
+      body: { categoryId: 'invalid' },
+      token: { user: { id: userId, role: UserType.CITIZEN } }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.updateReportCategory(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('categoryId');
   });
 });
