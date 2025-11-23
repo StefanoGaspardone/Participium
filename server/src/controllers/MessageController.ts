@@ -20,16 +20,22 @@ export class MessageController {
             const messageData = {} as CreateMessageDTO;
 
             messageData.senderId = req.token.user.id;
-            if(req.body.text === undefined){
-                throw new BadRequestError("text is required");
+            if(req.body.text === undefined || typeof req.body.text !== 'string'){
+                throw new BadRequestError("text is required and it must be a string");
             }else{
                 messageData.text = req.body.text;
             }
-            if(req.body.reportId === undefined){
-                throw new BadRequestError("reportId is required");
+            if(req.body.receiverId === undefined || typeof req.body.receiverId !== 'number'){
+                throw new BadRequestError("receiverId is required and it must be a number");
+            }else{
+                messageData.receiverId = req.body.receiverId;
+            }
+            if(req.body.reportId === undefined || typeof req.body.reportId !== 'number'){
+                throw new BadRequestError("reportId is required and it must be a number");
             }else{
                 messageData.reportId = req.body.reportId;
             }
+
 
             const message = await this.messageService.createMessage(messageData);
             res.status(201).json(message);

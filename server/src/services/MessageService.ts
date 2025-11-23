@@ -3,6 +3,7 @@ import {userRepository, UserRepository} from '@repositories/UserRepository';
 import {reportRepository, ReportRepository} from '@repositories/ReportRepository';
 import {CreateMessageDTO, messageDAOtoDTO, MessageDTO} from '@dtos/MessageDTO';
 import { MessageDAO } from '@daos/MessagesDAO';
+import {NotFoundError} from "@errors/NotFoundError";
 
 export class MessageService {
     private messageRepository: MessageRepository;
@@ -18,17 +19,16 @@ export class MessageService {
     async createMessage(createMessageDTO: CreateMessageDTO): Promise<MessageDTO> {
         const sender = await this.userRepository.findUserById(createMessageDTO.senderId);
         if (!sender) {
-            throw new Error('Sender not found');
+            throw new NotFoundError('Sender not found');
         }
-
         const report = await this.reportRepository.findReportById(createMessageDTO.reportId);
         if (!report) {
-            throw new Error('Report not found');
+            throw new NotFoundError('Report not found');
         }
 
-        const receiver = await this.userRepository.findUserById(report.createdBy.id);
+        const receiver = await this.userRepository.findUserById(createMessageDTO.receiverId);
         if (!receiver) {
-            throw new Error('Receiver not found');
+            throw new NotFoundError('Receiver not found');
         }
 
         const message = {} as MessageDAO;

@@ -5,6 +5,7 @@ import {createReportDTO, ReportDTO} from "@dtos/ReportDTO";
 export class CreateMessageDTO {
     text: string;
     senderId: number;
+    receiverId: number;
     reportId: number;
 }
 
