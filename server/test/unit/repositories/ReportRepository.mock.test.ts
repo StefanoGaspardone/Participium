@@ -118,4 +118,75 @@ describe('ReportRepository (mock)', () => {
       expect.objectContaining({ title: 'Report 3' }),
     ]));
   });
+
+  it('findReportsAssignedTo should return reports assigned to a user', async () => {
+    const mockReports = [
+      { id: 1, title: 'Report 1', assignedTo: { id: 123 }, status: 'Assigned' },
+      { id: 2, title: 'Report 2', assignedTo: { id: 123 }, status: 'InProgress' }
+    ];
+
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue(mockReports),
+    };
+
+    const database = require('@database');
+    jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+    const repo = new ReportRepository();
+    const result = await repo.findReportsAssignedTo(123);
+
+    expect(fakeRepo.find).toHaveBeenCalledWith({
+      where: { assignedTo: { id: 123 } },
+      relations: ["category", "createdBy", "assignedTo"],
+      order: { createdAt: "DESC" }
+    });
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual(expect.objectContaining({ title: 'Report 1' }));
+    expect(result[1]).toEqual(expect.objectContaining({ title: 'Report 2' }));
+  });
+
+  it('findReportsAssignedTo should return empty array if no reports assigned', async () => {
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue([]),
+    };
+
+    const database = require('@database');
+    jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+    const repo = new ReportRepository();
+    const result = await repo.findReportsAssignedTo(456);
+
+    expect(fakeRepo.find).toHaveBeenCalledWith({
+      where: { assignedTo: { id: 456 } },
+      relations: ["category", "createdBy", "assignedTo"],
+      order: { createdAt: "DESC" }
+    });
+
+    expect(result).toHaveLength(0);
+  });
+
+  it('findReportsAssignedTo should order reports by createdAt DESC', async () => {
+    const mockReports = [
+      { id: 2, title: 'Newer Report', createdAt: new Date('2025-01-02'), assignedTo: { id: 123 } },
+      { id: 1, title: 'Older Report', createdAt: new Date('2025-01-01'), assignedTo: { id: 123 } }
+    ];
+
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue(mockReports),
+    };
+
+    const database = require('@database');
+    jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+    const repo = new ReportRepository();
+    const result = await repo.findReportsAssignedTo(123);
+
+    expect(fakeRepo.find).toHaveBeenCalledWith(expect.objectContaining({
+      order: { createdAt: "DESC" }
+    }));
+
+    expect(result[0].title).toBe('Newer Report');
+    expect(result[1].title).toBe('Older Report');
+  });
 });

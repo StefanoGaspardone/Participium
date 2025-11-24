@@ -275,6 +275,68 @@ describe('ReportController integration tests', () => {
     expect(err.errors).toHaveProperty('rejectedDescription');
   });
 
+  it('getAssignedReports => returns reports for authenticated tech user', async () => {
+    const AppDataSource = await import('@database').then(m => m.AppDataSource);
+    const reportRepo = AppDataSource.getRepository(ReportDAO);
+    const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+    const userRepo = AppDataSource.getRepository(UserDAO);
+
+    const category = await categoryRepo.findOne({ where: { id: categoryId } });
+    const staff = await userRepo.findOne({ where: { id: staffId } });
+    const citizen = await userRepo.findOne({ where: { id: userId } });
+
+    if (!category || !staff || !citizen) {
+      throw new Error('Setup failed: required entities not found');
+    }
+
+    const report = new ReportDAO();
+    report.title = 'Assigned to Staff';
+    report.description = 'Test';
+    report.category = category;
+    report.images = ['http://img/1.jpg'];
+    report.lat = 45.07;
+    report.long = 7.65;
+    report.anonymous = false;
+    report.createdBy = citizen;
+    report.status = ReportStatus.Assigned;
+    report.assignedTo = staff;
+    await reportRepo.save(report);
+
+    const req: any = {
+      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+    };
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.getAssignedReports(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      reports: expect.arrayContaining([
+        expect.objectContaining({ 
+          title: 'Assigned to Staff',
+          status: ReportStatus.Assigned 
+        })
+      ])
+    }));
+  });
+
+  it('getAssignedReports => calls next with error if userId missing', async () => {
+    const req: any = {
+      token: { user: {} }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.getAssignedReports(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('auth');
+  });
+
   it('updateReportCategory => invalid id calls next with BadRequestError', async () => {
     const req: any = { 
       params: { id: 'invalid' }, 
@@ -307,5 +369,56 @@ describe('ReportController integration tests', () => {
     const err = next.mock.calls[0][0];
     expect(err.name).toBe('BadRequestError');
     expect(err.errors).toHaveProperty('categoryId');
+  });
+
+  it('updateReportStatus => invalid id calls next with BadRequestError', async () => {
+    const req: any = {
+      params: { id: 'invalid' },
+      body: { status: ReportStatus.InProgress },
+      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.updateReportStatus(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('id');
+  });
+
+  it('updateReportStatus => invalid status calls next with BadRequestError', async () => {
+    const req: any = {
+      params: { id: String(reportId) },
+      body: { status: 'INVALID_STATUS' },
+      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.updateReportStatus(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('status');
+  });
+
+  it('updateReportStatus => missing status calls next with BadRequestError', async () => {
+    const req: any = {
+      params: { id: String(reportId) },
+      body: {},
+      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.updateReportStatus(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.errors).toHaveProperty('status');
   });
 });

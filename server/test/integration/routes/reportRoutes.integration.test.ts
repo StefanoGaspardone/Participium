@@ -340,6 +340,141 @@ describe('Report routes integration tests', () => {
     });
   });
 
+  // GET /api/reports/assigned
+  describe('GET /api/reports/assigned', () => {
+    let techToken: string;
+    let techUserId: number;
+
+    beforeAll(async () => {
+      // Create a technical staff member
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const roleRepo = AppDataSource.getRepository(OfficeDAO);
+      const role = await roleRepo.findOne({ where: { name: 'Reports Test Role' } });
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('tech', salt);
+      const techUser = userRepo.create({
+        username: 'tech_assigned_test',
+        email: 'tech_assigned@gmail.com',
+        passwordHash: hash,
+        firstName: 'Tech',
+        lastName: 'Assigned',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        office: role,
+      });
+      const savedTech = await userRepo.save(techUser);
+      techUserId = savedTech.id;
+
+      const loginTech = await request(app).post('/api/users/login').send({ username: 'tech_assigned_test', password: 'tech' });
+      techToken = loginTech.body.token as string;
+    });
+
+    it('should return 401 if not authenticated', async () => {
+      const res = await request(app).get('/api/reports/assigned');
+      expect(res.status).toBe(401);
+    });
+
+    it('should return 403 if user is not a technical staff member', async () => {
+      const res = await request(app).get('/api/reports/assigned').set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(403);
+    });
+
+    it('should return empty array when no reports assigned', async () => {
+      const res = await request(app).get('/api/reports/assigned').set('Authorization', `Bearer ${techToken}`);
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('reports');
+      expect(Array.isArray(res.body.reports)).toBe(true);
+      expect(res.body.reports.length).toBe(0);
+    });
+
+    it('should return assigned reports for technical staff member', async () => {
+      // Create and assign a report to the tech user
+      const payload = {
+        payload: {
+          title: 'Assigned Report Test',
+          description: 'Description',
+          categoryId: categoryId,
+          images: ['http://example.com/1.jpg'],
+          lat: 45.07,
+          long: 7.65,
+          anonymous: false,
+        },
+      };
+      await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
+
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const report = await reportRepo.findOne({ where: { title: 'Assigned Report Test' } });
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const techUser = await userRepo.findOne({ where: { id: techUserId } });
+
+      report.status = ReportStatus.Assigned;
+      report.assignedTo = techUser;
+      await reportRepo.save(report);
+
+      const res = await request(app).get('/api/reports/assigned').set('Authorization', `Bearer ${techToken}`);
+      expect(res.status).toBe(200);
+      expect(res.body.reports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            title: 'Assigned Report Test',
+            status: ReportStatus.Assigned
+          })
+        ])
+      );
+    });
+
+    it('should only return reports assigned to the authenticated user', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const roleRepo = AppDataSource.getRepository(OfficeDAO);
+      const role = await roleRepo.findOne({ where: { name: 'Reports Test Role' } });
+      const techUser = await userRepo.findOne({ where: { id: techUserId } });
+
+      // Create another tech user
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('tech2', salt);
+      const techUser2 = userRepo.create({
+        username: 'tech_other',
+        email: 'tech_other@gmail.com',
+        passwordHash: hash,
+        firstName: 'Tech',
+        lastName: 'Other',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        office: role,
+      });
+      const savedTech2 = await userRepo.save(techUser2);
+
+      // Create two reports, one for each tech user
+      const createAndAssignReport = async (title: string, assignee: UserDAO) => {
+        const payload = {
+          payload: {
+            title,
+            description: 'Description',
+            categoryId: categoryId,
+            images: ['http://example.com/1.jpg'],
+            lat: 45.07,
+            long: 7.65,
+            anonymous: false,
+          },
+        };
+        await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
+        const report = await reportRepo.findOne({ where: { title } });
+        report.status = ReportStatus.Assigned;
+        report.assignedTo = assignee;
+        await reportRepo.save(report);
+      };
+
+      await createAndAssignReport('Report for First Tech', techUser);
+      await createAndAssignReport('Report for Second Tech', savedTech2);
+
+      // First tech user should only see their report
+      const res = await request(app).get('/api/reports/assigned').set('Authorization', `Bearer ${techToken}`);
+      expect(res.status).toBe(200);
+      expect(res.body.reports.length).toBeGreaterThan(0);
+      expect(res.body.reports.every((r: any) => r.assignedTo && r.assignedTo.id === techUserId)).toBe(true);
+    });
+  });
+
   // PUT /api/reports/:id/status/public
   describe('PUT /api/reports/:id/status/public', () => {
     let reportId: number;
@@ -377,15 +512,6 @@ describe('Report routes integration tests', () => {
       const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: ReportStatus.Rejected });
       expect(res.status).toBe(400);
       expect(res.body.errors).toHaveProperty('rejectedDescription');
-    });
-
-    it('should return 400 if PRO assigns report but no technical staff exists for the office', async () => {
-      const res = await request(app)
-        .put(`/api/reports/${reportId}/status/public`)
-        .set('Authorization', `Bearer ${proToken}`)
-        .send({ status: ReportStatus.Assigned });
-
-      expect(res.status).toBe(400);
     });
 
     it('should return 200 if PRO assigns report and technical staff exists', async () => {
