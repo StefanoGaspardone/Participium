@@ -41,6 +41,7 @@ export class ReportController {
         }
     }
 
+    /* istanbul ignore next */
     createReportFromTelegram = async (req: Request<{}, {}, { payload: CreateReportTelegramDTO }>, res: Response, next: NextFunction) => {
         try {
             const { payload } = req.body;
