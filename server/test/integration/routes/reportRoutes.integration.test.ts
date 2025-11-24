@@ -4,7 +4,7 @@ import request from 'supertest';
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
-import { ReportDAO } from '@daos/ReportDAO';
+import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import { CONFIG } from '@config';
 import * as bcrypt from 'bcryptjs';
 
@@ -12,6 +12,8 @@ describe('Report routes integration tests', () => {
   let categoryId: number | undefined;
   let AppDataSource: any;
   let token: string;
+  let proToken: string;
+  let adminToken: string;
 
   beforeAll(async () => {
     AppDataSource = await initializeTestDatasource();
@@ -40,10 +42,38 @@ describe('Report routes integration tests', () => {
     });
     await userRepo.save(citizen);
 
+    const proHash = await bcrypt.hash('pro', salt);
+    const proUser = userRepo.create({
+      username: 'pro_user',
+      email: 'pro@gmail.com',
+      passwordHash: proHash,
+      firstName: 'Pro',
+      lastName: 'User',
+      userType: UserType.PUBLIC_RELATIONS_OFFICER,
+    });
+    await userRepo.save(proUser);
+
+    const adminHash = await bcrypt.hash('admin', salt);
+    const adminUser = userRepo.create({
+      username: 'admin_user',
+      email: 'admin@gmail.com',
+      passwordHash: adminHash,
+      firstName: 'Admin',
+      lastName: 'User',
+      userType: UserType.MUNICIPAL_ADMINISTRATOR,
+    });
+    await userRepo.save(adminUser);
+
     // login once and cache token for tests
     const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
     expect(login.status).toBe(200);
     token = login.body.token as string;
+
+    const loginPro = await request(app).post('/api/users/login').send({ username: 'pro_user', password: 'pro' });
+    proToken = loginPro.body.token as string;
+
+    const loginAdmin = await request(app).post('/api/users/login').send({ username: 'admin_user', password: 'admin' });
+    adminToken = loginAdmin.body.token as string;
   });
 
   afterAll(async () => {
@@ -216,5 +246,179 @@ describe('Report routes integration tests', () => {
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('message');
     expect(String(res.body.message).toLowerCase()).toMatch(/not found/);
+  });
+
+  // GET /api/reports
+  describe('GET /api/reports', () => {
+    it('should return 400 if status query param is missing', async () => {
+      const res = await request(app).get('/api/reports');
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toHaveProperty('status');
+    });
+
+    it('should return 400 if status query param is invalid', async () => {
+      const res = await request(app).get('/api/reports?status=INVALID_STATUS');
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toHaveProperty('status');
+    });
+
+    it('should return 200 and a list of reports for valid status', async () => {
+      // Create a report first
+      const payload = {
+        payload: {
+          title: 'Open Report',
+          description: 'Description',
+          categoryId: categoryId,
+          images: ['http://example.com/1.jpg'],
+          lat: 45.07,
+          long: 7.65,
+          anonymous: false,
+        },
+      };
+      await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
+
+      const res = await request(app).get(`/api/reports?status=${ReportStatus.PendingApproval}`);
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('reports');
+      expect(Array.isArray(res.body.reports)).toBe(true);
+      expect(res.body.reports.length).toBeGreaterThan(0);
+      expect(res.body.reports[0].status).toBe(ReportStatus.PendingApproval);
+    });
+  });
+
+  // PUT /api/reports/:id/category
+  describe('PUT /api/reports/:id/category', () => {
+    let reportId: number;
+
+    beforeEach(async () => {
+      // Create a fresh report
+      const payload = {
+        payload: {
+          title: 'Report for Category Update',
+          description: 'Description',
+          categoryId: categoryId,
+          images: ['http://example.com/1.jpg'],
+          lat: 45.07,
+          long: 7.65,
+          anonymous: false,
+        },
+      };
+      const res = await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
+      // We need to fetch the report to get ID, or assume it's the last one.
+      // But createReport doesn't return ID in the response body based on previous test (it returns message).
+      // So we query DB.
+      const repo = AppDataSource.getRepository(ReportDAO);
+      const report = await repo.findOne({ where: { title: 'Report for Category Update' } });
+      reportId = report.id;
+    });
+
+    it('should return 401 if not authenticated', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/category`).send({ categoryId });
+      expect(res.status).toBe(401);
+    });
+
+    it('should return 403 if user is Citizen', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/category`).set('Authorization', `Bearer ${token}`).send({ categoryId });
+      expect(res.status).toBe(403);
+    });
+
+    it('should return 400 if categoryId is invalid', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/category`).set('Authorization', `Bearer ${proToken}`).send({ categoryId: -1 });
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toHaveProperty('categoryId');
+    });
+
+    it('should return 200 if PRO updates category', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/category`).set('Authorization', `Bearer ${proToken}`).send({ categoryId });
+      expect(res.status).toBe(200);
+      expect(res.body.report.category.id).toBe(categoryId);
+    });
+
+    it('should return 200 if Admin updates category', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/category`).set('Authorization', `Bearer ${adminToken}`).send({ categoryId });
+      expect(res.status).toBe(200);
+    });
+  });
+
+  // PUT /api/reports/:id/status/public
+  describe('PUT /api/reports/:id/status/public', () => {
+    let reportId: number;
+
+    beforeEach(async () => {
+      const payload = {
+        payload: {
+          title: 'Report for Status Update',
+          description: 'Description',
+          categoryId: categoryId,
+          images: ['http://example.com/1.jpg'],
+          lat: 45.07,
+          long: 7.65,
+          anonymous: false,
+        },
+      };
+      await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
+      const repo = AppDataSource.getRepository(ReportDAO);
+      const report = await repo.findOne({ where: { title: 'Report for Status Update' } });
+      reportId = report.id;
+    });
+
+    it('should return 403 if Admin tries (only PRO allowed)', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${adminToken}`).send({ status: ReportStatus.Assigned });
+      expect(res.status).toBe(403);
+    });
+
+    it('should return 400 if status is invalid', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: 'INVALID' });
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toHaveProperty('status');
+    });
+
+    it('should return 400 if status is Rejected but no description', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: ReportStatus.Rejected });
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toHaveProperty('rejectedDescription');
+    });
+
+    it('should return 400 if PRO assigns report but no technical staff exists for the office', async () => {
+      const res = await request(app)
+        .put(`/api/reports/${reportId}/status/public`)
+        .set('Authorization', `Bearer ${proToken}`)
+        .send({ status: ReportStatus.Assigned });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 200 if PRO assigns report and technical staff exists', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const roleRepo = AppDataSource.getRepository(OfficeDAO);
+
+      const role = await roleRepo.findOne({ where: { name: 'Reports Test Role' } });
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('tech', salt);
+      const techUser = userRepo.create({
+        username: 'tech_user',
+        email: 'tech@gmail.com',
+        passwordHash: hash,
+        firstName: 'Tech',
+        lastName: 'Staff',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        office: role,
+      });
+      await userRepo.save(techUser);
+
+      const res = await request(app)
+        .put(`/api/reports/${reportId}/status/public`)
+        .set('Authorization', `Bearer ${proToken}`)
+        .send({ status: ReportStatus.Assigned });
+      expect(res.status).toBe(200);
+      expect(res.body.report.status).toBe(ReportStatus.Assigned);
+    });
+
+    it('should return 200 if PRO rejects report with description', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: ReportStatus.Rejected, rejectedDescription: 'Not a valid report' });
+      expect(res.status).toBe(200);
+      expect(res.body.report.status).toBe(ReportStatus.Rejected);
+    });
   });
 });

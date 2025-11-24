@@ -18,6 +18,8 @@ const config: Config = {
         '<rootDir>/src/utils',
         '<rootDir>/src/config',
         '<rootDir>/src/database',
+        '<rootDir>/src/telegram',
+        '<rootDir>/src/index.ts',
         '<rootDir>/test',
     ],
     reporters: ['default'],
