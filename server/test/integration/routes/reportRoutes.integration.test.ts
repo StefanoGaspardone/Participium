@@ -340,6 +340,88 @@ describe('Report routes integration tests', () => {
     });
   });
 
+  // PUT /api/reports/:id/status/public
+  describe('PUT /api/reports/:id/status/public', () => {
+    let reportId: number;
+
+    beforeEach(async () => {
+      const payload = {
+        payload: {
+          title: 'Report for Status Update',
+          description: 'Description',
+          categoryId: categoryId,
+          images: ['http://example.com/1.jpg'],
+          lat: 45.07,
+          long: 7.65,
+          anonymous: false,
+        },
+      };
+      await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
+      const repo = AppDataSource.getRepository(ReportDAO);
+      const report = await repo.findOne({ where: { title: 'Report for Status Update' } });
+      reportId = report.id;
+    });
+
+    it('should return 403 if Admin tries (only PRO allowed)', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${adminToken}`).send({ status: ReportStatus.Assigned });
+      expect(res.status).toBe(403);
+    });
+
+    it('should return 400 if status is invalid', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: 'INVALID' });
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toHaveProperty('status');
+    });
+
+    it('should return 400 if status is Rejected but no description', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: ReportStatus.Rejected });
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toHaveProperty('rejectedDescription');
+    });
+
+    it('should return 400 if PRO assigns report but no technical staff exists for the office', async () => {
+      const res = await request(app)
+        .put(`/api/reports/${reportId}/status/public`)
+        .set('Authorization', `Bearer ${proToken}`)
+        .send({ status: ReportStatus.Assigned });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 200 if PRO assigns report and technical staff exists', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const roleRepo = AppDataSource.getRepository(OfficeDAO);
+
+      const role = await roleRepo.findOne({ where: { name: 'Reports Test Role' } });
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('tech', salt);
+      const techUser = userRepo.create({
+        username: 'tech_user',
+        email: 'tech@gmail.com',
+        passwordHash: hash,
+        firstName: 'Tech',
+        lastName: 'Staff',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        office: role,
+      });
+      await userRepo.save(techUser);
+
+      const res = await request(app)
+        .put(`/api/reports/${reportId}/status/public`)
+        .set('Authorization', `Bearer ${proToken}`)
+        .send({ status: ReportStatus.Assigned });
+      expect(res.status).toBe(200);
+      expect(res.body.report.status).toBe(ReportStatus.Assigned);
+    });
+
+    it('should return 200 if PRO rejects report with description', async () => {
+      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: ReportStatus.Rejected, rejectedDescription: 'Not a valid report' });
+      expect(res.status).toBe(200);
+      expect(res.body.report.status).toBe(ReportStatus.Rejected);
+    });
+  });
+
   // GET /api/reports/assigned
   describe('GET /api/reports/assigned', () => {
     let techToken: string;
@@ -472,79 +554,6 @@ describe('Report routes integration tests', () => {
       expect(res.status).toBe(200);
       expect(res.body.reports.length).toBeGreaterThan(0);
       expect(res.body.reports.every((r: any) => r.assignedTo && r.assignedTo.id === techUserId)).toBe(true);
-    });
-  });
-
-  // PUT /api/reports/:id/status/public
-  describe('PUT /api/reports/:id/status/public', () => {
-    let reportId: number;
-
-    beforeEach(async () => {
-      const payload = {
-        payload: {
-          title: 'Report for Status Update',
-          description: 'Description',
-          categoryId: categoryId,
-          images: ['http://example.com/1.jpg'],
-          lat: 45.07,
-          long: 7.65,
-          anonymous: false,
-        },
-      };
-      await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
-      const repo = AppDataSource.getRepository(ReportDAO);
-      const report = await repo.findOne({ where: { title: 'Report for Status Update' } });
-      reportId = report.id;
-    });
-
-    it('should return 403 if Admin tries (only PRO allowed)', async () => {
-      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${adminToken}`).send({ status: ReportStatus.Assigned });
-      expect(res.status).toBe(403);
-    });
-
-    it('should return 400 if status is invalid', async () => {
-      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: 'INVALID' });
-      expect(res.status).toBe(400);
-      expect(res.body.errors).toHaveProperty('status');
-    });
-
-    it('should return 400 if status is Rejected but no description', async () => {
-      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: ReportStatus.Rejected });
-      expect(res.status).toBe(400);
-      expect(res.body.errors).toHaveProperty('rejectedDescription');
-    });
-
-    it('should return 200 if PRO assigns report and technical staff exists', async () => {
-      const userRepo = AppDataSource.getRepository(UserDAO);
-      const roleRepo = AppDataSource.getRepository(OfficeDAO);
-
-      const role = await roleRepo.findOne({ where: { name: 'Reports Test Role' } });
-
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash('tech', salt);
-      const techUser = userRepo.create({
-        username: 'tech_user',
-        email: 'tech@gmail.com',
-        passwordHash: hash,
-        firstName: 'Tech',
-        lastName: 'Staff',
-        userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: role,
-      });
-      await userRepo.save(techUser);
-
-      const res = await request(app)
-        .put(`/api/reports/${reportId}/status/public`)
-        .set('Authorization', `Bearer ${proToken}`)
-        .send({ status: ReportStatus.Assigned });
-      expect(res.status).toBe(200);
-      expect(res.body.report.status).toBe(ReportStatus.Assigned);
-    });
-
-    it('should return 200 if PRO rejects report with description', async () => {
-      const res = await request(app).put(`/api/reports/${reportId}/status/public`).set('Authorization', `Bearer ${proToken}`).send({ status: ReportStatus.Rejected, rejectedDescription: 'Not a valid report' });
-      expect(res.status).toBe(200);
-      expect(res.body.report.status).toBe(ReportStatus.Rejected);
     });
   });
 });
