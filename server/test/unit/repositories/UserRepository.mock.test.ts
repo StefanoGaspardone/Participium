@@ -216,3 +216,92 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     expect(fakeRepo.update).toHaveBeenCalledWith(userToUpdate.id, userToUpdate);
   });
 });
+
+describe("UserRepository.findUserByTelegramUsername (mock)", () => {
+  it("should call findOne and return user when telegram username exists", async () => {
+    const fakeUser = {
+      id: 1,
+      telegramUsername: "@testuser",
+      email: "test@test.com",
+    } as any;
+
+    const fakeRepo: any = {
+      findOne: jest.fn().mockResolvedValue(fakeUser),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    const user = await repo.findUserByTelegramUsername("@testuser");
+
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { telegramUsername: "@testuser" } });
+    expect(user).toEqual(fakeUser);
+  });
+
+  it("should return null when telegram username does not exist", async () => {
+    const fakeRepo: any = {
+      findOne: jest.fn().mockResolvedValue(null),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    const user = await repo.findUserByTelegramUsername("@nonexistent");
+
+    expect(user).toBeNull();
+  });
+});
+
+describe("UserRepository.findLeastLoadedStaffForOffice (mock)", () => {
+  const createFakeQueryBuilder = (entities: any[]) => ({
+    leftJoin: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    addOrderBy: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    getRawAndEntities: jest.fn().mockResolvedValue({ entities }),
+  });
+
+  it("should return technical staff member with least active reports", async () => {
+    const fakeStaff = {
+      id: 1,
+      username: "techstaff",
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+    } as any;
+
+    const fakeQueryBuilder = createFakeQueryBuilder([fakeStaff]);
+    const fakeRepo: any = {
+      createQueryBuilder: jest.fn().mockReturnValue(fakeQueryBuilder),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    const result = await repo.findLeastLoadedStaffForOffice(1);
+
+    expect(fakeRepo.createQueryBuilder).toHaveBeenCalledWith('u');
+    expect(result).toEqual(fakeStaff);
+  });
+
+  it("should return null when no technical staff exists for office", async () => {
+    const fakeQueryBuilder = createFakeQueryBuilder([]);
+    const fakeRepo: any = {
+      createQueryBuilder: jest.fn().mockReturnValue(fakeQueryBuilder),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    const result = await repo.findLeastLoadedStaffForOffice(999);
+
+    expect(result).toBeNull();
+  });
+});
