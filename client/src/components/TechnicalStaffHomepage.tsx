@@ -101,7 +101,7 @@ export default function TechnicalStaffHomepage() {
                                         </div>
                                         <div className="ms-md-auto d-flex align-items-center gap-2">
                                             <Badge bg="secondary">{r.category?.name}</Badge>
-                                            <Badge bg={r.status === 'Assigned' ? 'primary' :
+                                            <Badge id={"current-status"+r.title} bg={r.status === 'Assigned' ? 'primary' :
                                                 r.status === 'Resolved' ? 'success' : 'warning'}>
                                                 {r.status}
                                             </Badge>
@@ -135,6 +135,7 @@ export default function TechnicalStaffHomepage() {
                                                     <div className="d-flex gap-2">
                                                         {getAvailableActions(r.status).map(action => (
                                                             <Button
+                                                                id={"switch-report-status"+r.title}
                                                                 key={action.value}
                                                                 variant={
                                                                     action.value === 'Resolved' ? 'success' :

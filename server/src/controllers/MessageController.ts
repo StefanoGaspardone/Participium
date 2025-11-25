@@ -36,7 +36,6 @@ export class MessageController {
                 messageData.reportId = req.body.reportId;
             }
 
-
             const message = await this.messageService.createMessage(messageData);
             res.status(201).json(message);
         } catch (error) {

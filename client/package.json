@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -14,6 +14,7 @@
     "@maptiler/leaflet-maptilersdk": "^4.1.1",
     "@types/leaflet.markercluster": "^1.5.6",
     "bootstrap": "^5.3.8",
+    "framer-motion": "^12.23.24",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

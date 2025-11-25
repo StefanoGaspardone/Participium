@@ -10,4 +10,7 @@ function generateRandomString(length: number): string {
     return result;
 }
 
+export const TIME_REPORT_LOAD: number = 15000; // set it depending on internet bandiwth, pc performance and server load
+export const TIME_AFTER_UPLOAD: number = 3000;
+
 export { generateRandomString };

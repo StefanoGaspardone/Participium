@@ -13,6 +13,10 @@ const reportPage = {
   insertDescription: (d: string) => {
     cy.get('[id="description-field"]').click().type(d);
   },
+  /**
+   * 
+   * @param cat refers to a category, 0 <= cat <= 8
+   */
   selectCategory: (cat: number) => {
     // valid only if 0 <= number <= 8
     if (cat < 0 || cat > 8) {
@@ -21,8 +25,15 @@ const reportPage = {
     cy.get('[id="select-category"]').select(cat);
   },
   clickOnMap: () => {
-    cy.get('[id="map-container"]').focus().click();
+    cy.get('[id="map-container"]').click();
   },
+  clickRandomOnMap: () => {
+    cy.get('[class="leaflet-interactive"]').click(331, 765, {force: true});
+  },
+  /**
+   * 
+   * @param qty is the number of images to insert 0 <= qty <= 3
+   */
   insertImages: (qty: number) => {
     if (qty < 1 || qty > 3) {
       return;

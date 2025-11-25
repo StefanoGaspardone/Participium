@@ -3,7 +3,7 @@ import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { loginUser } from "../api/api";
 import { useAppContext } from "../contexts/AppContext";
-import LoginSignupNavbar from "./LoginSignupNavbar";
+import CustomNavbar from "./CustomNavbar.tsx";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -44,7 +44,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <LoginSignupNavbar />
+      <CustomNavbar />
       <Container className="mt-5">
         <Row className="justify-content-md-center">
           <Col md={6} lg={4}>

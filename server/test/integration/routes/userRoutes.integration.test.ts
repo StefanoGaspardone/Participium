@@ -234,4 +234,40 @@ describe('User routes integration tests', () => {
     expect(res.body).toHaveProperty('message');
     expect(String(res.body.message).toLowerCase()).toMatch(/insufficient|permission/);
   });
+
+  it('GET /api/users/:telegramUsername => 200 when user exists', async () => {
+    // Use the already initialized AppDataSource from beforeAll
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('tgpass', salt);
+    const telegramUser = userRepo.create({
+      username: 'tguser123',
+      email: 'tguser@test.com',
+      passwordHash: hash,
+      firstName: 'TG',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      telegramUsername: '@tguser123',
+      emailNotificationsEnabled: false,
+    });
+    await userRepo.save(telegramUser);
+
+    const res = await request(app).get('/api/users/@tguser123');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('user');
+    expect(res.body.user.telegramUsername).toBe('@tguser123');
+  });
+
+  it('GET /api/users/:telegramUsername => 404 when user does not exist', async () => {
+    const res = await request(app).get('/api/users/@nonexistent');
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /api/users/:telegramUsername => 400 for invalid telegram username format', async () => {
+    const res = await request(app).get('/api/users/invalid');
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/not a valid telegram username/);
+  });
 });

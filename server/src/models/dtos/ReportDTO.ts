@@ -14,6 +14,7 @@ export interface ReportDTO {
     anonymous?: boolean;
     rejectedDescription?: string | null;
     createdBy: UserDTO;
+    assignedTo?: UserDTO | null;
     createdAt: Date;
 }
 
@@ -51,6 +52,7 @@ export const createReportDTO = (report: ReportDAO): ReportDTO => {
         anonymous: report.anonymous,
         rejectedDescription: report.rejectedDescription || null,
         createdBy: MapUserDAOtoDTO(report.createdBy),
+        assignedTo: report.assignedTo ? MapUserDAOtoDTO(report.assignedTo) : null,
         createdAt: new Date(report.createdAt),
     } as ReportDTO;
 }

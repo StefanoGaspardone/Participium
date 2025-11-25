@@ -49,4 +49,19 @@ describe('OfficeService (mock)', () => {
     expect(res).toEqual([]);
     expect(spy).not.toHaveBeenCalled();
   });
+
+  it('findAllOffices should propagate repository errors', async () => {
+    const error = new Error('Database connection failed');
+    
+    const { OfficeService } = require('@services/OfficeService');
+    const service = new OfficeService();
+
+    // @ts-ignore
+    service['officeRepo'] = { findAllOffices: jest.fn().mockRejectedValue(error) };
+
+    await expect(service.findAllOffices()).rejects.toThrow('Database connection failed');
+    expect((service as any).officeRepo.findAllOffices).toHaveBeenCalled();
+  });
+
+
 });

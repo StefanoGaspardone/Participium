@@ -12,6 +12,13 @@ const homePage = {
     },
     clickNewReport: () => {
         cy.get('[id="upload-new-report-button"]').click();
+    },
+    clickNotifications: () => {
+        cy.get('[id="notifications-toggle"]').click({force: true});
+        cy.get('[id="report-updates"]').should('be.visible');
+    }, 
+    clickOnMap: () => {
+        cy.get('[class="leaflet-interactive"]').click({force: true});
     }
 }
 
