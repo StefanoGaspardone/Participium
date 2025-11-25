@@ -28,7 +28,7 @@ export class MessageRepository {
                 { receiver: { id: userId } },
                 { sender: { id: userId } }
             ],
-            relations: ['sender', 'receiver', 'report'],
+            relations: ['sender', 'receiver', 'report', 'report.createdBy', 'report.category'],
             order: { sentAt: 'ASC' }
         });
     }

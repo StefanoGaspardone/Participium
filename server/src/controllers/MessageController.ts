@@ -60,7 +60,11 @@ export class MessageController {
 
     getMessages = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
-            const userId = req.token?.user?.id;
+            if(!req.token?.user) {
+                throw new BadRequestError("Invalid token");
+            }
+
+            const userId = req.token.user.id;
             const chats = await this.messageService.getChats(userId!);
 
             return res.status(200).json({ chats });

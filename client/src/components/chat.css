@@ -45,6 +45,15 @@
     display: none;
 }
 
+.chat-loader {
+    color: #0057A0;
+    animation: chat-spin 1s linear infinite;
+}
+
+@keyframes chat-spin {
+    to { transform: rotate(360deg); }
+}
+
 .message-bubble {
     max-width: 70%;
     padding: 0.5rem 0.75rem;
@@ -52,10 +61,28 @@
     background: #ffffff;
     box-shadow: 0 2px 6px rgba(2,6,23,0.06);
 }
-.message-bubble.mine {
-    background: #dbeeff;
+
+.message-bubble .small {
+    font-size: smaller;
 }
+
+.message-bubble.mine {
+    background-color: #0057A0;
+    color: #fff;
+}
+
+.message-bubble.mine .small {
+    color: #fff !important;
+}
+
 .message-bubble.other {
     background: #ffffff;
 }
+
 .chat-messages { display: flex; flex-direction: column; }
+
+/* make title and id white when a chat list item is active */
+.list-group-item.active .fw-semibold,
+.list-group-item.active .text-muted {
+    color: #fff !important;
+}
