@@ -71,7 +71,9 @@ export default function CustomNavbar() {
       }}
     >
       <Container fluid className="navbar-container">
+        {/* Riga superiore fissa: logo - titolo - icone */}
         <div className="navbar-top-row">
+          {/* Logo a sinistra */}
           <div
             role="button"
             tabIndex={0}
@@ -91,6 +93,7 @@ export default function CustomNavbar() {
             />
           </div>
 
+          {/* Titolo centrato */}
           <motion.div
             onClick={handleBrandClick}
             role="button"
@@ -105,7 +108,9 @@ export default function CustomNavbar() {
             Participium
           </motion.div>
 
+          {/* Azioni a destra: notifiche + profilo + toggle (su mobile) */}
           <div className="navbar-right-section">
+            {/* Notifiche e profilo - visibili solo su desktop */}
             <div className="navbar-desktop-actions d-none d-lg-flex align-items-center">
               {isLoggedIn && user?.userType === "CITIZEN" && <Notifications />}
               {isLoggedIn && (
@@ -194,6 +199,36 @@ export default function CustomNavbar() {
                             Profile
                           </div>
                         )}
+                        {user?.userType === 'ADMINISTRATOR' && (
+                          <div
+                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
+                            onClick={() => { closeDropdown(); navigate('/admin'); }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          >
+                            Admin Panel
+                          </div>
+                        )}
+                        {user?.userType === 'PUBLIC_RELATIONS_OFFICER' && (
+                          <div
+                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
+                            onClick={() => { closeDropdown(); navigate('/pro'); }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          >
+                            PRO Dashboard
+                          </div>
+                        )}
+                        {user?.userType === 'TECHNICAL_STAFF_MEMBER' && (
+                          <div
+                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
+                            onClick={() => { closeDropdown(); navigate('/tech'); }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          >
+                            Tech Dashboard
+                          </div>
+                        )}
                         <div
                           style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600, color: '#c62828', transition: 'transform 0.18s' }}
                           onClick={() => { closeDropdown(); handleLogout(); }}
@@ -208,17 +243,13 @@ export default function CustomNavbar() {
                 </div>
               )}
               {!isLoggedIn && (
-                <Link
-                  id="login-1"
-                  to={isLoginPage ? "/" : "/login"}
-                  className="btn btn-warning ms-3"
-                  style={{
-                    transition: 'transform 0.2s',
-                  }}
+                <Link id="login-1" to="/login" className="btn btn-warning ms-3" style={{
+                  transition: 'transform 0.2s',
+                }}
                   onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px) scale(1.06)')}
                   onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0) scale(1)')}
                 >
-                  {isLoginPage ? "Back to homepage" : "Login"}
+                  Login
                 </Link>
               )}
             </div>
@@ -287,6 +318,36 @@ export default function CustomNavbar() {
                             Profile
                           </div>
                         )}
+                        {user?.userType === 'ADMINISTRATOR' && (
+                          <div
+                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
+                            onClick={() => { closeDropdown(); navigate('/admin'); }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          >
+                            Admin Panel
+                          </div>
+                        )}
+                        {user?.userType === 'PUBLIC_RELATIONS_OFFICER' && (
+                          <div
+                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
+                            onClick={() => { closeDropdown(); navigate('/pro'); }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          >
+                            PRO Dashboard
+                          </div>
+                        )}
+                        {user?.userType === 'TECHNICAL_STAFF_MEMBER' && (
+                          <div
+                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
+                            onClick={() => { closeDropdown(); navigate('/tech'); }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          >
+                            Tech Dashboard
+                          </div>
+                        )}
                         <div
                           style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600, color: '#c62828', transition: 'transform 0.18s' }}
                           onClick={() => { closeDropdown(); handleLogout(); }}
@@ -301,16 +362,12 @@ export default function CustomNavbar() {
                 </div>
               )}
               {!isLoggedIn && (
-                <Link
-                  to={isLoginPage ? "/" : "/login"}
-                  className="btn btn-warning ms-3"
-                  style={{
-                    transition: 'transform 0.2s',
-                    fontSize: '0.9rem',
-                    padding: '0.4rem 0.8rem'
-                  }}
-                >
-                  {isLoginPage ? "Homepage" : "Login"}
+                <Link to="/login" className="btn btn-warning ms-3" style={{
+                  transition: 'transform 0.2s',
+                  fontSize: '0.9rem',
+                  padding: '0.4rem 0.8rem'
+                }}>
+                  Login
                 </Link>
               )}
             </div>
