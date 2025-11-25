@@ -164,7 +164,7 @@ describe('MessageRepository (mock)', () => {
           { receiver: { id: 1 } },
           { sender: { id: 1 } }
         ],
-        relations: ['sender', 'receiver', 'report'],
+        relations: ['sender', 'receiver', 'report', 'report.createdBy', 'report.category'],
         order: { sentAt: 'ASC' }
       });
       expect(result).toHaveLength(2);
