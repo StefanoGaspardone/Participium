@@ -18,6 +18,8 @@ export default function RegisterPage() {
     const [emailNotifications, setEmailNotifications] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const isFormValid = name.trim() !== "" && surname.trim() !== "" && username.trim() !== "" && email.trim() !== "" && password.trim() !== "";
+
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -179,7 +181,12 @@ export default function RegisterPage() {
                                             </Form.Group>
                                         </motion.div>
                                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.45 }}>
-                                            <Button id="submit-button" variant="primary" type="submit" className="w-100 mt-2 auth-button-primary" disabled={loading}>
+                                            <Button 
+                                                id="submit-button" 
+                                                variant="primary" 
+                                                type="submit" 
+                                                className="w-100 mt-2 auth-button-primary" 
+                                                disabled={loading || !isFormValid}>
                                                 {loading ? "Registering..." : "Register"}
                                             </Button>
                                         </motion.div>

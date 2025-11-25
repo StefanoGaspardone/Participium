@@ -2,7 +2,7 @@ import CustomNavbar from "./CustomNavbar";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Map from "./HomepageMap";
-import { Form, Button, Row, Col } from "react-bootstrap";
+import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import "./upload.css";
 import { Loader2Icon, XIcon } from "lucide-react";
 import {
@@ -13,6 +13,10 @@ import {
 } from "../api/api";
 import type { Category, Coord } from "../models/models";
 import { isApiError, type FieldErrors } from "../models/models";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-hot-toast";
+import Select, { components, type MenuProps, type SingleValue, type OptionProps } from "react-select";
+import "./AuthForms.css";
 
 type Props = {
   selected: Coord | null;
@@ -24,7 +28,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
-  const [anonymous, setAnonymous] = useState(false);
+  const [anonymous] = useState(false); // feature currently disabled
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -35,10 +39,11 @@ export default function UploadReport({ selected, setSelected }: Props) {
   const addressRef = useRef<HTMLInputElement | null>(null);
   const titleRef = useRef<HTMLInputElement | null>(null);
   const descRef = useRef<HTMLTextAreaElement | null>(null);
-  const categoryRef = useRef<HTMLSelectElement | null>(null);
+  const categorySelectRef = useRef<any>(null);
+  const [hover, setHover] = useState(false);
 
   const navigate = useNavigate();
-  
+
   const autoGrow = () => {
     const el = descRef.current;
     if (!el) return;
@@ -84,9 +89,9 @@ export default function UploadReport({ selected, setSelected }: Props) {
         ...(selected
           ? {}
           : {
-              lat: "Select a location on the map",
-              long: "Select a location on the map",
-            }),
+            lat: "Select a location on the map",
+            long: "Select a location on the map",
+          }),
       }));
       setGeneralError("Please fill all required fields.");
 
@@ -98,7 +103,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
         } else if (description.trim().length === 0) {
           descRef.current?.focus();
         } else if (!categoryId) {
-          categoryRef.current?.focus();
+          categorySelectRef.current?.focus();
         } else if (images.length < 1) {
           fileInputRef.current?.focus();
         }
@@ -126,7 +131,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
       };
       await createReport(payload);
 
-      alert("Report successfully created!");
+      toast.success("Report successfully created!");
       navigate("/");
     } catch (err: unknown) {
       if (isApiError(err)) {
@@ -142,18 +147,22 @@ export default function UploadReport({ selected, setSelected }: Props) {
             } else if (keys.includes("description")) {
               descRef.current?.focus();
             } else if (keys.includes("categoryId")) {
-              categoryRef.current?.focus();
+              categorySelectRef.current?.focus();
             } else if (keys.includes("images")) {
               fileInputRef.current?.focus();
             }
           }, 0);
         } else {
-          setGeneralError(err.message || "Request failed");
+          const msg = err.message || "Request failed";
+          setGeneralError(msg);
+          toast.error(msg);
         }
       } else if (err instanceof Error) {
         setGeneralError(err.message);
+        toast.error(err.message);
       } else {
         setGeneralError("Network error, please retry.");
+        toast.error("Network error, please retry.");
       }
     } finally {
       setIsSubmitting(false);
@@ -181,10 +190,10 @@ export default function UploadReport({ selected, setSelected }: Props) {
 
   const canSubmitRequired = Boolean(
     selected &&
-      title.trim().length > 0 &&
-      description.trim().length > 0 &&
-      categoryId &&
-      images.length >= 1
+    title.trim().length > 0 &&
+    description.trim().length > 0 &&
+    categoryId &&
+    images.length >= 1
   );
 
   return (
@@ -192,210 +201,231 @@ export default function UploadReport({ selected, setSelected }: Props) {
       <CustomNavbar />
       <main className="upload-container">
         <section className="upload-form">
-          <Button
-            id="go-to-homepage-button"
-            className="w-100 mb-3"
-            variant="secondary"
-            onClick={() => navigate("/")}
-          >
-            Go back to Homepage
-          </Button>
-          <Form onSubmit={handleSubmit}>
-            <section className="upload-map mb-3">
-              <Map selected={selected} setSelected={setSelected} />
-            </section>
-            <Row className="mb-3">
-              <Col md={12}>
-                <Form.Group>
-                  <Form.Label>Address</Form.Label>
-                  <Form.Control
-                    id="address-field"
-                    type="text"
-                    value={selected ? selected.address : ""}
-                    readOnly
-                    isInvalid={Boolean(fieldErrors.location)}
-                    ref={addressRef}
-                    tabIndex={0}
-                  />
-                  {fieldErrors.location && (
-                    <Form.Control.Feedback type="invalid">
-                      {Array.isArray(fieldErrors.location)
-                        ? fieldErrors.location.join(", ")
-                        : fieldErrors.location}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-              </Col>
-            </Row>
-            <Form.Group className="mb-3">
-              <Form.Label>Title</Form.Label>
-              <Form.Control
-                id="title-field"
-                type="text"
-                placeholder="Enter a title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                ref={titleRef}
-                isInvalid={Boolean(fieldErrors.title)}
-              />
-              {fieldErrors.title && (
-                <Form.Control.Feedback type="invalid">
-                  {Array.isArray(fieldErrors.title)
-                    ? fieldErrors.title.join(", ")
-                    : fieldErrors.title}
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                id="description-field"
-                as="textarea"
-                rows={3}
-                placeholder="Describe the issue"
-                value={description}
-                ref={descRef}
-                onChange={(e) => setDescription(e.target.value)}
-                className="auto-textarea"
-                isInvalid={Boolean(fieldErrors.description)}
-              />
-              {fieldErrors.description && (
-                <Form.Control.Feedback type="invalid">
-                  {Array.isArray(fieldErrors.description)
-                    ? fieldErrors.description.join(", ")
-                    : fieldErrors.description}
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Category</Form.Label>
-              <Form.Select
-                id="select-category"
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                isInvalid={Boolean(fieldErrors.categoryId)}
-                ref={categoryRef}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
+            <Card className="auth-card p-3 p-md-4">
+              <Button
+                id="go-to-homepage-button"
+                variant="warning"
+                className="mb-3"
+                onClick={() => navigate("/")}
+                onMouseEnter={() => setHover(true)}
+                onMouseLeave={() => setHover(false)}
+                onFocus={() => setHover(true)}
+                onBlur={() => setHover(false)}
+                style={{
+                  transform: hover ? 'translateY(-2px) scale(1.03)' : 'translateY(0) scale(1)',
+                  transition: 'transform 0.2s ease'
+                }}
               >
-                <option value="" disabled>
-                  Select a category
-                </option>
-                {categories.map((category) => (
-                  <option
-                    id={"category-" + category.id.toString()}
-                    key={category.id}
-                    value={String(category.id)}
-                  >
-                    {category.name}
-                  </option>
-                ))}
-              </Form.Select>
-              {fieldErrors.categoryId && (
-                <Form.Control.Feedback type="invalid">
-                  {Array.isArray(fieldErrors.categoryId)
-                    ? fieldErrors.categoryId.join(", ")
-                    : fieldErrors.categoryId}
-                </Form.Control.Feedback>
-              )}
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Images (min 1, max 3)</Form.Label>
-              <Row className="g-2">
-                {previews.map((src, index) => (
-                  <Col key={index} xs={12} sm={6} md={4}>
-                    <div className="image-tile">
-                      <img
-                        src={src}
-                        alt={`selected-${index}`}
-                        className="image-tile-img"
-                      />
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => removeImage(index)}
-                        className="image-remove-btn"
-                        aria-label={`Remove image ${index + 1}`}
-                      >
-                        <XIcon size={20} />
-                      </Button>
-                    </div>
+                Go back to Homepage
+              </Button>
+              <Form onSubmit={handleSubmit} className="d-flex flex-column auth-grid-gap">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.4 }}>
+                  <section className="upload-map mb-3">
+                    <Map selected={selected} setSelected={setSelected} />
+                  </section>
+                </motion.div>
+                <Row className="mb-1">
+                  <Col md={12}>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }}>
+                      <Form.Group className="mb-3 underline-anim">
+                        <Form.Label>Address</Form.Label>
+                        <Form.Control
+                          id="address-field"
+                          type="text"
+                          value={selected ? selected.address : ""}
+                          readOnly
+                          isInvalid={Boolean(fieldErrors.location)}
+                          ref={addressRef}
+                          tabIndex={0}
+                          className="auth-input"
+                        />
+                        {fieldErrors.location && (
+                          <Form.Control.Feedback type="invalid">
+                            {Array.isArray(fieldErrors.location)
+                              ? fieldErrors.location.join(", ")
+                              : fieldErrors.location}
+                          </Form.Control.Feedback>
+                        )}
+                      </Form.Group>
+                    </motion.div>
                   </Col>
-                ))}
-                {images.length < 3 && (
-                  <Col xs={12} sm={6} md={4}>
-                    <div
-                      id="add-image-button"
-                      role="button"
-                      onClick={onClickAddImage}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ")
-                          onClickAddImage();
+                </Row>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4 }}>
+                  <Form.Group className="mb-3 underline-anim">
+                    <Form.Label>Title</Form.Label>
+                    <Form.Control
+                      id="title-field"
+                      type="text"
+                      placeholder="Enter a title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      ref={titleRef}
+                      isInvalid={Boolean(fieldErrors.title)}
+                      className="auth-input"
+                    />
+                    {fieldErrors.title && (
+                      <Form.Control.Feedback type="invalid">
+                        {Array.isArray(fieldErrors.title)
+                          ? fieldErrors.title.join(", ")
+                          : fieldErrors.title}
+                      </Form.Control.Feedback>
+                    )}
+                  </Form.Group>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}>
+                  <Form.Group className="mb-3 underline-anim">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control
+                      id="description-field"
+                      as="textarea"
+                      rows={3}
+                      placeholder="Describe the issue"
+                      value={description}
+                      ref={descRef}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="auto-textarea auth-input"
+                      isInvalid={Boolean(fieldErrors.description)}
+                    />
+                    {fieldErrors.description && (
+                      <Form.Control.Feedback type="invalid">
+                        {Array.isArray(fieldErrors.description)
+                          ? fieldErrors.description.join(", ")
+                          : fieldErrors.description}
+                      </Form.Control.Feedback>
+                    )}
+                  </Form.Group>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.4 }}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Category</Form.Label>
+                    <Select
+                      inputId="select-category"
+                      instanceId="select-category"
+                      ref={categorySelectRef}
+                      options={categories.map(c => ({ value: String(c.id), label: c.name }))}
+                      value={categories.map(c => ({ value: String(c.id), label: c.name })).find(o => o.value === categoryId) ?? null}
+                      onChange={(opt: SingleValue<{ value: string; label: string }>) => setCategoryId(opt?.value ?? "")}
+                      placeholder="Select a category"
+                      isDisabled={isSubmitting}
+                      classNamePrefix="rs"
+                      components={{
+                        Menu: (props: MenuProps<any, false>) => (
+                          <AnimatePresence>
+                            {props.selectProps.menuIsOpen && (
+                              <components.Menu {...props}>
+                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.18, ease: "easeOut" }}>
+                                  {props.children}
+                                </motion.div>
+                              </components.Menu>
+                            )}
+                          </AnimatePresence>
+                        ), Option: (props: OptionProps<any, false>) => (
+                          <div id={`category-${props.data.value}`}><components.Option {...props} /></div>
+                        )
                       }}
-                      tabIndex={0}
-                      className="add-image-tile"
-                    >
-                      Click to add an image
-                    </div>
-                  </Col>
+                    />
+                    {fieldErrors.categoryId && (
+                      <div className="text-danger mt-1">
+                        {Array.isArray(fieldErrors.categoryId)
+                          ? fieldErrors.categoryId.join(", ")
+                          : fieldErrors.categoryId}
+                      </div>
+                    )}
+                  </Form.Group>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Images (min 1, max 3)</Form.Label>
+                    <Row className="g-2">
+                      {previews.map((src, index) => (
+                        <Col key={index} xs={12} sm={6} md={4}>
+                          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }} className="image-tile">
+                            <img
+                              src={src}
+                              alt={`selected-${index}`}
+                              className="image-tile-img"
+                            />
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => removeImage(index)}
+                              className="image-remove-btn"
+                              aria-label={`Remove image ${index + 1}`}
+                            >
+                              <XIcon size={20} />
+                            </Button>
+                          </motion.div>
+                        </Col>
+                      ))}
+                      {images.length < 3 && (
+                        <Col xs={12} sm={6} md={4}>
+                          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }}
+                            id="add-image-button"
+                            role="button"
+                            onClick={onClickAddImage}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClickAddImage(); }}
+                            tabIndex={0}
+                            className="add-image-tile"
+                          >
+                            Click to add an image
+                          </motion.div>
+                        </Col>
+                      )}
+                    </Row>
+                    <input
+                      id="image-input"
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={onFilesSelected}
+                      className="d-none"
+                      aria-label="Add image file"
+                      title="Add image file"
+                    />
+                    {fieldErrors.images && (
+                      <div className="text-danger mt-1">
+                        {Array.isArray(fieldErrors.images)
+                          ? fieldErrors.images.join(", ")
+                          : fieldErrors.images}
+                      </div>
+                    )}
+                  </Form.Group>
+                </motion.div>
+                {generalError && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-danger mb-2" role="alert">
+                    {generalError}
+                  </motion.div>
                 )}
-              </Row>
-              <input
-                id="image-input"
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={onFilesSelected}
-                className="d-none"
-                aria-label="Add image file"
-                title="Add image file"
-              />
-              {fieldErrors.images && (
-                <div className="text-danger mt-1">
-                  {Array.isArray(fieldErrors.images)
-                    ? fieldErrors.images.join(", ")
-                    : fieldErrors.images}
-                </div>
-              )}
-            </Form.Group>
-            {/* <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                id="anonymousCheck"
-                label="Submit anonymously"
-                checked={anonymous}
-                onChange={(e) => setAnonymous(e.target.checked)}
-              />
-            </Form.Group> */}
-            {generalError && (
-              <div className="text-danger mb-2" role="alert">
-                {generalError}
-              </div>
-            )}
-            {Object.keys(fieldErrors || {}).length > 0 && (
-              <div className="text-danger mb-2" role="alert">
-                There are some errors - please check the highlighted fields.
-              </div>
-            )}
-            <Button
-              id="submit-button"
-              variant="primary"
-              type="submit"
-              className={`w-100 d-inline-flex align-items-center justify-content-center gap-2 ${
-                !canSubmitRequired || isSubmitting ? "submit-disabled" : ""
-              }`}
-              disabled={!canSubmitRequired || isSubmitting}
-              aria-disabled={!canSubmitRequired || isSubmitting}
-              aria-busy={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2Icon size={18} className="spin" aria-hidden="true" />
-                  <span>Uploading…</span>
-                </>
-              ) : (
-                "Upload"
-              )}
-            </Button>
-          </Form>
+                {Object.keys(fieldErrors || {}).length > 0 && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-danger mb-2" role="alert">
+                    There are some errors - please check the highlighted fields.
+                  </motion.div>
+                )}
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, duration: 0.45 }}>
+                  <Button
+                    id="submit-button"
+                    variant="primary"
+                    type="submit"
+                    className={`w-100 mt-2 auth-button-primary d-inline-flex align-items-center justify-content-center gap-2 ${!canSubmitRequired || isSubmitting ? "submit-disabled" : ""
+                      }`}
+                    disabled={!canSubmitRequired || isSubmitting}
+                    aria-disabled={!canSubmitRequired || isSubmitting}
+                    aria-busy={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2Icon size={18} className="spin" aria-hidden="true" />
+                        <span>Uploading…</span>
+                      </>
+                    ) : (
+                      "Upload"
+                    )}
+                  </Button>
+                </motion.div>
+              </Form>
+            </Card>
+          </motion.div>
         </section>
       </main>
     </>

@@ -28,6 +28,7 @@
     "react-leaflet-cluster": "^4.0.0",
     "react-leaflet-markercluster": "^5.0.0-rc.0",
     "react-router-dom": "^7.9.5",
+    "react-select": "^5.10.2",
     "sass": "^1.93.3",
     "yet-another-react-lightbox": "^3.25.0"
   },
