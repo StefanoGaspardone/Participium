@@ -12,6 +12,7 @@ import TechnicalStaffHomepage from "./components/TechnicalStaffHomepage";
 import { useAppContext } from "./contexts/AppContext";
 import ProfilePage from "./components/ProfilePage.tsx";
 import type { Coord } from "./models/models.ts";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const [selected, setSelected] = useState<Coord | null>(null);
@@ -19,11 +20,19 @@ function App() {
   const { user, isLoggedIn } = useAppContext();
 
   useEffect(() => {
-    if(!user) setSelected(null);
+    if (!user) setSelected(null);
   }, [user]);
 
   return (
     <>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: { fontSize: '1.2rem', borderRadius: '11px' },
+          success: { iconTheme: { primary: '#265ea8', secondary: '#fff' } },
+          error: { iconTheme: { primary: '#c62828', secondary: '#fff' } }
+        }}
+      />
       <Routes>
         <Route
           path="/"
@@ -97,15 +106,15 @@ function App() {
           }
         />
         <Route
-            path="/profile"
-            element={
-              isLoggedIn ? (
-                  user?.userType === 'CITIZEN' && (
-                      <ProfilePage/>
-                  )
-              ) : (
-                  <Navigate to="/"/>
+          path="/profile"
+          element={
+            isLoggedIn ? (
+              user?.userType === 'CITIZEN' && (
+                <ProfilePage />
               )
+            ) : (
+              <Navigate to="/" />
+            )
           }
         />
       </Routes>

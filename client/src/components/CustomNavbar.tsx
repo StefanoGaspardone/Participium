@@ -28,7 +28,6 @@ export default function CustomNavbar() {
     else navigate("/");
   };
 
-  // stato hover per ottimizzare (evita animazioni continue non necessarie)
   const [logoHover, setLogoHover] = useState(false);
   const [profileHover, setProfileHover] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -37,7 +36,6 @@ export default function CustomNavbar() {
   const toggleDropdown = () => setDropdownOpen(o => !o);
   const closeDropdown = () => setDropdownOpen(false);
 
-  // chiusura clic esterno
   useEffect(() => {
     if (!dropdownOpen) return;
     const handler = (e: MouseEvent) => {
@@ -56,7 +54,6 @@ export default function CustomNavbar() {
       willChange: 'transform'
     }}>
       <Container fluid className="position-relative d-flex align-items-center">
-        {/* Brand left (only logo) */}
         <div
           role="button"
           tabIndex={0}
@@ -75,14 +72,13 @@ export default function CustomNavbar() {
             transition={{ type: 'tween', duration: 0.25 }}
           />
         </div>
-        {/* Center title */}
         <motion.div
           onClick={handleBrandClick}
           role="button"
           tabIndex={0}
           style={{
             position: 'absolute',
-            left: '48%',
+            left: '45%',
             transform: 'translate(-50%, -50%)',
             cursor: 'pointer',
             zIndex: 10,
@@ -177,32 +173,66 @@ export default function CustomNavbar() {
                           position: 'absolute',
                           right: 0,
                           marginTop: '0.4rem',
-                          backgroundColor: '#e8f0ff',
+                          backgroundColor: '#ffffffff',
                           color: '#00205B',
-                          borderRadius: 12,
-                          padding: '0.4rem 0',
+                          borderRadius: 14,
+                          padding: '0.5rem 0.55rem 0.65rem',
                           boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
-                          minWidth: '160px',
+                          minWidth: '200px',
                           zIndex: 30
                         }}
                       >
-                        {user?.userType === 'CITIZEN' && (
-                          <div
-                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
-                            onClick={() => { closeDropdown(); navigate('/profile'); }}
-                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {user?.userType === 'CITIZEN' && (
+                            <motion.div
+                              layout
+                              initial={{ opacity: 0, y: 6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              whileHover={{ scale: 1.015 }}
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => { closeDropdown(); navigate('/profile'); }}
+                              style={{
+                                background: '#ffffff',
+                                border: '1px solid #e6e6e6',
+                                borderRadius: 10,
+                                padding: '0.6rem 0.85rem',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                fontWeight: 500,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                color: '#00205B',
+                                transition: 'transform 0.18s, box-shadow 0.18s'
+                              }}
+                            >
+                              Profile
+                            </motion.div>
+                          )}
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            whileHover={{ scale: 1.015 }}
+                            whileTap={{ scale: 0.96 }}
+                            onClick={() => { closeDropdown(); handleLogout(); }}
+                            style={{
+                              background: '#ffffff',
+                              border: '1px solid #e6e6e6',
+                              borderRadius: 10,
+                              padding: '0.6rem 0.85rem',
+                              cursor: 'pointer',
+                              fontSize: '0.9rem',
+                              fontWeight: 600,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              color: '#c62828',
+                              transition: 'transform 0.18s, box-shadow 0.18s'
+                            }}
                           >
-                            Profile
-                          </div>
-                        )}
-                        <div
-                          style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600, color: '#c62828', transition: 'transform 0.18s' }}
-                          onClick={() => { closeDropdown(); handleLogout(); }}
-                          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                        >
-                          Logout
+                            Logout
+                          </motion.div>
                         </div>
                       </motion.div>
                     )}

@@ -1,0 +1,106 @@
+.auth-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(250, 250, 255, 0.78));
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 28px -6px rgba(0, 0, 0, 0.18), 0 4px 12px -2px rgba(0, 0, 0, 0.12);
+    border-radius: 22px;
+    transition: box-shadow 0.4s ease, transform 0.4s ease;
+}
+
+.auth-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px -4px rgba(0, 0, 0, 0.22), 0 6px 16px -2px rgba(0, 0, 0, 0.15);
+}
+
+.auth-title {
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    background: linear-gradient(90deg, #00205B, #265ea8, #00205B);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: authShimmer 8s linear infinite;
+}
+
+@keyframes authShimmer {
+    0% {
+        background-position: 0% center;
+    }
+
+    50% {
+        background-position: 100% center;
+    }
+
+    100% {
+        background-position: 0% center;
+    }
+}
+
+.auth-input {
+    border-radius: 12px !important;
+    border: 1px solid #d3dae6 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.25s ease;
+}
+
+.auth-input:focus {
+    border-color: #265ea8 !important;
+    box-shadow: 0 0 0 3px rgba(38, 94, 168, 0.25) !important;
+    transform: translateY(-1px);
+}
+
+.auth-switch label {
+    font-weight: 500;
+}
+
+.auth-button-primary {
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px !important;
+    padding: 0.75rem 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.auth-button-primary:hover:not(:disabled),
+.auth-button-primary:focus:not(:disabled) {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 10px 24px -6px rgba(0, 70, 140, 0.35);
+}
+
+.auth-link-inline {
+    font-weight: 500;
+    position: relative;
+    text-decoration: none;
+    color: #265ea8;
+    transition: color 0.25s ease;
+}
+
+.auth-link-inline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #265ea8, #4d8fe0);
+    border-radius: 2px;
+    transition: width 0.35s cubic-bezier(.4, 0, .2, 1);
+}
+
+.auth-link-inline:hover::after,
+.auth-link-inline:focus::after {
+    width: 100%;
+}
+
+.auth-link-inline:hover,
+.auth-link-inline:focus {
+    color: #1b4d85;
+}
+
+.auth-grid-gap {
+    gap: 0.75rem;
+}
