@@ -347,6 +347,191 @@ describe('UserController integration tests', () => {
     expect(err).toBeDefined();
     expect(err.name).toBe('BadRequestError');
   })
+
+  it('findUserByTelegramUsername => should return user when telegram username exists', async () => {
+    const req: any = {
+      params: { telegramUsername: '@testuser' },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    // Create a user with telegram username
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('pass', salt);
+    const telegramUser = userRepo.create({
+      username: 'tguser',
+      email: 'tg@gmail.com',
+      passwordHash: hash,
+      firstName: 'Telegram',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      telegramUsername: '@testuser',
+      emailNotificationsEnabled: false,
+    });
+    await userRepo.save(telegramUser);
+
+    await userController.findUserByTelegramUsername(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalled();
+    const response = res.json.mock.calls[0][0];
+    expect(response.user).toBeDefined();
+    expect(response.user.telegramUsername).toBe('@testuser');
+  });
+
+  it('findUserByTelegramUsername => should call next with NotFoundError when user does not exist', async () => {
+    const req: any = {
+      params: { telegramUsername: '@nonexistent' },
+    };
+
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await userController.findUserByTelegramUsername(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('NotFoundError');
+  });
+
+  it('findUserByTelegramUsername => should call next with BadRequestError for invalid telegram username', async () => {
+    const req: any = {
+      params: { telegramUsername: 'invalid' },
+    };
+
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await userController.findUserByTelegramUsername(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/not a valid telegram username/);
+  });
+});
+
+describe('UserController.me integration tests', () => {
+  let testUserId: number;
+  let testToken: string;
+
+  beforeAll(async () => {
+    const AppDataSource = await initializeTestDatasource();
+    await emptyTestData();
+
+    const userRepo = AppDataSource.getRepository(UserDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const userHash = await bcrypt.hash('metest', salt);
+    const testUser = userRepo.create({
+      username: 'metest',
+      email: 'me@test.com',
+      passwordHash: userHash,
+      firstName: 'Me',
+      lastName: 'Test',
+      userType: UserType.CITIZEN,
+      emailNotificationsEnabled: false,
+    });
+    const savedUser = await userRepo.save(testUser);
+    testUserId = savedUser.id;
+
+    // Login to get a real token
+    const jwt = require('jsonwebtoken');
+    const { CONFIG } = await import('@config');
+    const { MapUserDAOtoDTO } = await import('@dtos/UserDTO');
+    const userDto = MapUserDAOtoDTO(savedUser);
+    testToken = jwt.sign({ user: userDto }, CONFIG.JWT_SECRET, { expiresIn: '1d' });
+
+    userController = (await import('@controllers/UserController')).userController;
+  });
+
+  afterAll(async () => {
+    await emptyTestData();
+    await closeTestDataSource();
+  });
+
+  it('me => should return user info and token when authenticated', async () => {
+    const jwt = require('jsonwebtoken');
+    const { CONFIG } = await import('@config');
+    const decoded = jwt.verify(testToken, CONFIG.JWT_SECRET);
+
+    const req: any = {
+      token: decoded,
+      headers: {
+        authorization: `Bearer ${testToken}`,
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.me(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalled();
+    const response = res.json.mock.calls[0][0];
+    expect(response.message).toBe('Login successful');
+    expect(response.token).toBeDefined();
+  });
+
+  it('me => should call next with UnauthorizedError when no token provided', async () => {
+    const req: any = {
+      token: null,
+      headers: {},
+    };
+
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await userController.me(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('UnauthorizedError');
+  });
+
+  it('me => should call next with UnauthorizedError when token has no user', async () => {
+    const req: any = {
+      token: { someData: 'invalid' },
+      headers: {},
+    };
+
+    const res: any = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await userController.me(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('UnauthorizedError');
+  });
 });
 
 describe('UserController.updateUser integration tests', () => {
