@@ -1,95 +1,62 @@
-import { MessageSquareText, ChevronRight } from 'lucide-react';
+import { MessageSquareText, ChevronRight, Loader2 } from 'lucide-react';
+import { FaUserCircle } from 'react-icons/fa';
 import { useEffect, useRef, useState } from 'react';
 import './chat.css';
 import type { Chat, Message, User, Report } from '../models/models';
-import { getChats } from '../api/api';
-import { Badge } from 'react-bootstrap';
+import { getChats, getMessages, sendMessage, type SendMessage } from '../api/api';
+import { Badge, Alert } from 'react-bootstrap';
 import { useAppContext } from '../contexts/AppContext';
-
-// current user (mock)
-const MY_USER: User = {
-    id: 4,
-    firstName: 'Io',
-    lastName: 'Utente',
-    email: 'me@example.com',
-    username: 'me',
-    userType: 'TECHNICAL_STAFF_MEMBER',
-    emailNotificationsEnabled: false,
-    createdAt: new Date()
-};
-
-// Mock chats conforming to models
-const MOCK_CHATS: Chat[] = [
-    {
-        report: { id: 101, title: 'Pothole', description: '', category: { id: 1, name: 'Road' }, images: [], lat: 0, long: 0, status: 'Assigned', createdAt: new Date() },
-        users: [MY_USER, { id: 11, firstName: 'Mario', lastName: 'Rossi', email: 'mario@example.com', username: 'mario', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }],
-        messages: []
-    },
-    {
-        report: { id: 102, title: 'Streetlight', description: '', category: { id: 2, name: 'Lighting' }, images: [], lat: 0, long: 0, status: 'InProgress', createdAt: new Date() },
-        users: [MY_USER, { id: 12, firstName: 'Luca', lastName: 'Bianchi', email: 'luca@example.com', username: 'luca', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }],
-        messages: []
-    },
-    {
-        report: { id: 103, title: 'Garbage', description: '', category: { id: 3, name: 'Waste' }, images: [], lat: 0, long: 0, status: 'Resolved', createdAt: new Date() },
-        users: [MY_USER, { id: 13, firstName: 'Giulia', lastName: 'Verdi', email: 'giulia@example.com', username: 'giulia', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }],
-        messages: []
-    }
-];
-
-const MOCK_MESSAGES: Record<number, Message[]> = {
-    101: [
-        { id: 1, text: 'Ciao, sto verificando il report.', sentAt: new Date(), sender: { id: 11, firstName: 'Mario', lastName: 'Rossi', email: 'mario@example.com', username: 'mario', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }, receiver: MY_USER, report: MOCK_CHATS[0].report },
-        { id: 2, text: 'Perfetto, grazie.', sentAt: new Date(), sender: MY_USER, receiver: { id: 11, firstName: 'Mario', lastName: 'Rossi', email: 'mario@example.com', username: 'mario', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }, report: MOCK_CHATS[0].report }
-    ],
-    102: [
-        { id: 3, text: 'Sto lavorando sulla segnalazione.', sentAt: new Date(), sender: { id: 12, firstName: 'Luca', lastName: 'Bianchi', email: 'luca@example.com', username: 'luca', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }, receiver: MY_USER, report: MOCK_CHATS[1].report }
-    ],
-    103: [
-        { id: 4, text: 'Risolvibile, chiuso.', sentAt: new Date(), sender: { id: 13, firstName: 'Giulia', lastName: 'Verdi', email: 'giulia@example.com', username: 'giulia', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }, receiver: MY_USER, report: MOCK_CHATS[2].report }
-    ]
-};
 
 interface Props {
     show: boolean,
     handleToggle: () => void;
-    activeReport: number | null;
-    setActiveReport: React.Dispatch<React.SetStateAction<number | null>>
+    activeReport: Report | null;
+    setActiveReport: React.Dispatch<React.SetStateAction<Report | null>>
 }
 
 const Chats = ({ show, handleToggle, activeReport, setActiveReport }: Props) => {
     const popoverRef = useRef<HTMLDivElement | null>(null);
     const toggleRef = useRef<HTMLButtonElement | null>(null);
 
-    const [chats, setChats] = useState<Chat[] | null>(null);
-    const [messages, setMessages] = useState<Message[] | null>(null);
-    const [inputValue, setInputValue] = useState<string>('');
+    const [chats, setChats] = useState<Chat[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [text, setText] = useState<string>('');
+    const [messagesLoading, setMessagesLoading] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [existing, setExisting] = useState<boolean>(true);
 
     const { user } = useAppContext();
+    
+    const fetchChats = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const res = await getChats();
+            setChats(res);
+        } catch(error) {
+            setError(error instanceof Error ? error.message : 'Failed to load assigned reports');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const deriveOther = (r: Report): User => {
+        const partial = (r.createdBy ?? r.assignedTo) as Partial<User> | undefined;
+        const defaults = { id: -1, firstName: 'Utente', lastName: '', email: '', username: 'unknown', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() };
+        return { ...(defaults), ...(partial ?? {}) } as User;
+    };
 
     useEffect(() => {
-        const fetchChats = async () => {
-            setLoading(true);
-            setError(null);
-
-            try {
-                const res = await getChats();
-                setChats(res);
-                setChats(MOCK_CHATS);
-            } catch(error) {
-                setError(error instanceof Error ? error.message : 'Failed to load assigned reports');
-            } finally {
-                setLoading(false);
-            }
-        }
-
         if(show) fetchChats();
+        else if(!show && !existing) {
+            setActiveReport(null);
+            setMessages([]);
+            setChats([]);
+        }
     }, [show]);
-
-    // use MOCK_MESSAGES defined above
-
+    
     useEffect(() => {
         if(!show) return;
 
@@ -106,105 +73,193 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport }: Props) => 
         return () => document.removeEventListener('pointerdown', onPointerDown);
     }, [show, handleToggle]);
 
-    function handleSend() {
-        if (!inputValue || !messages) return;
-        if (!activeReport) return;
+    const fetchMessages = async () => {
+        setMessagesLoading(true);
+        setError(null);
 
-        const selected = (chats || MOCK_CHATS).find(c => c.report.id === activeReport);
-        const other = selected?.users.find(u => u.id !== myId) as User | undefined;
-        const sender = user ?? MY_USER;
-        if (!other) return;
+        try {
+            const res = await getMessages(activeReport!.id);
+            setMessages(res);
+        } catch(error) {
+            setError(error instanceof Error ? error.message : 'Failed to load messages');
+        } finally {
+            setMessagesLoading(false);
+        }
+    }
 
-        const newMsg: Message = {
-            id: Date.now(),
-            text: inputValue,
-            sentAt: new Date(),
-            sender,
-            receiver: other,
-            report: selected!.report
-        } as Message;
+    useEffect(() => {
+        if(!activeReport || messages.length > 0) {
+            setExisting(true);
+            return;
+        }
 
-        setMessages(prev => prev ? [...prev, newMsg] : [newMsg]);
-        // also update chats state so subsequent opens show the message
-        setChats(prev => prev ? prev.map(c => c.report.id === activeReport ? { ...c, messages: [...(c.messages || []), newMsg] } : c) : prev);
-        setInputValue('');
+        const exists = chats.some(c => c.report.id === activeReport.id);
+        if(exists) return;
+
+        const otherUser = deriveOther(activeReport);
+        const chat: Chat = {
+            report: activeReport,
+            users: [user ?? { id: -1, firstName: 'Utente', lastName: '', email: '', username: 'unknown', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }, otherUser],
+            messages: []
+        };
+
+        setExisting(false);
+        setChats(prev => [chat, ...prev]);
+    }, [messages, activeReport, chats, user]);
+
+    useEffect(() => {
+        if(!activeReport) {
+            setMessages([]);
+            setMessagesLoading(false);
+            
+            return;
+        }
+
+        fetchMessages();
+    }, [activeReport]);
+
+    const handleSend = async () => {
+        if(!text || !activeReport) return;
+
+        let selected = chats.find(c => c.report.id === activeReport.id);
+
+        if(!selected) {
+            const otherUser = deriveOther(activeReport);
+            const placeholder: Chat = { report: activeReport, users: [user!, otherUser], messages: [] };
+            
+            setChats(prev => [placeholder, ...prev]);
+            selected = placeholder;
+            
+            setExisting(false);
+        }
+        
+        const other = selected.users.find(u => u.id !== user?.id) as User | undefined;
+        let receiverId: number | undefined = other?.id;
+
+        if(!receiverId || receiverId === -1) receiverId = activeReport.createdBy?.id ?? activeReport.assignedTo?.id;
+        if(!receiverId) {
+            console.warn('No receiver id for report', activeReport.id);
+            return;
+        }
+
+        const payload: SendMessage = {
+            reportId: activeReport.id,
+            receiverId,
+            text: text.trim(),
+        };
+
+        try {
+            await sendMessage(payload);
+            
+            setExisting(true);
+            
+            await fetchChats();
+            await fetchMessages();
+        } catch (error) {
+            console.error('Failed to send message', error);
+        } finally {
+            setText('');
+        }
     }
 
     return ( 
         <div className = 'chat-wrapper'>
             {show && (
-                <div ref={popoverRef} className='chats-popover p-0 overflow-hidden'>
-                    <div className="row h-100 m-0">
-                        <div className="col-4 h-100 border-end p-0">
-                            <div className="h-100 overflow-auto list-group list-group-flush">
-                                {(chats || MOCK_CHATS).map((c) => (
-                                    <button
-                                        key={c.report.id}
-                                        type="button"
-                                        className={`list-group-item list-group-item-action d-flex flex-column ${activeReport === c.report.id ? 'active' : ''}`}
-                                        onClick={() => {
-                                            setActiveReport(c.report.id);
-                                            const msgs = (c.messages && c.messages.length > 0) ? c.messages : (MOCK_MESSAGES[c.report.id] || []);
-                                            setMessages(msgs);
-                                        }}
-                                    >
-                                        <div className="d-flex justify-content-between w-100">
-                                            <div className="fw-semibold">Report #{c.report.id}</div>
-                                            <small className="text-muted">{c.report.title}</small>
-                                        </div>
-                                        <div className="mt-2 d-flex gap-2">
-                                            <Badge bg={c.report.status === 'Assigned' ? 'primary' : c.report.status === 'Resolved' ? 'success' : 'warning'}>
-                                                {c.report.status}
-                                            </Badge>
-                                            <Badge bg="secondary">{c.report.category?.name}</Badge>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="col-8 d-flex flex-column p-0">
-                            {(() => {
-                                const selected = (chats || MOCK_CHATS).find(c => c.report.id === activeReport);
-                                const otherUserDerived = selected?.users.find(u => u.id !== user?.id) || null;
-                                return (
-                                    <div className="chat-right-header d-flex align-items-center gap-2 p-2 border-bottom">
-                                        <img src={otherUserDerived?.image || `https://i.pravatar.cc/48?u=${otherUserDerived?.id || 'anon'}`} alt="user" width={40} height={40} className="rounded-circle" />
-                                        <div>
-                                            <div className="fw-semibold">{otherUserDerived ? `${otherUserDerived.firstName} ${otherUserDerived.lastName}` : 'Seleziona una chat'}</div>
-                                            <div className="small text-muted">{otherUserDerived ? 'Online' : ''}</div>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-
-                            <div className="chat-messages flex-grow-1 overflow-auto p-3">
-                                {messages && messages.length > 0 ? (
-                                    messages.map(m => (
-                                        <div key={m.id} className={`mb-2 d-flex ${m.sender.id === user?.id ? 'justify-content-end' : 'justify-content-start'}`}>
-                                            <div className={`message-bubble ${m.sender.id === user?.id ? 'mine' : 'other'}`}>
-                                                <div className="small text-muted mb-1">{new Date(m.sentAt).toLocaleTimeString()}</div>
-                                                <div>{m.text}</div>
-                                            </div>
-                                        </div>
-                                    ))
+                <div ref = { popoverRef } className = 'chats-popover p-0 overflow-hidden'>
+                    <div className = 'row h-100 m-0'>
+                        {loading && chats.length === 0 ? (
+                            <div className = 'col-12 h-100 d-flex align-items-center justify-content-center'>
+                                {error ? (
+                                    <Alert variant = 'danger' className = 'text-center mb-0'>{error}</Alert>
                                 ) : (
-                                    <div className="text-muted p-3">Seleziona una chat per vedere i messaggi</div>
+                                    <Loader2 className = 'chat-loader' size = { 48 }/>
                                 )}
                             </div>
-
-                            <div className="chat-input d-flex gap-2 p-2 border-top">
-                                <input
-                                    className="form-control"
-                                    placeholder="Scrivi un messaggio..."
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
-                                />
-                                <button className="btn btn-primary d-flex align-items-center justify-content-center" onClick={() => handleSend()}>
-                                    <ChevronRight size={20} />
-                                </button>
+                        ): !loading && chats.length === 0 ?  (
+                            <div className = 'col-12 h-100 d-flex flex-column align-items-center justify-content-center'>
+                                <p>No chats available.</p>
+                                <p>Click on <span className = 'fw-semibold'>'Send message'</span> in a report to start a chat.</p>
                             </div>
-                        </div>
+                        ) : (
+                            <>
+                                <div className = 'col-4 h-100 border-end p-0'>
+                                    <div className = 'h-100 overflow-auto list-group list-group-flush'>
+                                        {chats.map(c => (
+                                            <button key = { c.report.id } type = 'button' className = { `list-group-item list-group-item-action d-flex flex-column ${activeReport?.id === c.report.id ? 'active' : ''}` } onClick = { () => setActiveReport(c.report) }>
+                                                <div className = 'd-flex align-items-center w-100'>
+                                                    <div className = 'me-2 flex-grow-1 text-truncate fw-semibold'>{c.report.title}</div>
+                                                    <small className = 'text-muted'>#{c.report.id}</small>
+                                                </div>
+                                                <div className = 'mt-2 d-flex gap-2'>
+                                                    <Badge bg = { c.report.status === 'Assigned' ? 'primary' : c.report.status === 'Resolved' ? 'success' : 'warning' }>
+                                                        {c.report.status}
+                                                    </Badge>
+                                                    <Badge bg = 'secondary'>{c.report.category?.name}</Badge>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className = 'col-8 d-flex flex-column p-0'>
+                                    {(chats.length > 0 && !activeReport) ? (
+                                        <div className = 'h-100 d-flex align-items-center justify-content-center'>
+                                            <div className = 'text-muted'>Select a chat to send messages</div>
+                                        </div>
+                                    ) : messagesLoading ? (
+                                        <div className = 'h-100 d-flex align-items-center justify-content-center'>
+                                            {error ? (
+                                                <Alert variant = 'danger' className = 'text-center mb-0'>{error}</Alert>
+                                            ) : (
+                                                <Loader2 className = 'chat-loader' size = { 48 }/>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {(() => {
+                                                const selected = chats.find(c => c.report.id === activeReport?.id);
+                                                const otherUserDerived = selected ? selected.users.find(u => u.id !== user?.id) : null;
+                                        
+                                                return (
+                                                    <div className = 'chat-right-header d-flex align-items-center gap-2 p-2 border-bottom'>
+                                                        {otherUserDerived?.image ? (
+                                                            <img src = { otherUserDerived.image } alt = 'user' width = { 40 } height = { 40 } className = 'rounded-circle'/>
+                                                        ) : (
+                                                            <span className = 'd-inline-flex align-items-center justify-content-center'>
+                                                                <FaUserCircle size = { 40 } className = 'text-muted' />
+                                                            </span>
+                                                        )}
+                                                        <div>
+                                                            <div className = 'fw-semibold'>{otherUserDerived ? `${otherUserDerived.firstName} ${otherUserDerived.lastName}` : 'Selected a chat'}</div>
+                                                            <div className = 'small text-muted'>{otherUserDerived ? otherUserDerived.username : ''}</div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+                                            <div className = 'chat-messages flex-grow-1 overflow-auto p-3'>
+                                                {messages.length > 0 ? (
+                                                    messages.map(m => (
+                                                        <div key = { m.id } className = { `mb-2 d-flex ${m.sender.id === user?.id ? 'justify-content-end' : 'justify-content-start'}` }>
+                                                            <div className = { `message-bubble ${m.sender.id === user?.id ? 'mine' : 'other'}` }>
+                                                                <div>{m.text}</div>
+                                                                <div className = 'small text-muted mt-1 text-end'>{new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className = 'h-100 d-flex align-items-center justify-content-center text-muted p-3'>No messages yet.</div>
+                                                )}
+                                            </div>
+                                            <div className = 'chat-input d-flex gap-2 p-2 border-top'>
+                                                <input className = 'form-control' placeholder = 'Write a message...' value = { text } onChange = { e => setText(e.target.value) } onKeyDown = { e => { if(e.key === 'Enter') { e.preventDefault(); handleSend(); } } }/>
+                                                <button type = 'button' className = "btn btn-primary d-flex align-items-center justify-content-center" onClick = { () => handleSend() } disabled = { !text.trim() } aria-disabled = { !text.trim() }>
+                                                    <ChevronRight size = { 20 }/>
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

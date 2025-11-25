@@ -13,7 +13,7 @@ export default function TechnicalStaffHomepage() {
     const [updatingReportId, setUpdatingReportId] = useState<number | null>(null);
 
     const [show, setShow] = useState<boolean>(false);
-    const [activeReport, setActiveReport] = useState<number | null>(null);
+    const [activeReport, setActiveReport] = useState<Report | null>(null);
 
     const handleToggle = () => {
         setShow(prev => !prev);
@@ -88,8 +88,17 @@ export default function TechnicalStaffHomepage() {
                         {reports.map((r, idx) => (
                             <Accordion.Item eventKey={String(idx)} key={r.id}>
                                 <Accordion.Header>
-                                    <div id={"expand-report-"+r.title} className="d-flex flex-column flex-md-row w-100">
-                                        <span id="report-title" className="fw-semibold me-3" style={{ color: '#00205B' }}>{r.title}</span>
+                                    <div className="d-flex flex-column flex-md-row w-100">
+                                        <div className="d-flex align-items-center">
+                                            <span className="fw-semibold me-3" style={{ color: '#00205B' }}>{r.title}</span>
+                                            <Button
+                                                size="sm"
+                                                variant="outline-primary"
+                                                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setActiveReport(r); setShow(true); }}
+                                            >
+                                                Send message
+                                            </Button>
+                                        </div>
                                         <div className="ms-md-auto d-flex align-items-center gap-2">
                                             <Badge bg="secondary">{r.category?.name}</Badge>
                                             <Badge id={"current-status"+r.title} bg={r.status === 'Assigned' ? 'primary' :

@@ -42,14 +42,14 @@ export interface Message {
     id: number;
     text: string;
     sentAt: Date;
-    sender: User;
-    receiver: User;
+    sender: Partial<User>;
+    receiver: Partial<User>;
     report: Report;
 }
 
 export interface Chat {
 	report: Report;
-    users: User[];
+    users: Partial<User>[];
     messages: Message[];
 }
 
