@@ -39,17 +39,55 @@
 }
 
 .auth-input {
-    border-radius: 12px !important;
-    border: 1px solid #d3dae6 !important;
-    background: rgba(255, 255, 255, 0.9) !important;
-    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.25s ease;
+    border: none !important;
+    border-bottom: 2px solid #d3dae6 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-shadow: none !important;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .auth-input:focus {
-    border-color: #265ea8 !important;
-    box-shadow: 0 0 0 3px rgba(38, 94, 168, 0.25) !important;
-    transform: translateY(-1px);
+    border-bottom-color: #265ea8 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
+
+.auth-input::placeholder {
+    color: #8a96a8 !important;
+    opacity: 0.8;
+}
+
+/* Underline expansion wrapper */
+.underline-anim {
+    position: relative;
+}
+
+.underline-anim::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background: linear-gradient(90deg, #265ea8, #4d8fe0, #265ea8);
+    border-radius: 2px;
+    transition: width 0.38s cubic-bezier(.4, 0, .2, 1);
+    pointer-events: none;
+}
+
+.underline-anim:focus-within::after {
+    width: 100%;
+}
+
+/* Error state (optional future use) */
+.underline-anim.error::after {
+    background: linear-gradient(90deg, #c62828, #ff6b6b, #c62828);
+}
+
 
 .auth-switch label {
     font-weight: 500;
@@ -103,4 +141,20 @@
 
 .auth-grid-gap {
     gap: 0.75rem;
+}
+
+/* Boxed style specifically for file inputs */
+.auth-input-file {
+    border: 1px solid #d3dae6 !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    padding: 0.55rem 0.75rem !important;
+    box-shadow: none !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-input-file:focus {
+    border-color: #265ea8 !important;
+    box-shadow: 0 0 0 3px rgba(38, 94, 168, 0.25) !important;
+    outline: none !important;
 }

@@ -1,4 +1,3 @@
-import React from "react";
 import "./map.css";
 
 // Simple placeholder for the list of approved reports that will be showed to user

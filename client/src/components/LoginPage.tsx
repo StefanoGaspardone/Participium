@@ -57,7 +57,7 @@ export default function LoginPage() {
                   <motion.h2 className="text-center mb-4 auth-title" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>Login</motion.h2>
                   <Form onSubmit={handleSubmit} className="d-flex flex-column auth-grid-gap">
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4 }}>
-                      <Form.Group controlId="formBasicUsername" className="mb-3">
+                      <Form.Group controlId="formBasicUsername" className="mb-3 underline-anim">
                         <Form.Label>Username</Form.Label>
                         <Form.Control
                           id="username"
@@ -71,7 +71,7 @@ export default function LoginPage() {
                       </Form.Group>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.4 }}>
-                      <Form.Group controlId="formBasicPassword" className="mb-2">
+                      <Form.Group controlId="formBasicPassword" className="mb-2 underline-anim">
                         <Form.Label>Password</Form.Label>
                         <Form.Control
                           id="password"

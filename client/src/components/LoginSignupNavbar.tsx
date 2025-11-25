@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navbar, Container, Nav, Button } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { motion } from "framer-motion";
 

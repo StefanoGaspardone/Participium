@@ -68,7 +68,7 @@ export default function RegisterPage() {
                                         <Row>
                                             <Col md={6}>
                                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }}>
-                                                    <Form.Group className="mb-3" controlId="formName">
+                                                    <Form.Group className="mb-3 underline-anim" controlId="formName">
                                                         <Form.Label>First Name</Form.Label>
                                                         <Form.Control
                                                             id="first-name"
@@ -84,7 +84,7 @@ export default function RegisterPage() {
                                             </Col>
                                             <Col md={6}>
                                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.17, duration: 0.4 }}>
-                                                    <Form.Group className="mb-3" controlId="formSurname">
+                                                    <Form.Group className="mb-3 underline-anim" controlId="formSurname">
                                                         <Form.Label>Last Name</Form.Label>
                                                         <Form.Control
                                                             id="last-name"
@@ -100,7 +100,7 @@ export default function RegisterPage() {
                                             </Col>
                                         </Row>
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.4 }}>
-                                            <Form.Group className="mb-3" controlId="formUsername">
+                                            <Form.Group className="mb-3 underline-anim" controlId="formUsername">
                                                 <Form.Label>Username</Form.Label>
                                                 <Form.Control
                                                     id="username"
@@ -114,7 +114,7 @@ export default function RegisterPage() {
                                             </Form.Group>
                                         </motion.div>
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27, duration: 0.4 }}>
-                                            <Form.Group className="mb-3" controlId="formEmail">
+                                            <Form.Group className="mb-3 underline-anim" controlId="formEmail">
                                                 <Form.Label>Email</Form.Label>
                                                 <Form.Control
                                                     id="email"
@@ -128,7 +128,7 @@ export default function RegisterPage() {
                                             </Form.Group>
                                         </motion.div>
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32, duration: 0.4 }}>
-                                            <Form.Group className="mb-3" controlId="formSignupPassword">
+                                            <Form.Group className="mb-3 underline-anim" controlId="formSignupPassword">
                                                 <Form.Label>Password</Form.Label>
                                                 <Form.Control
                                                     id="password"
@@ -141,9 +141,8 @@ export default function RegisterPage() {
                                                 />
                                             </Form.Group>
                                         </motion.div>
-                                        <hr />
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.37, duration: 0.4 }}>
-                                            <Form.Group className="mb-3" controlId="formTelegram">
+                                            <Form.Group className="mb-3 underline-anim" controlId="formTelegram">
                                                 <Form.Label>Telegram Username (Optional)</Form.Label>
                                                 <Form.Control
                                                     id="tg_username"
@@ -155,7 +154,7 @@ export default function RegisterPage() {
                                                 />
                                             </Form.Group>
                                         </motion.div>
-                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.4 }}>
+                                        <div>
                                             <Form.Group className="mb-3" controlId="formProfilePic">
                                                 <Form.Label>Profile Picture (Optional)</Form.Label>
                                                 <Form.Control
@@ -165,10 +164,10 @@ export default function RegisterPage() {
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                         setProfilePic(e.target.files ? e.target.files[0] : null)
                                                     }
-                                                    className="auth-input"
+                                                    className="auth-input-file"
                                                 />
                                             </Form.Group>
-                                        </motion.div>
+                                        </div>
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.47, duration: 0.4 }}>
                                             <Form.Group className="mb-3 auth-switch" controlId="formEmailNotifications">
                                                 <Form.Check
