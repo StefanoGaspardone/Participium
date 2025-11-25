@@ -52,8 +52,19 @@ export class MessageController {
                 throw new BadRequestError("Invalid report ID");
             }
             const messages = await this.messageService.getMessagesByReportId(reportId);
-            res.status(200).json(messages);
+            res.status(200).json({ messages });
         } catch (error) {
+            next(error);
+        }
+    }
+
+    getMessages = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const userId = req.token?.user?.id;
+            const chats = await this.messageService.getChats(userId!);
+
+            return res.status(200).json({ chats });
+        } catch(error) {
             next(error);
         }
     }

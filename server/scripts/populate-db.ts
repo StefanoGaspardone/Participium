@@ -214,10 +214,10 @@ async function upsertNotifications() {
 
     // First notification
     try {
-        const exists1 = await notifRepo.findOne({ where: { username: { id: user1.id }, report: { id: reports[0].id }, previousStatus: ReportStatus.PendingApproval, newStatus: ReportStatus.Assigned }, relations: ['username', 'report'] });
+        const exists1 = await notifRepo.findOne({ where: { user: { id: user1.id }, report: { id: reports[0].id }, previousStatus: ReportStatus.PendingApproval, newStatus: ReportStatus.Assigned }, relations: ['user', 'report'] });
         if (!exists1) {
             const notif1 = notifRepo.create({
-                username: user1,
+                user: user1,
                 report: reports[0],
                 previousStatus: ReportStatus.PendingApproval,
                 newStatus: ReportStatus.Assigned,
@@ -236,10 +236,10 @@ async function upsertNotifications() {
     try {
         const targetUser = user2 || user1;
         const secondReport = reports[1] || reports[0];
-        const exists2 = await notifRepo.findOne({ where: { username: { id: targetUser.id }, report: { id: secondReport.id }, previousStatus: ReportStatus.Assigned, newStatus: ReportStatus.Resolved }, relations: ['username', 'report'] });
+        const exists2 = await notifRepo.findOne({ where: { user: { id: targetUser.id }, report: { id: secondReport.id }, previousStatus: ReportStatus.Assigned, newStatus: ReportStatus.Resolved }, relations: ['user', 'report'] });
         if (!exists2) {
             const notif2 = notifRepo.create({
-                username: targetUser,
+                user: targetUser,
                 report: secondReport,
                 previousStatus: ReportStatus.Assigned,
                 newStatus: ReportStatus.Resolved,

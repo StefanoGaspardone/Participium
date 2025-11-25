@@ -1,9 +1,13 @@
 import {messageRepository, MessageRepository} from '@repositories/MessageRepository';
 import {userRepository, UserRepository} from '@repositories/UserRepository';
 import {reportRepository, ReportRepository} from '@repositories/ReportRepository';
-import {CreateMessageDTO, messageDAOtoDTO, MessageDTO} from '@dtos/MessageDTO';
+import {ChatDTO, CreateMessageDTO, messageDAOtoDTO, MessageDTO} from '@dtos/MessageDTO';
 import { MessageDAO } from '@daos/MessagesDAO';
 import {NotFoundError} from "@errors/NotFoundError";
+import { createReportDTO, ReportDTO } from '@dtos/ReportDTO';
+import { MapUserDAOtoDTO, UserDTO } from '@dtos/UserDTO';
+import { ReportDAO } from '@daos/ReportDAO';
+import { UserDAO } from '@daos/UserDAO';
 
 export class MessageService {
     private messageRepository: MessageRepository;
@@ -50,6 +54,51 @@ export class MessageService {
         return messages.map(messageDAOtoDTO);
     }
 
+    getChats = async (userId: number): Promise<ChatDTO[]> => {
+        const messages = await this.messageRepository.findAllByUserId(userId);
+        const chatMap: Map<string, { report: ReportDAO | null, messages: MessageDAO[], otherUser: UserDAO }> = new Map();
+
+        for(const message of messages) {
+            const otherUser = message.sender.id === userId ? message.receiver : message.sender;
+            const otherUserId = otherUser.id;
+        
+            const chatKey = userId < otherUserId ? `${userId}_${otherUserId}` : `${otherUserId}_${userId}`;
+        
+            if(!chatMap.has(chatKey)) {
+                chatMap.set(chatKey, {
+                    report: null,
+                    messages: [],
+                    otherUser: otherUser
+                });
+            }
+        
+            const chatEntry = chatMap.get(chatKey)!;
+            chatEntry.messages.push(message);
+        
+            if(message.report) chatEntry.report = message.report;
+        }
+    
+        const chats: ChatDTO[] = Array.from(chatMap.values()).map(entry => {
+            entry.messages.sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
+
+            return {
+                report: createReportDTO(entry.report!),
+                users: [
+                    MapUserDAOtoDTO(messages.find(m => m.sender.id === userId || m.receiver.id === userId)!.sender), // Trova l'oggetto UserDTO dell'utente corrente
+                    MapUserDAOtoDTO(entry.otherUser)
+                ],
+                messages: entry.messages.map(messageDAOtoDTO)
+            };
+        });
+    
+        chats.sort((a, b) => {
+            const lastMsgA = a.messages[a.messages.length - 1].sentAt.getTime();
+            const lastMsgB = b.messages[b.messages.length - 1].sentAt.getTime();
+            return lastMsgB - lastMsgA;
+        });
+
+        return chats;
+    }
 }
 
 export const messageService = new MessageService();

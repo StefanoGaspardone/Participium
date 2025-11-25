@@ -18,6 +18,12 @@ export class MessageDTO {
     report: ReportDTO;
 }
 
+export class ChatDTO {
+    report: ReportDTO;
+    users: UserDTO[];
+    messages: MessageDTO[];
+}
+
 export const messageDAOtoDTO = (message: MessageDAO): MessageDTO =>{
     return {
         id: message.id,

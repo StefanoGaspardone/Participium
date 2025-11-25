@@ -10,14 +10,25 @@ export class MessageRepository {
         this.repository = AppDataSource.getRepository(MessageDAO);
     }
 
-    async create(message: MessageDAO): Promise<MessageDAO> {
+    create = async (message: MessageDAO): Promise<MessageDAO> => {
         return await this.repository.save(message);
     }
 
-    async findByReportId(report: ReportDAO): Promise<MessageDAO[]> {
+    findByReportId = async (report: ReportDAO): Promise<MessageDAO[]> => {
         return await this.repository.find({
             where: { report: { id: report.id } },
             relations: ['sender', 'receiver', 'report', 'report.createdBy', 'report.category'],
+            order: { sentAt: 'ASC' }
+        });
+    }
+
+    findAllByUserId = async (userId: number): Promise<MessageDAO[]> => {
+        return await this.repository.find({
+            where: [
+                { receiver: { id: userId } },
+                { sender: { id: userId } }
+            ],
+            relations: ['sender', 'receiver', 'report'],
             order: { sentAt: 'ASC' }
         });
     }
