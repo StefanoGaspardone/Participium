@@ -3,14 +3,21 @@ import CustomNavbar from './CustomNavbar';
 import { getAssignedReports, updateReportStatus } from '../api/api';
 import type { Report } from '../models/models';
 import { Accordion, Badge, Spinner, Alert, Button } from 'react-bootstrap';
-import ReportMiniMap from './ReportMiniMap';
 import { HomepageMap } from './HomepageMap';
+import Chats from './Chats';
 
 export default function TechnicalStaffHomepage() {
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [updatingReportId, setUpdatingReportId] = useState<number | null>(null);
+
+    const [show, setShow] = useState<boolean>(false);
+    const [activeReport, setActiveReport] = useState<number | null>(null);
+
+    const handleToggle = () => {
+        setShow(prev => !prev);
+    }
 
     useEffect(() => {
         const load = async () => {
@@ -163,6 +170,7 @@ export default function TechnicalStaffHomepage() {
                     </Accordion>
                 )}
             </div>
+            <Chats show = { show } handleToggle = { handleToggle } activeReport = { activeReport } setActiveReport = { setActiveReport }/>
         </div>
     );
 }

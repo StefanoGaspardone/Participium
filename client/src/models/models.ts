@@ -38,6 +38,21 @@ export interface Report {
 	assignedTo?: Partial<User> | null;
 }
 
+export interface Message {
+    id: number;
+    text: string;
+    sentAt: Date;
+    sender: User;
+    receiver: User;
+    report: Report;
+}
+
+export interface Chat {
+	report: Report;
+    users: User[];
+    messages: Message[];
+}
+
 export interface Coord {
   lat: number;
   lng: number;

@@ -23,6 +23,7 @@ export const CONFIG = {
     USERS: `${BASE_URL}/users`,
     OFFICES: `${BASE_URL}/offices`,
     NOTIFICATIONS: `${BASE_URL}/notifications`,
+    MESSAGES: `${BASE_URL}/messages`,
   },
   LOG: {
     LEVEL: process.env.LOG_LEVEL || "info",

@@ -1,4 +1,4 @@
-import type { Category, Office, Report, User } from "../models/models";
+import type { Category, Office, Report, User, Chat } from "../models/models";
 import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
@@ -408,5 +408,35 @@ export const markNotificationAsSeen = async (id: number) => {
     if (!res.ok) {
         throw await toApiError(res);
     }
+}
 
+type ChatsResponse = {
+    chats: Chat[];
+}
+
+export const getChats = async (): Promise<Chat[]> => {
+  const res = await fetch(`${BASE_URL}/messages`, {
+    method: "GET",
+    headers: {
+        Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if(!res.ok) throw await toApiError(res);
+
+  let data: ChatsResponse;
+  try {
+      data = await res.json();
+  } catch {
+      throw new Error("Failed to fetch your chats");
+  }
+
+  const chatsArray =
+        Array.isArray(data)
+            ? data
+            : Array.isArray(data.chats)
+                ? data.chats
+                : [];
+
+    return chatsArray;
 }
