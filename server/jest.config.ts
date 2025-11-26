@@ -6,6 +6,7 @@ const config: Config = {
     preset: 'ts-jest',
     testEnvironment: 'node',
     collectCoverage: true,
+    coverageReporters: ['text', 'lcov', 'html'],
     collectCoverageFrom: [
         'src/**/*.{ts,tsx}',
         '!src/models/**',
