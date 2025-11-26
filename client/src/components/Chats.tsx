@@ -200,7 +200,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport }: Props) => 
                                         ))}
                                     </div>
                                 </div>
-                                <div className = 'col-8 d-flex flex-column p-0'>
+                                <div className = 'col-8 d-flex flex-column p-0 chat-messages-container'>
                                     {(chats.length > 0 && !activeReport) ? (
                                         <div className = 'h-100 d-flex align-items-center justify-content-center'>
                                             <div className = 'text-muted'>Select a chat to send messages</div>
@@ -221,6 +221,14 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport }: Props) => 
                                         
                                                 return (
                                                     <div className = 'chat-right-header d-flex align-items-center gap-2 p-2 border-bottom'>
+                                                        <button
+                                                            type='button'
+                                                            className='btn btn-sm btn-light d-md-none'
+                                                            onClick={() => setActiveReport(null)}
+                                                            style={{ minWidth: '2.5rem' }}
+                                                        >
+                                                            ←
+                                                        </button>
                                                         {otherUserDerived?.image ? (
                                                             <img src = { otherUserDerived.image } alt = 'user' width = { 40 } height = { 40 } className = 'rounded-circle'/>
                                                         ) : (
@@ -228,9 +236,9 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport }: Props) => 
                                                                 <FaUserCircle size = { 40 } className = 'text-muted' />
                                                             </span>
                                                         )}
-                                                        <div>
-                                                            <div className = 'fw-semibold'>{otherUserDerived ? `${otherUserDerived.firstName} ${otherUserDerived.lastName}` : 'Selected a chat'}</div>
-                                                            <div className = 'small text-muted'>{otherUserDerived ? otherUserDerived.username : ''}</div>
+                                                        <div className = 'flex-grow-1 min-width-0'>
+                                                            <div className = 'fw-semibold text-truncate'>{otherUserDerived ? `${otherUserDerived.firstName} ${otherUserDerived.lastName}` : 'Selected a chat'}</div>
+                                                            <div className = 'small text-muted text-truncate'>{otherUserDerived ? otherUserDerived.username : ''}</div>
                                                         </div>
                                                     </div>
                                                 );

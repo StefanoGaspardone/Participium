@@ -128,52 +128,17 @@ export default function TechnicalStaffHomepage() {
                                 <Card className="mb-3 auth-card">
                                     <Accordion.Item eventKey={String(idx)}>
                                         <Accordion.Header>
-                                            <div id={"expand-report-" + r.title} className="d-flex flex-column flex-md-row w-100">
-                                                <span id="report-title" className="fw-semibold me-3" style={{ color: '#00205B' }}>{r.title}</span>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline-primary"
-                                                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); setActiveReport(r); setShow(true); }}
-                                                >
-                                                    Send message
-                                                </Button>
-                                                <div className="ms-md-auto d-flex align-items-center gap-2">
-                                                    <Badge bg="secondary">{r.category?.name}</Badge>
+                                            <div id={"expand-report-" + r.title} className="d-flex flex-column flex-md-row w-100 align-items-start align-md-items-center">
+                                                <span id="report-title" className="fw-semibold me-md-3 mb-2 mb-md-0" style={{ color: '#00205B', wordBreak: 'break-word' }}>{r.title}</span>
+                                                <div className="d-flex align-items-center gap-2 flex-wrap ms-md-auto">
+                                                    <Badge bg="secondary" className="flex-shrink-0">{r.category?.name}</Badge>
                                                     <Badge id={"current-status" + r.title} bg={r.status === 'Assigned' ? 'primary' :
-                                                        r.status === 'Resolved' ? 'success' : 'warning'}>
-                                                        {r.status}
-                                                    </Badge>
-                                                </div>
-                                                <div className="ms-md-auto d-flex align-items-center gap-2">
-                                                    <Badge bg="secondary">{r.category?.name}</Badge>
-                                                    <Badge id={"current-status" + r.title} bg={r.status === 'Assigned' ? 'primary' :
-                                                        r.status === 'Resolved' ? 'success' : 'warning'}>
+                                                        r.status === 'Resolved' ? 'success' : 'warning'} className="flex-shrink-0">
                                                         {r.status}
                                                     </Badge>
                                                 </div>
                                             </div>
                                         </Accordion.Header>
-                                        <Accordion.Body>
-                                            <div className="row">
-                                                <div className="col-md-8">
-                                                    <p className="mb-2"><strong>Description:</strong> {r.description}</p>
-                                                    {r.images?.length ? (
-                                                        <div className="d-flex flex-wrap gap-2 mb-3">
-                                                            {r.images.map((img, i) => (
-                                                                <img
-                                                                    key={i}
-                                                                    src={img}
-                                                                    alt={`report-${r.id}-img-${i}`}
-                                                                    style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-muted fst-italic">No images</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Accordion.Body>
                                         <Accordion.Body>
                                             <div className="row">
                                                 <div className="col-md-8">
@@ -244,6 +209,23 @@ export default function TechnicalStaffHomepage() {
                                                                 </Alert>
                                                             </motion.div>
                                                         )}
+                                                    </div>
+
+                                                    {/* Send message button */}
+                                                    <div className="mt-3">
+                                                        <p className="mb-2" style={{ fontWeight: 500, color: '#00205B' }}>Communication:</p>
+                                                        <Button
+                                                            variant="primary"
+                                                            size="sm"
+                                                            onClick={() => { setActiveReport(r); setShow(true); }}
+                                                            className="auth-button-primary"
+                                                            style={{
+                                                                background: 'linear-gradient(90deg, #007bff, #0056b3)',
+                                                                border: 'none'
+                                                            }}
+                                                        >
+                                                            Send message
+                                                        </Button>
                                                     </div>
                                                 </div>
                                                 <div className="col-md-4 mt-2">
