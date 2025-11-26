@@ -16,8 +16,10 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: yarn
+        working-directory: ./server
       - name: Test and coverage
         run: yarn jest --coverage
+        working-directory: ./server
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
@@ -31,8 +33,10 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: yarn
+        working-directory: ./server
       - name: Test and coverage
         run: yarn jest --coverage
+        working-directory: ./server
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
