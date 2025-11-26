@@ -144,36 +144,8 @@ export default function TechnicalStaffHomepage() {
                                                         {r.status}
                                                     </Badge>
                                                 </div>
-                                                <div className="ms-md-auto d-flex align-items-center gap-2">
-                                                    <Badge bg="secondary">{r.category?.name}</Badge>
-                                                    <Badge id={"current-status" + r.title} bg={r.status === 'Assigned' ? 'primary' :
-                                                        r.status === 'Resolved' ? 'success' : 'warning'}>
-                                                        {r.status}
-                                                    </Badge>
-                                                </div>
                                             </div>
                                         </Accordion.Header>
-                                        <Accordion.Body>
-                                            <div className="row">
-                                                <div className="col-md-8">
-                                                    <p className="mb-2"><strong>Description:</strong> {r.description}</p>
-                                                    {r.images?.length ? (
-                                                        <div className="d-flex flex-wrap gap-2 mb-3">
-                                                            {r.images.map((img, i) => (
-                                                                <img
-                                                                    key={i}
-                                                                    src={img}
-                                                                    alt={`report-${r.id}-img-${i}`}
-                                                                    style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-muted fst-italic">No images</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Accordion.Body>
                                         <Accordion.Body>
                                             <div className="row">
                                                 <div className="col-md-8">
