@@ -13,7 +13,7 @@ export class Auth {
         const telegramUsername = ctx.from?.username;
 
         if(!telegramUsername) return ctx.reply('*Error:* To connect, you must have set a Telegram username (e.g. @yourusername) in your Telegram settings.', { parse_mode: 'Markdown' });
-        if(ctx.session.auth.user) return ctx.reply(`You're already logged in as *${ctx.session.auth.user.firstName} ${ctx.session.auth.user.lastName}*.`, { parse_mode: 'Markdown' });
+        if(ctx.session.auth.user) return ctx.reply(`You're already logged in as *${ctx.session.auth.user.firstName} ${ctx.session.auth.user.lastName}*, if you want to submit a report, type the command /new_report.`, { parse_mode: 'Markdown' });
 
         await ctx.reply(`Attempting to connect to user *@${telegramUsername}*...`, { parse_mode: 'Markdown' });
 
@@ -72,7 +72,7 @@ export class Auth {
             if(!loginResp.ok) return ctx.reply('*Login failed:* Wrong password.\nTry again or /connect to restart.', { parse_mode: 'Markdown' });
         
             ctx.session.auth = { awaitingPassword: false, valid: true, user: ctx.session.auth.user };
-            ctx.reply(`*Login successful!* Welcome *${pending.firstName} ${pending.lastName}*.`, { parse_mode: 'Markdown' });
+            ctx.reply(`*Login successful!* Welcome *${pending.firstName} ${pending.lastName}*, if you want to submit a report, type the command /new_report.`, { parse_mode: 'Markdown' });
         } catch {
             return ctx.reply('*Error:* Cannot verify password now. Try later.', { parse_mode: 'Markdown' });
         }

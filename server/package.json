@@ -7,7 +7,7 @@
 		"start": "ts-node -r tsconfig-paths/register src/index.ts",
 		"dev": "nodemon -r tsconfig-paths/register --exec ts-node src/index.ts",
 		"dev:test": "DB_HOST=127.0.0.1 DB_PORT=5445 DB_NAME=test_postgres DB_USERNAME=postgres DB_PASSWORD=mysecretpassword nodemon -r tsconfig-paths/register --exec ts-node src/index.ts",
-		"build": "tsc",
+		"build": "tsc && node dist/index.js",
 		"test": "jest --coverage",
 		"test:ci": "npm run db:test:start && npm test -- --runInBand && npm run db:test:stop",
 		"db:test:start": "docker compose -f ./test/docker/postgres/docker-compose.yaml up -d",

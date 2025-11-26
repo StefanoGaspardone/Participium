@@ -27,6 +27,9 @@ COPY server/ .
 # we copy the entrypoint
 WORKDIR /app
 COPY Docker/entrypoint.sh /entrypoint.sh
+
+# fix windows CRLF that cause "/bin/bash^M: bad interpreter" and ensure executable
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 3000 5173 5439

@@ -10,6 +10,6 @@ once the volume to save datas is created, we have to pull the image from Docker 
 
 # Run the CONTAINER
 once the image has been downloaded, we just have to run :
-> docker run -d <--name participium-app> -p 3000:3000 -p 5173:5173 -v pg_participium_volume:/var/lib/postgresql/data participium-group5
+> docker run <--name participium-app> -p 3000:3000 -p 5173:5173 -v pg_participium_volume:/var/lib/postgresql/data participium-group5
 
 <--name participium-app> is optional, if used, it enables you to interact with the container using that name
