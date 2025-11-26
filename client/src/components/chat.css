@@ -41,6 +41,32 @@
     box-shadow: 0 12px 30px rgba(2,6,23,0.12), 0 4px 8px rgba(2,6,23,0.06);
 }
 
+@media (max-width: 768px) {
+    .chats-popover {
+        width: calc(100vw - 3rem);
+        height: calc(100vh - 8rem);
+        max-width: 100%;
+        margin-bottom: 4.5rem;
+    }
+
+    .chats-popover .col-4 {
+        display: none;
+    }
+
+    .chats-popover .col-8 {
+        width: 100% !important;
+    }
+
+    .chat-wrapper {
+        right: 1rem;
+        bottom: 1rem;
+    }
+
+    .chat-toggle {
+        padding: 0.5rem 0.5rem;
+    }
+}
+
 .chats-popover div ::-webkit-scrollbar {
     display: none;
 }
@@ -79,7 +105,35 @@
     background: #ffffff;
 }
 
-.chat-messages { display: flex; flex-direction: column; }
+@media (max-width: 768px) {
+    .message-bubble {
+        max-width: 85%;
+    }
+}
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages-container {
+    position: relative;
+}
+
+.min-width-0 {
+    min-width: 0;
+}
+
+.chat-right-header {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .chat-right-header {
+        flex-wrap: wrap;
+    }
+}
 
 /* make title and id white when a chat list item is active */
 .list-group-item.active .fw-semibold,
