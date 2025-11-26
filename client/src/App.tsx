@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./components/Homepage";
 import LoginPage from "./components/LoginPage";
@@ -7,19 +7,32 @@ import UploadReport from "./components/UploadReportPage";
 import "./App.css";
 import "./custom_theme.scss";
 import AdminHomepage from "./components/AdminHomepage";
+import PROHomepage from "./components/PROHomepage";
+import TechnicalStaffHomepage from "./components/TechnicalStaffHomepage";
 import { useAppContext } from "./contexts/AppContext";
+import ProfilePage from "./components/ProfilePage.tsx";
+import type { Coord } from "./models/models.ts";
+import { Toaster } from "react-hot-toast";
 
 function App() {
-  // selected and setSelected are the two parameters (as props) that have to be passed to the Map component
-  // selected contains fields "lat" and "lng" and setSelected allow to update their values
-  const [selected, setSelected] = useState<{ lat: number; lng: number } | null>(
-    null
-  );
-  
+  const [selected, setSelected] = useState<Coord | null>(null);
+
   const { user, isLoggedIn } = useAppContext();
-  
+
+  useEffect(() => {
+    if (!user) setSelected(null);
+  }, [user]);
+
   return (
     <>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: { fontSize: '1.2rem', borderRadius: '11px' },
+          success: { iconTheme: { primary: '#265ea8', secondary: '#fff' } },
+          error: { iconTheme: { primary: '#c62828', secondary: '#fff' } }
+        }}
+      />
       <Routes>
         <Route
           path="/"
@@ -28,8 +41,10 @@ function App() {
               <HomePage selected={selected} setSelected={setSelected} />
             ) : user?.userType === 'ADMINISTRATOR' ? (
               <Navigate to="/admin" />
-            ) : (
-              <Navigate to="/login" />
+            ) : user?.userType === 'PUBLIC_RELATIONS_OFFICER' ? (
+              <Navigate to="/pro" />
+            ) : user?.userType === 'TECHNICAL_STAFF_MEMBER' && (
+              <Navigate to="/tech" />
             )
           }
         />
@@ -38,10 +53,34 @@ function App() {
           element={
             isLoggedIn ? (
               user?.userType === 'ADMINISTRATOR' && (
-                <AdminHomepage/>
+                <AdminHomepage />
               )
             ) : (
-              <Navigate to="/"/>
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/pro"
+          element={
+            isLoggedIn ? (
+              user?.userType === 'PUBLIC_RELATIONS_OFFICER' && (
+                <PROHomepage />
+              )
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/tech"
+          element={
+            isLoggedIn ? (
+              user?.userType === 'TECHNICAL_STAFF_MEMBER' && (
+                <TechnicalStaffHomepage />
+              )
+            ) : (
+              <Navigate to="/" />
             )
           }
         />
@@ -49,7 +88,7 @@ function App() {
         <Route
           path="/login"
           element={
-            <LoginPage/>
+            <LoginPage />
           }
         />
         <Route path="/register" element={<RegisterPage />} />
@@ -62,7 +101,19 @@ function App() {
                 <UploadReport selected={selected} setSelected={setSelected} />
               )
             ) : (
-              <Navigate to="/"/>
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            isLoggedIn ? (
+              user?.userType === 'CITIZEN' && (
+                <ProfilePage />
+              )
+            ) : (
+              <Navigate to="/" />
             )
           }
         />

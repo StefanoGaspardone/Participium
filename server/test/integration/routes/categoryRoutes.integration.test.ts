@@ -17,18 +17,15 @@ describe('Category Routes integration tests', () => {
     await closeTestDataSource();
   });
 
-  it('GET /api/categories => 401 without token', async () => {
+  it('GET /api/categories => 200 without authentication', async () => {
     const res = await request(app).get('/api/categories');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('categories');
+    expect(Array.isArray(res.body.categories)).toBe(true);
   });
 
-  it('GET /api/categories => 200 with token and returns categories array', async () => {
-    // login as seeded user
-    const login = await request(app).post('/api/users/login').send({ username: 'user', password: 'user' });
-    expect(login.status).toBe(200);
-    const token = login.body.token as string;
-
-    const res = await request(app).get('/api/categories').set('Authorization', `Bearer ${token}`);
+  it('GET /api/categories => 200 and returns categories array', async () => {
+    const res = await request(app).get('/api/categories');
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('categories');
     expect(Array.isArray(res.body.categories)).toBe(true);

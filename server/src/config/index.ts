@@ -22,6 +22,8 @@ export const CONFIG = {
     REPORTS: `${BASE_URL}/reports`,
     USERS: `${BASE_URL}/users`,
     OFFICES: `${BASE_URL}/offices`,
+    NOTIFICATIONS: `${BASE_URL}/notifications`,
+    MESSAGES: `${BASE_URL}/messages`,
   },
   LOG: {
     LEVEL: process.env.LOG_LEVEL || "info",
@@ -38,10 +40,11 @@ export const CONFIG = {
     UPLOAD_PRESET: process.env.CLOUDINARY_UPLOAD_PRESET || "participium_preset",
   },
   TURIN: {
-    MIN_LAT: parseFloat(process.env.TURIN_MIN_LAT || "45.000"),
-    MAX_LAT: parseFloat(process.env.TURIN_MAX_LAT || "45.150"),
-    MIN_LONG: parseFloat(process.env.TURIN_MIN_LONG || "7.550"),
-    MAX_LONG: parseFloat(process.env.TURIN_MAX_LONG || "7.800"),
+    GEO_JSON_FILE_PATH: path.join(__dirname, '../../data/turin_geo.json'),
   },
-  JWT_SECRET: process.env.JWT_SECRET || 'powerPuffGirls'
+  JWT_SECRET: process.env.JWT_SECRET || 'powerPuffGirls',
+    TELEGRAM: {
+      BOT_API_TOKEN: process.env.TELEGRAM_BOT_API_TOKEN || '7714201933:AAHzlmE5AWN3o1WirpDuc4H318NUb7WHFM4',
+      SESSION_JSON_PATH: path.join(__dirname, '../telegram/session_db.json'),
+    },
 };

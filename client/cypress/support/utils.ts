@@ -1,0 +1,9 @@
+export const BASE_URL = "http://localhost:5173";
+export const LOGINPAGE_URL = BASE_URL + "/login";
+export const HOMEPAGE_URL = BASE_URL + "/";
+export const UPLOADREPORTPAGE_URL = BASE_URL + "/reports/new";
+export const REGISTERPAGE_URL = BASE_URL + "/register";
+export const ADMINPAGE_URL = BASE_URL + "/admin";
+export const TSMPAGE_URL = BASE_URL + "/tech";
+export const MUNADMPAGE_URL = ""; // TO ADD 
+export const PUBRELOFFPAGE_URL = BASE_URL +"/pro";

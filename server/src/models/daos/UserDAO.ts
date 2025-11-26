@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { IsEmail, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf, Validator } from 'class-validator';
 import { ReportDAO } from '@daos/ReportDAO';
+import {NotificationDAO} from "@daos/NotificationsDAO";
 
 export enum UserType {
     CITIZEN = 'CITIZEN',
@@ -50,6 +51,9 @@ export class UserDAO {
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
 
+    @Column({ type: 'boolean', default: false })
+    emailNotificationsEnabled: boolean;
+
     @ManyToOne(() => OfficeDAO, office => office.users, { nullable: true })
     @JoinColumn({ name: 'office_id' })
     @ValidateIf(o => o.userType === UserType.TECHNICAL_STAFF_MEMBER)
@@ -63,4 +67,7 @@ export class UserDAO {
     @OneToMany(() => ReportDAO, report => report.assignedTo)
     @ValidateIf(o => o.userType === UserType.TECHNICAL_STAFF_MEMBER)
     assignedReports: ReportDAO[];
+
+    @OneToMany(() => NotificationDAO, notification => notification.user)
+    notifications: NotificationDAO[];
 }

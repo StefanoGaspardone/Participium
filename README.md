@@ -14,6 +14,10 @@
   - [Clone The Repository](#clone-the-repository)
   - [Run The Backend](#run-the-backend)
   - [Run The Frontend](#run-the-frontend)
+- [Telegram Bot](#telegram-bot)
+  - [Setup](#setup)
+  - [Commands](#commands)
+- [Test Users](#test-users)
 
 ## Overview
 
@@ -150,6 +154,15 @@ git clone https://github.com/StefanoGaspardone/Participium.git
   ```
 
   Make sure to have Docker Desktop installed and running before executing the command.
+  To stop the container you can use `docker compose down` (`[-d]` if you want to remove and empty it).
+
+- Populate the database
+  
+  ```bash
+  npm run populate-db
+  ```
+
+  The script will populate the database with all the necessaries entities, such as predefined Categories e Technical Staff Member Roles, and some [test users](#test-users).
 
 - Run the server
 
@@ -160,6 +173,8 @@ git clone https://github.com/StefanoGaspardone/Participium.git
   The server will be running at <http://localhost:3000>.
 
   A swagger documentation is available at <http://localhost:3000/api/docs>.
+
+  Moreover, the [telegram bot](#telegram-bot) is initialized and will be running at <https://t.me/ParticipiumSE05Bot>.
 
 ### Run The Frontend
 
@@ -182,3 +197,48 @@ git clone https://github.com/StefanoGaspardone/Participium.git
   ```
 
   The client will be running at <http://localhost:5173>.
+
+## Telegram Bot
+
+The Participium Telegram bot helps citizens create reports directly from Telegram and receive updates.
+
+### Setup
+
+- Bot URL: <https://t.me/ParticipiumSE05Bot>
+- The bot starts automatically when the backend starts.
+- Make sure to set your Telegram username in Telegram settings (e.g., `@yourusername`).
+
+### Commands
+
+- `/start`: Shows a welcome message and basic instructions.
+
+- `/connect`: Links your Participium account to your Telegram username.
+  - Prerequisites: set your Telegram username in Telegram settings (e.g., `@yourusername`).
+  - The bot matches your Telegram username to a registered user in Participium.
+  - Then, it will ask for the Participium account password.
+  - If success, you are able to play with the bot; otherwise, specific error messages are shown.
+
+- `/new_report`: Starts a guided, multi‑step flow to submit a new report.
+  - Step 1 - Location: send your location (must be inside the Municipality of Turin).
+  - Step 2 - Title: send a short title.
+  - Step 3 - Description: send a detailed description of the issue.
+  - Step 4 - Category: choose from the inline keyboard (categories are loaded from the server).
+  - Step 5 - Images: send 1-3 photos. When done, send `/done`.
+  - Step 6 - Anonymous: choose Yes/No for anonymous submission, then the bot submits the report, replying with the new created report ID.
+
+## Test Users
+
+These accounts are created after executing `npm run populate-db`.
+
+| Role | Username | Password | Email | First Name | Last Name |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Administrator | admin | admin | admin@gmail.com | Stefano | Lo Russo |
+| Municipal Administrator | munadm | password | munadm@part.se | Giorgio | Turio |
+| Public Relations Officer | pro | password | pro@part.se | Carlo | Ultimo |
+| Techinal Staff Member (Organization office) | tsm1 | password | tsm1@part.se | Carmine | Conte |
+| Techinal Staff Member (Public Services Division) | tsm2 | password | tsm2@part.se | Carmine | Conte |
+| Techinal Staff Member (Environmental Quality Division) | tsm3 | password | tsm3@part.se | Carmine | Conte |
+| Techinal Staff Member (Green Areas, Parks and Animal Welfare Division) | tsm4 | password | tsm4@part.se | Carmine | Conte |
+| Techinal Staff Member (Infrastructure Division) | tsm5 | password | tsm5@part.se | Carmine | Conte |
+| Techinal Staff Member (General Services Division) | tsm6 | password | tsm6@part.se | Carmine | Conte |
+| Citizen | user | user | user@gmail.com | Francesco | Totti |

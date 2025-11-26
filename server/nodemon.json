@@ -1,0 +1,5 @@
+{
+  "ignore": [
+    "src/telegram/session_db.json"
+  ]
+}

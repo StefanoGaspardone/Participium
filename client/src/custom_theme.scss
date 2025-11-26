@@ -4,7 +4,7 @@ $giallo-torino: #FFCD00;
 
 .font-regal {
     font-family: 'Playfair Display', serif;
-    font-weight: 700; // Un peso grassetto è adatto per un logo
+    font-weight: 700; // A bold weight is suitable for a logo
 }
 
 $primary: $blu-savoia;
@@ -12,4 +12,4 @@ $warning: $giallo-torino;
 
 @import "bootstrap/scss/bootstrap";
 
-// (Opzionale) Puoi aggiungere qui altri stili globali
+// (Optional) You can add other global styles here

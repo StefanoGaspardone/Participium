@@ -4,6 +4,7 @@ import {UserDAO, UserType} from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
+import {NotFoundError} from "@errors/NotFoundError";
 
 export class UserService {
 
@@ -20,6 +21,13 @@ export class UserService {
         return users.map(MapUserDAOtoDTO);
     }
 
+    findUserByTelegramUsername = async (telegramUsername: string): Promise<UserDTO> => {
+        const user = await this.userRepo.findUserByTelegramUsername(telegramUsername);
+
+        if(!user) throw new NotFoundError(`No user found with telegram username ${telegramUsername}`);
+        return MapUserDAOtoDTO(user);
+    }
+
     signUpUser = async (payload: NewUserDTO): Promise<UserDAO> => {
         const user = new UserDAO();
         user.firstName = payload.firstName;
@@ -29,7 +37,7 @@ export class UserService {
         user.userType = UserType.CITIZEN;
         user.image = payload.image;
         user.telegramUsername = payload.telegramUsername;
-
+        user.emailNotificationsEnabled = payload.emailNotificationsEnabled;
         const salt = await bcrypt.genSalt(10);
         user.passwordHash = await bcrypt.hash(payload.password, salt);
 
@@ -62,6 +70,13 @@ export class UserService {
                     throw new BadRequestError("office not found.");
                 }
                 user.office = office;
+            }else if(payload.userType == UserType.MUNICIPAL_ADMINISTRATOR || payload.userType == UserType.PUBLIC_RELATIONS_OFFICER){
+                const office = await this.officeRepo.findOrganizationOffice();
+                console.log(office);
+                if(!office){
+                    throw new BadRequestError("Organization office not found.");
+                }
+                user.office = office;
             }
             user.image = payload.image;
 
@@ -74,7 +89,20 @@ export class UserService {
         }
     }
 
-    
+    updateUser = async (id: number, updateData: Partial<UserDAO>): Promise<UserDTO> => {
+        const user = await this.userRepo.findUserById(id);
+        if(!user) throw new NotFoundError(`User with id ${id} not found`);
+
+        if(updateData.firstName !== undefined) user.firstName = updateData.firstName;
+        if(updateData.lastName !== undefined) user.lastName = updateData.lastName;
+        if(updateData.email !== undefined) user.email = updateData.email;
+        if(updateData.username !== undefined) user.username = updateData.username;
+        if(updateData.image !== undefined) user.image = updateData.image;
+        if(updateData.telegramUsername !== undefined) user.telegramUsername = updateData.telegramUsername;
+        if(updateData.emailNotificationsEnabled !== undefined) user.emailNotificationsEnabled = updateData.emailNotificationsEnabled;
+        const updatedUser = await this.userRepo.updateUser(user);
+        return MapUserDAOtoDTO(updatedUser);
+    }
 }
 
 

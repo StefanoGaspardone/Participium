@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { User } from "../models/models";
 import { jwtDecode } from "jwt-decode";
 import { me as meApi } from "../api/api";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type TokenPayload = {
     user: User;
@@ -88,9 +88,14 @@ export const AppProvider = ({ children }: PropsInterface) => {
         }
     }, []);
 
+    const loc = useLocation();
+
     useEffect(() => {
+        if(loc.pathname === '/profile') {navigate('/profile'); return;}
         if(user?.userType === 'CITIZEN') navigate('/');
         else if(user?.userType === 'ADMINISTRATOR') navigate('/admin');
+        else if(user?.userType === 'PUBLIC_RELATIONS_OFFICER') navigate('/pro');
+        else if(user?.userType === 'TECHNICAL_STAFF_MEMBER') navigate('/tech');
     }, [user]);
 
     return (

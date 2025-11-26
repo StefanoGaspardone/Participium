@@ -14,6 +14,7 @@ export interface ReportDTO {
     anonymous?: boolean;
     rejectedDescription?: string | null;
     createdBy: UserDTO;
+    assignedTo?: UserDTO | null;
     createdAt: Date;
 }
 
@@ -27,6 +28,17 @@ export interface CreateReportDTO {
     anonymous: boolean;
 }
 
+export interface CreateReportTelegramDTO {
+    userId: number;
+    title: string;
+    description: string;
+    categoryId: number;
+    images: string[];
+    latitude: number;
+    longitude: number;
+    anonymous: boolean;
+}
+
 export const createReportDTO = (report: ReportDAO): ReportDTO => {
     return {
         id: report.id,
@@ -34,10 +46,13 @@ export const createReportDTO = (report: ReportDAO): ReportDTO => {
         description: report.description,
         category: createCategoryDTO(report.category),
         images: report.images,
+        lat: Number(report.lat),
+        long: Number(report.long),
         status: report.status,
         anonymous: report.anonymous,
         rejectedDescription: report.rejectedDescription || null,
         createdBy: MapUserDAOtoDTO(report.createdBy),
+        assignedTo: report.assignedTo ? MapUserDAOtoDTO(report.assignedTo) : null,
         createdAt: new Date(report.createdAt),
     } as ReportDTO;
 }

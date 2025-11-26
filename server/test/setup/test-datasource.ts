@@ -86,6 +86,14 @@ const USERS: Array<{
     password: "user",
     userType: UserType.CITIZEN,
   },
+  {
+    username: "techstaff",
+    email: "techstaff@gmail.com",
+    firstName: "Tech",
+    lastName: "Staff",
+    password: "techstaff",
+    userType: UserType.TECHNICAL_STAFF_MEMBER,
+  },
 ];
 
 export async function populateTestData() {

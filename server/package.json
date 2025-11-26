@@ -7,7 +7,7 @@
 		"start": "ts-node -r tsconfig-paths/register src/index.ts",
 		"dev": "nodemon -r tsconfig-paths/register --exec ts-node src/index.ts",
 		"dev:test": "DB_HOST=127.0.0.1 DB_PORT=5445 DB_NAME=test_postgres DB_USERNAME=postgres DB_PASSWORD=mysecretpassword nodemon -r tsconfig-paths/register --exec ts-node src/index.ts",
-		"build": "tsc",
+		"build": "tsc && node dist/index.js",
 		"test": "jest --coverage",
 		"test:ci": "npm run db:test:start && npm test -- --runInBand && npm run db:test:stop",
 		"db:test:start": "docker compose -f ./test/docker/postgres/docker-compose.yaml up -d",
@@ -15,12 +15,14 @@
 		"db:dev:start": "docker compose -f ./docker/postgres/docker-compose.yaml up -d",
 		"db:dev:stop": "docker compose -f ./docker/postgres/docker-compose.yaml down",
 		"populate-db": "ts-node -r tsconfig-paths/register scripts/populate-db.ts",
-        "test:unit": "jest --testPathPatterns=test/unit --runInBand",
-        "test:e2e": "jest --testPathPatterns=test/e2e --runInBand"
+		"test:unit": "jest --testPathPatterns=test/unit --runInBand",
+		"test:e2e": "jest --testPathPatterns=test/e2e --runInBand"
 	},
 	"keywords": [],
 	"type": "commonjs",
 	"dependencies": {
+		"@turf/helpers": "^7.2.0",
+		"@turf/turf": "^7.2.0",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.5",
 		"@types/jest": "^30.0.0",
@@ -35,6 +37,7 @@
 		"dotenv": "^17.2.3",
 		"express": "^5.1.0",
 		"express-openapi-validator": "^5.6.0",
+		"form-data": "^4.0.4",
 		"jest": "^30.2.0",
 		"jest-junit": "^16.0.0",
 		"jsonwebtoken": "^9.0.2",
@@ -45,6 +48,8 @@
 		"supertest": "^7.1.4",
 		"swagger-jsdoc": "^6.2.8",
 		"swagger-ui-express": "^5.0.1",
+		"telegraf": "^4.16.3",
+		"telegraf-session-local": "^2.1.1",
 		"ts-jest": "^29.4.5",
 		"ts-node-dev": "^2.0.0",
 		"tsconfig-paths": "^4.2.0",
@@ -54,6 +59,7 @@
 		"yamljs": "^0.3.0"
 	},
 	"devDependencies": {
+		"@types/geojson": "^7946.0.16",
 		"@types/jsonwebtoken": "^9.0.10"
 	}
 }
