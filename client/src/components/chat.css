@@ -1,0 +1,88 @@
+.chat-wrapper {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 20000;
+}
+
+.chat-toggle {
+    background-color: #0057A0;
+    color: #fff;
+    border-radius: 0.5rem;
+    outline: none;
+    border: none;
+    padding: 0.75rem 0.75rem;
+    font-size: 500;
+    transition: transform 160ms ease, background-color 160ms ease;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 20002;
+}
+
+.chat-toggle:hover {
+    background-color: #01467e;
+}
+
+.chat-toggle:active {
+    background-color: #01335c;
+    transform: scale(.95);
+}
+
+.chats-popover {
+    background-color: #E8F0FF;
+    padding: 0.75rem 0.75rem;
+    border-radius: 0.5rem;
+    outline: none;
+    border: none;
+    height: 31rem;
+    width: 40rem;
+    margin-bottom: 4rem;
+    box-shadow: 0 12px 30px rgba(2,6,23,0.12), 0 4px 8px rgba(2,6,23,0.06);
+}
+
+.chats-popover div ::-webkit-scrollbar {
+    display: none;
+}
+
+.chat-loader {
+    color: #0057A0;
+    animation: chat-spin 1s linear infinite;
+}
+
+@keyframes chat-spin {
+    to { transform: rotate(360deg); }
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(2,6,23,0.06);
+}
+
+.message-bubble .small {
+    font-size: smaller;
+}
+
+.message-bubble.mine {
+    background-color: #0057A0;
+    color: #fff;
+}
+
+.message-bubble.mine .small {
+    color: #fff !important;
+}
+
+.message-bubble.other {
+    background: #ffffff;
+}
+
+.chat-messages { display: flex; flex-direction: column; }
+
+/* make title and id white when a chat list item is active */
+.list-group-item.active .fw-semibold,
+.list-group-item.active .text-muted {
+    color: #fff !important;
+}

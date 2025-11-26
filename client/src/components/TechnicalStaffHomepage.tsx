@@ -7,12 +7,20 @@ import ReportMiniMap from './ReportMiniMap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2Icon } from 'lucide-react';
 import './AuthForms.css';
+import Chats from './Chats';
 
 export default function TechnicalStaffHomepage() {
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [updatingReportId, setUpdatingReportId] = useState<number | null>(null);
+
+    const [show, setShow] = useState<boolean>(false);
+    const [activeReport, setActiveReport] = useState<Report | null>(null);
+
+    const handleToggle = () => {
+        setShow(prev => !prev);
+    }
 
     useEffect(() => {
         const load = async () => {
@@ -122,6 +130,20 @@ export default function TechnicalStaffHomepage() {
                                         <Accordion.Header>
                                             <div id={"expand-report-" + r.title} className="d-flex flex-column flex-md-row w-100">
                                                 <span id="report-title" className="fw-semibold me-3" style={{ color: '#00205B' }}>{r.title}</span>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-primary"
+                                                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); setActiveReport(r); setShow(true); }}
+                                                >
+                                                    Send message
+                                                </Button>
+                                                <div className="ms-md-auto d-flex align-items-center gap-2">
+                                                    <Badge bg="secondary">{r.category?.name}</Badge>
+                                                    <Badge id={"current-status" + r.title} bg={r.status === 'Assigned' ? 'primary' :
+                                                        r.status === 'Resolved' ? 'success' : 'warning'}>
+                                                        {r.status}
+                                                    </Badge>
+                                                </div>
                                                 <div className="ms-md-auto d-flex align-items-center gap-2">
                                                     <Badge bg="secondary">{r.category?.name}</Badge>
                                                     <Badge id={"current-status" + r.title} bg={r.status === 'Assigned' ? 'primary' :
@@ -131,6 +153,27 @@ export default function TechnicalStaffHomepage() {
                                                 </div>
                                             </div>
                                         </Accordion.Header>
+                                        <Accordion.Body>
+                                            <div className="row">
+                                                <div className="col-md-8">
+                                                    <p className="mb-2"><strong>Description:</strong> {r.description}</p>
+                                                    {r.images?.length ? (
+                                                        <div className="d-flex flex-wrap gap-2 mb-3">
+                                                            {r.images.map((img, i) => (
+                                                                <img
+                                                                    key={i}
+                                                                    src={img}
+                                                                    alt={`report-${r.id}-img-${i}`}
+                                                                    style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-muted fst-italic">No images</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Accordion.Body>
                                         <Accordion.Body>
                                             <div className="row">
                                                 <div className="col-md-8">
@@ -215,6 +258,7 @@ export default function TechnicalStaffHomepage() {
                     </Accordion>
                 )}
             </div>
+            <Chats show={show} handleToggle={handleToggle} activeReport={activeReport} setActiveReport={setActiveReport} />
         </div>
     );
 }

@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser, type RegisterPayload, uploadImages } from "../api/api";
-import LoginSignupNavbar from "./LoginSignupNavbar";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import "./AuthForms.css";
+import CustomNavbar from "./CustomNavbar.tsx";
 
 export default function RegisterPage() {
     const [name, setName] = useState("");
@@ -58,7 +58,7 @@ export default function RegisterPage() {
 
     return (
         <>
-            <LoginSignupNavbar />
+            <CustomNavbar />
             <Container className="my-5">
                 <Row className="justify-content-md-center">
                     <Col md={9} lg={7}>
@@ -181,11 +181,11 @@ export default function RegisterPage() {
                                             </Form.Group>
                                         </motion.div>
                                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.45 }}>
-                                            <Button 
-                                                id="submit-button" 
-                                                variant="primary" 
-                                                type="submit" 
-                                                className="w-100 mt-2 auth-button-primary" 
+                                            <Button
+                                                id="submit-button"
+                                                variant="primary"
+                                                type="submit"
+                                                className="w-100 mt-2 auth-button-primary"
                                                 disabled={loading || !isFormValid}>
                                                 {loading ? "Registering..." : "Register"}
                                             </Button>

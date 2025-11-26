@@ -394,3 +394,124 @@ describe("UserService.updateUser (mock)", () => {
     expect(updatedUser.emailNotificationsEnabled).toBe(true);
   });
 });
+
+describe("UserService.findUserByTelegramUsername (mock)", () => {
+  it("should find user by telegram username and return DTO", async () => {
+    const service = new UserService();
+
+    const fakeUser = {
+      id: 1,
+      telegramUsername: "@testuser",
+      email: "test@test.com",
+      username: "testuser",
+      userType: "CITIZEN",
+      createdAt: new Date(),
+    } as any;
+
+    const findByTelegramMock = jest.fn().mockResolvedValue(fakeUser);
+
+    // @ts-ignore
+    service["userRepo"] = { findUserByTelegramUsername: findByTelegramMock };
+
+    const result = await service.findUserByTelegramUsername("@testuser");
+
+    expect(findByTelegramMock).toHaveBeenCalledWith("@testuser");
+    expect(result.telegramUsername).toBe("@testuser");
+  });
+
+  it("should throw NotFoundError when user with telegram username does not exist", async () => {
+    const service = new UserService();
+    const findByTelegramMock = jest.fn().mockResolvedValue(null);
+
+    // @ts-ignore
+    service["userRepo"] = { findUserByTelegramUsername: findByTelegramMock };
+
+    await expect(service.findUserByTelegramUsername("@nonexistent")).rejects.toThrow(
+      "No user found with telegram username @nonexistent"
+    );
+
+    expect(findByTelegramMock).toHaveBeenCalledWith("@nonexistent");
+  });
+});
+
+describe("UserService.createMunicipalityUser - Additional Cases (mock)", () => {
+  it("should set Organization office for MUNICIPAL_ADMINISTRATOR and PUBLIC_RELATIONS_OFFICER", async () => {
+    const service = new UserService();
+
+    const fakeOrgOffice = { id: 1, name: "Organization" } as any;
+    const createMock = jest.fn().mockImplementation(async (u: any) => ({ ...u, id: 10 }));
+
+    // @ts-ignore
+    service["userRepo"] = { createNewUser: createMock };
+    // @ts-ignore
+    service["officeRepo"] = { findOrganizationOffice: jest.fn().mockResolvedValue(fakeOrgOffice) };
+
+    const { UserType } = await import("@daos/UserDAO");
+    
+    // Test MUNICIPAL_ADMINISTRATOR
+    await service.createMunicipalityUser({
+      firstName: "Municipal",
+      lastName: "Admin",
+      email: "munadmin@local",
+      username: "munadmin",
+      password: "pass",
+      userType: UserType.MUNICIPAL_ADMINISTRATOR,
+    } as any);
+
+    expect(createMock).toHaveBeenCalled();
+    expect(createMock.mock.calls[0][0].office).toEqual(fakeOrgOffice);
+
+    createMock.mockClear();
+
+    // Test PUBLIC_RELATIONS_OFFICER
+    await service.createMunicipalityUser({
+      firstName: "PRO",
+      lastName: "Officer",
+      email: "pro@local",
+      username: "pro",
+      password: "pass",
+      userType: UserType.PUBLIC_RELATIONS_OFFICER,
+    } as any);
+
+    expect(createMock).toHaveBeenCalled();
+    expect(createMock.mock.calls[0][0].office).toEqual(fakeOrgOffice);
+  });
+
+  it("should throw BadRequestError when Organization office does not exist", async () => {
+    const service = new UserService();
+    const createMock = jest.fn();
+
+    // @ts-ignore
+    service["userRepo"] = { createNewUser: createMock };
+    // @ts-ignore
+    service["officeRepo"] = { findOrganizationOffice: jest.fn().mockResolvedValue(null) };
+
+    const { UserType } = await import("@daos/UserDAO");
+
+    // Test MUNICIPAL_ADMINISTRATOR
+    await expect(
+      service.createMunicipalityUser({
+        firstName: "Municipal",
+        lastName: "Admin",
+        email: "munadmin@local",
+        username: "munadmin",
+        password: "pass",
+        userType: UserType.MUNICIPAL_ADMINISTRATOR,
+      } as any)
+    ).rejects.toThrow("Organization office not found.");
+
+    // Test PUBLIC_RELATIONS_OFFICER
+    await expect(
+      service.createMunicipalityUser({
+        firstName: "PRO",
+        lastName: "Officer",
+        email: "pro@local",
+        username: "pro",
+        password: "pass",
+        userType: UserType.PUBLIC_RELATIONS_OFFICER,
+      } as any)
+    ).rejects.toThrow("Organization office not found.");
+
+    expect(createMock).not.toHaveBeenCalled();
+  });
+});

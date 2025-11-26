@@ -1,4 +1,4 @@
-import type { Category, Office, Report, User } from "../models/models";
+import type { Category, Office, Report, User, Chat, Message } from "../models/models";
 import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
@@ -408,5 +408,87 @@ export const markNotificationAsSeen = async (id: number) => {
     if (!res.ok) {
         throw await toApiError(res);
     }
+}
 
+type ChatsResponse = {
+    chats: Chat[];
+}
+
+export const getChats = async (): Promise<Chat[]> => {
+  const res = await fetch(`${BASE_URL}/messages`, {
+    method: "GET",
+    headers: {
+        Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if(!res.ok) throw await toApiError(res);
+
+  let data: ChatsResponse;
+  try {
+      data = await res.json();
+  } catch {
+      throw new Error("Failed to fetch your chats");
+  }
+
+  const chatsArray =
+        Array.isArray(data)
+            ? data
+            : Array.isArray(data.chats)
+                ? data.chats
+                : [];
+
+    return chatsArray;
+}
+
+interface MessagesResponse {
+  messages: Message[];
+}
+
+export const getMessages = async (id: number): Promise<Message[]> => {
+  const res = await fetch(`${BASE_URL}/messages/report/${id}`, {
+    method: "GET",
+    headers: {
+        Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if(!res.ok) throw await toApiError(res);
+
+  let data: MessagesResponse;
+  try {
+      data = await res.json();
+  } catch {
+      throw new Error("Failed to fetch your chats");
+  }
+
+  const chatsArray =
+        Array.isArray(data)
+            ? data
+            : Array.isArray(data.messages)
+                ? data.messages
+                : [];
+
+    return chatsArray;
+}
+
+export interface SendMessage {
+  reportId: number,
+  receiverId: number,
+  text: string,
+}
+
+export const sendMessage = async (payload: SendMessage) => {
+    const res = await fetch(`${BASE_URL}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        throw await toApiError(res);
+    }
 }
