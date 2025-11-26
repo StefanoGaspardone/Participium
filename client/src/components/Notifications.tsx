@@ -58,12 +58,12 @@ export default function Notifications() {
     }, [open]);
 
     const handleNotificationClick = async (notification: Notification) => {
-        // Se già letta, non fare nulla lato API
+        // If already read, do nothing on the API side
         if (notification.seen) {
             return;
         }
 
-        // Aggiorna lo stato locale immediatamente per feedback visivo
+        // Update local state immediately for visual feedback
         setNotifications(prev =>
             prev.map(n =>
                 n.id === notification.id
@@ -72,12 +72,12 @@ export default function Notifications() {
             )
         );
 
-        // Chiama l'API in background
+        // Call the API in the background
         try {
             await markNotificationAsSeen(notification.id);
         } catch (error) {
             console.error("Failed to mark notification as seen:", error);
-            // Rollback in caso di errore
+            // Rollback in case of error
             setNotifications(prev =>
                 prev.map(n =>
                     n.id === notification.id
@@ -94,10 +94,10 @@ export default function Notifications() {
         const diffMs = now.getTime() - date.getTime();
         const diffMins = Math.floor(diffMs / 60000);
 
-        if (diffMins < 1) return "Ora";
+        if (diffMins < 1) return "Now";
         if (diffMins < 60) return `${diffMins}m ago`;
         if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-        return `${Math.floor(diffMins / 1440)}g ago`;
+        return `${Math.floor(diffMins / 1440)}d ago`;
     };
 
     const menuVariants = {
@@ -186,7 +186,7 @@ export default function Notifications() {
                             {loading && (
                                 <div className="text-center py-4">
                                     <div className="spinner-border spinner-border-sm text-primary" role="status">
-                                        <span className="visually-hidden">Caricamento...</span>
+                                        <span className="visually-hidden">Loading...</span>
                                     </div>
                                 </div>
                             )}
@@ -198,7 +198,7 @@ export default function Notifications() {
                             {!loading && !error && notifications.length === 0 && (
                                 <div className="text-center py-4 text-muted">
                                     <BsBell size={32} className="mb-2 opacity-50" />
-                                    <p className="mb-0 small">Nessuna notifica</p>
+                                    <p className="mb-0 small">No notifications</p>
                                 </div>
                             )}
                             {!loading && !error && notifications.length > 0 && (
