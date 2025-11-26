@@ -2,12 +2,14 @@ import "reflect-metadata";
 import "dotenv/config";
 import * as bcrypt from "bcryptjs";
 
+
 // Set environment variables for test DB, so that the .env ones are not used
-process.env.DB_HOST = "localhost";
-process.env.DB_PORT = "5445";
-process.env.DB_USERNAME = "postgres";
-process.env.DB_PASSWORD = "mysecretpassword";
-process.env.DB_NAME = "test_postgres";
+// Allow CI to override DB_PORT via environment variable
+process.env.DB_HOST = process.env.DB_HOST || "localhost";
+process.env.DB_PORT = process.env.DB_PORT || "5445";  // Use 5445 locally, but allow CI to override
+process.env.DB_USERNAME = process.env.DB_USERNAME || "postgres";
+process.env.DB_PASSWORD = process.env.DB_PASSWORD || "mysecretpassword";
+process.env.DB_NAME = process.env.DB_NAME || "test_postgres";
 
 // Lazy imports so that the DB config picks up the env vars above
 let AppDataSource: any;
