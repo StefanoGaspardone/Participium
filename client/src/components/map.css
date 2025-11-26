@@ -179,26 +179,7 @@
 .center-action-button {
   position: fixed;
   bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1200;
-  background-color: rgb(0, 87, 160);
-  /* bootstrap primary */
-  color: #fff;
-  border: none;
-  padding: 10px 22px;
-  font-size: 15px;
-  border-radius: 999px;
-  /* pill shape */
-  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.18);
-  cursor: pointer;
-}
-
-.center-action-button-admin {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 45%;
   z-index: 1200;
   background-color: rgb(0, 87, 160);
   /* bootstrap primary */

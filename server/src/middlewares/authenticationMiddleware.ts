@@ -1,19 +1,19 @@
-import {NextFunction, Request, Response} from "express";
+import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import {JwtPayload} from "jsonwebtoken";
-import {UserType} from "@daos/UserDAO";
-import {jwtSecret} from "@app";
-import {UnauthorizedError} from "@errors/UnauthorizedError";
-import {InsufficientRightsError} from "@errors/InsufficientRightsError";
+import { JwtPayload } from "jsonwebtoken";
+import { UserType } from "@daos/UserDAO";
+import { jwtSecret } from "@app";
+import { UnauthorizedError } from "@errors/UnauthorizedError";
+import { InsufficientRightsError } from "@errors/InsufficientRightsError";
 import { UserDTO } from "@dtos/UserDTO";
 
-// Definisci la struttura del tuo payload
+// Define the structure of your payload
 // Payload can be either legacy { userId, role } or new { user }
 interface UserPayload extends JwtPayload {
     user?: UserDTO;
 }
 
-// Estendi l'interfaccia Request per includere il payload dell'utente
+// Extend the Request interface to include the user's payload
 export interface AuthRequest extends Request {
     token?: UserPayload;
 }
@@ -44,7 +44,7 @@ export const authMiddleware = (allowedRoles: string[]) => {
                 throw new InsufficientRightsError("Denied access. Insufficient permissions.");
             }
 
-            next(); // Passa al controller successivo
+            next(); // Proceed to the next controller
         } catch (error) {
             if (error instanceof jwt.JsonWebTokenError) {
                 throw new UnauthorizedError("Denied access. Invalid token.");
