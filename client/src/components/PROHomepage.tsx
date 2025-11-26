@@ -274,7 +274,7 @@ export default function PROHomepage() {
                                 disabled={c.id === r.category.id}
                               >
                                 {c.name}
-                                {c.id === r.category.id ? " (attuale)" : ""}
+                                {c.id === r.category.id ? " (current)" : ""}
                               </option>
                             ))}
                           </Form.Select>

@@ -159,6 +159,7 @@
     cursor: pointer;
     z-index: 5;
     justify-self: start;
+    margin-left: 1rem;
 }
 
 /* Titolo perfettamente centrato usando grid */
@@ -211,6 +212,10 @@
     .navbar-container {
         padding: 0.4rem 0.8rem;
     }
+
+    .navbar-logo {
+        margin-left: 0.35rem;
+    }
 }
 
 /* Media query per mobile */
@@ -225,5 +230,9 @@
 
     .navbar-top-row {
         height: 50px;
+    }
+
+    .navbar-logo {
+        margin-left: 0.25rem;
     }
 }
