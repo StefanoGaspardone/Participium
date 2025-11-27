@@ -11,9 +11,9 @@ sections:
 
 ### Macro statistics
 
-- Number of stories committed vs. done =
-- Total points committed vs. done =
-- Nr of hours planned vs. spent (as a team) =
+- Number of stories committed vs. done = 6/6
+- Total points committed vs. done =  39/39
+- Nr of hours planned vs. spent (as a team) = 80h 35m planned, 77h 47m tracked
 
 **Remember**a story is done ONLY if it fits the Definition of Done:
 
@@ -26,14 +26,15 @@ sections:
 
 ### Detailed statistics
 
-| Story                          | # Tasks | Points | Hours est. | Hours actual |
-|--------------------------------|---------|--------|------------|--------------|
-| _Uncategorized_                |         |        |            |              |
-| Register user                  |         |        |            |              |
-| register municipality user     |         |        |            |              |
-| assign municipality user roles |         |        |            |              |
-| get location                   |         |        |            |              |
-| create report                  |         |        |            |              |
+| Story                         | # Tasks | Points | Hours est. | Hours actual |
+|-------------------------------|---------|--------|------------|--------------|
+| _Uncategorized_               | 18      | -      | 51h 35m    | 50h 52m      |
+| Manage pending report         | 9       |        | 5h 10m     | 4h 12m       |
+| See approved reports on map   | 2       |        | 2h         | 1h 38m       |
+| View assigned report          | 6       |        | 3h 45m     | 2h 21m       |
+| Configure account settings    | 8       |        | 4h 10m     | 3h 56m       |
+| Update report status          | 14      |        | 8h 35m     | 9h 40m       |
+| Create report on telegram bot | 5       |        | 5h 20m     | 5h 8m        |
 
 > story `Uncategorized` is for technical tasks, leave out story points (not applicable in this case)
 
@@ -55,45 +56,56 @@ sections:
 ## QUALITY MEASURES
 
 - Unit Testing:
-  - Total hours estimated =
-  - Total hours spent =
-  - Nr of automated unit test cases =
-  - Coverage =
+  - Total hours estimated = 2h
+  - Total hours spent = 2h 30m
+  - Nr of automated unit test cases = 119
+  - Coverage = 97%
+- Integration testing:
+  - Total hours estimated = 2h
+  - Total hours spent = 2h 45m
+  - Nr of test cases = 
+  - Coverage = 
 - E2E testing:
-  - Total hours estimated =
-  - Total hours spent =
-  - Nr of test cases =
+  - Total hours estimated = 2h 30m 
+  - Total hours spent = 3h
+  - Nr of test cases = 112
+  - Coverage = 85%
 - Code review
-  - Total hours estimated =
-  - Total hours spent =
+  - Total hours estimated = 3h
+  - Total hours spent = 1h 30m
 
 ## ASSESSMENT
 
 - What did go wrong in the sprint?
 
-  >
+  > We struggle with frontend testing because we changed it after writing
+  > the tests and we did not have time to spend on it. 
 
 - What caused your errors in estimation (if any)?
 
-  >
+  > We underestimated tests for story 11 becuase we did not expect to 
+  > have that many new classes to test.
+  > For frontend tests as well we underestimated the time needed.
 
 - What lessons did you learn (both positive and negative) in this sprint?
 
-  > Positive:
-  > Negative:
+  > Positive: We estimated more accurately overall the tasks.
+  > Negative: Frontend testing takes more time than expected.
 
 - Which improvement goals set in the previous retrospective were you able to achieve?
 
-  >
+  > Better task estimation
+  > better frontend styling, even if not perfect yet
 
 - Which ones you were not able to achieve? Why?
 
-  >
+  > We still have to work on frontend styling
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
 
-  > 1.
-  > 2.
+  > 1. Better frontend testing
+  > 2. We should add time to refactor code and pay technical debt
+  > 3. work on frontend styling
 
 - One thing you are proud of as a Team !!
 
