@@ -29,12 +29,12 @@ sections:
 | Story                         | # Tasks | Points | Hours est. | Hours actual |
 |-------------------------------|---------|--------|------------|--------------|
 | _Uncategorized_               | 18      | -      | 51h 35m    | 50h 52m      |
-| Manage pending report         | 9       |        | 5h 10m     | 4h 12m       |
-| See approved reports on map   | 2       |        | 2h         | 1h 38m       |
-| View assigned report          | 6       |        | 3h 45m     | 2h 21m       |
-| Configure account settings    | 8       |        | 4h 10m     | 3h 56m       |
-| Update report status          | 14      |        | 8h 35m     | 9h 40m       |
-| Create report on telegram bot | 5       |        | 5h 20m     | 5h 8m        |
+| Manage pending report         | 9       | 2      | 5h 10m     | 4h 12m       |
+| See approved reports on map   | 2       | 13     | 2h         | 1h 38m       |
+| View assigned report          | 6       |  1     | 3h 45m     | 2h 21m       |
+| Configure account settings    | 8       |  2     | 4h 10m     | 3h 56m       |
+| Update report status          | 14      |  8     | 8h 35m     | 9h 40m       |
+| Create report on telegram bot | 5       |  13    | 5h 20m     | 5h 8m        |
 
 > story `Uncategorized` is for technical tasks, leave out story points (not applicable in this case)
 
@@ -42,16 +42,20 @@ sections:
 
 |            | Mean | StDev |
 | ---------- |------|-------|
-| Estimation |      |       |
-| Actual     |      |       |
+| Estimation |  1.3 |  1.95 |
+| Actual     |  1.25|  1.90 |
 
 - Total estimation error ratio: sum of total hours spent / sum of total hours effort - 1
 
-  $$\frac{\sum_i spent_{task_i}}{\sum_i estimation_{task_i}} - 1$$ =
+$ \frac{\sum_i spent_{task_i}}{\sum_i estimation_{task_i}} - 1 = -0.0347 $
+
+  $3.47\% $ underestimation 
 
 - Absolute relative task estimation error: sum( abs( spent-task-i / estimation-task-i - 1))/n
 
-  $$\frac{1}{n}\sum_i^n \left| \frac{spent_{task_i}}{estimation_task_i}-1 \right| $$ =
+  $\frac{1}{n}\sum_i^n \left| \frac{spent_{task_i}}{estimation_task_i}-1 \right| = 0.2113 $
+
+  $ 21.13\% $ average error per task
 
 ## QUALITY MEASURES
 
@@ -63,8 +67,8 @@ sections:
 - Integration testing:
   - Total hours estimated = 2h
   - Total hours spent = 2h 45m
-  - Nr of test cases = 
-  - Coverage = 
+  - Nr of test cases = 157
+  - Coverage = 92.8%
 - E2E testing:
   - Total hours estimated = 2h 30m 
   - Total hours spent = 3h
