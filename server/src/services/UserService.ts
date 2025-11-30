@@ -121,7 +121,7 @@ export class UserService {
         const codeString = randomInt(0, 1000000).toString().padStart(6, '0');
         const expirationDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
-        const saved = await this.codeService.create(codeString, expirationDate, user);
+        const saved = await this.codeService.create(codeString, expirationDate, userId);
 
         user.codeConfirmation = saved;
         await this.userRepo.updateUser(user);

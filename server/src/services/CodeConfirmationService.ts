@@ -10,20 +10,26 @@ export class CodeConfirmationService {
         this.codeRepo = codeRepository;
     }
 
-    create = async (code: string, expirationDate: Date, user?: UserDAO): Promise<CodeConfirmationDAO> => {
-        if(user) {
-            const existing = await this.codeRepo.findByUserId(user.id);
+    create = async (code: string, expirationDate: Date, userId?: number): Promise<CodeConfirmationDAO> => {
+        if(userId) {
+            const existing = await this.codeRepo.findByUserId(userId);
             if(existing) {
                 existing.code = code;
                 existing.expirationDate = expirationDate;
-                existing.user = user;
+
+                const user = new UserDAO();
+                user.id = userId
+                existing.user = user as any;
                 return await this.codeRepo.save(existing);
             }
 
             const confirmation = new CodeConfirmationDAO();
             confirmation.code = code;
             confirmation.expirationDate = expirationDate;
-            confirmation.user = user;
+
+            const user = new UserDAO();
+            user.id = userId
+            confirmation.user = user as any;
             return await this.codeRepo.save(confirmation);
         }
 
