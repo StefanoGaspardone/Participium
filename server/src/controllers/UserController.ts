@@ -68,8 +68,9 @@ export class UserController {
       payload.image = req.body.image;
       payload.telegramUsername = req.body.telegramUsername;
       payload.emailNotificationsEnabled = req.body.emailNotificationsEnabled;
-      const newUser = await this.userService.signUpUser(payload);
-      res.status(201).json({ message: "User created" });
+      await this.userService.signUpUser(payload);
+      
+      res.status(201).send();
     } catch (error) {
       if (error instanceof QueryFailedError && (error as any).code === "23505") {
         if(req.body.telegramUsername === '') return next(new ConflictError("Email or username already exists"));

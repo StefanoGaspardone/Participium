@@ -1,8 +1,9 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn,  } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn,  } from 'typeorm';
 import { OfficeDAO } from '@daos/OfficeDAO';
-import { IsEmail, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf, Validator } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf, Validator } from 'class-validator';
 import { ReportDAO } from '@daos/ReportDAO';
 import {NotificationDAO} from "@daos/NotificationsDAO";
+import { CodeConfirmationDAO } from '@daos/CodeConfirmationDAO';
 
 export enum UserType {
     CITIZEN = 'CITIZEN',
@@ -47,6 +48,10 @@ export class UserDAO {
     @Column({ type: 'varchar' })
     @IsEnum(UserType)
     userType: UserType;
+
+    @Column({ type: 'boolean', default: true })
+    @IsBoolean()
+    isActive: boolean;
     
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
@@ -70,4 +75,7 @@ export class UserDAO {
 
     @OneToMany(() => NotificationDAO, notification => notification.user)
     notifications: NotificationDAO[];
+
+    @OneToOne(() => CodeConfirmationDAO, code => code.user)
+    codeConfirmation: CodeConfirmationDAO;
 }

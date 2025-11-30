@@ -1,19 +1,27 @@
+import { randomInt } from 'crypto';
 import {userRepository, UserRepository} from "@repositories/UserRepository";
+import { CodeConfirmationDAO } from '@daos/CodeConfirmationDAO';
 import {MapUserDAOtoDTO, NewMunicipalityUserDTO, NewUserDTO, UserDTO} from "@dtos/UserDTO";
 import {UserDAO, UserType} from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
 import {NotFoundError} from "@errors/NotFoundError";
+import { mailService, MailService } from "@services/MailService";
+import { CodeConfirmationService, codeService } from '@services/CodeConfirmationService';
 
 export class UserService {
 
     private userRepo: UserRepository;
     private officeRepo: OfficeRepository;
+    private mailService: MailService;
+    private codeService: CodeConfirmationService;
 
     constructor() {
         this.userRepo = userRepository;
         this.officeRepo = officeRepository;
+        this.mailService = mailService;
+        this.codeService = codeService;
     }
 
     findAllUsers = async (): Promise<UserDTO[]> => {
@@ -28,21 +36,23 @@ export class UserService {
         return MapUserDAOtoDTO(user);
     }
 
-    signUpUser = async (payload: NewUserDTO): Promise<UserDAO> => {
-        const user = new UserDAO();
-        user.firstName = payload.firstName;
-        user.lastName = payload.lastName;
-        user.email = payload.email;
-        user.username = payload.username;
-        user.userType = UserType.CITIZEN;
-        user.image = payload.image;
-        user.telegramUsername = payload.telegramUsername;
-        user.emailNotificationsEnabled = payload.emailNotificationsEnabled;
-        const salt = await bcrypt.genSalt(10);
-        user.passwordHash = await bcrypt.hash(payload.password, salt);
-
+    signUpUser = async (payload: NewUserDTO) => {
         try {
-            return this.userRepo.createNewUser(user);
+            let user = new UserDAO();
+            user.firstName = payload.firstName;
+            user.lastName = payload.lastName;
+            user.email = payload.email;
+            user.username = payload.username;
+            user.userType = UserType.CITIZEN;
+            user.image = payload.image;
+            user.telegramUsername = payload.telegramUsername;
+            user.emailNotificationsEnabled = payload.emailNotificationsEnabled;
+            user.isActive = false;
+            const salt = await bcrypt.genSalt(10);
+            user.passwordHash = await bcrypt.hash(payload.password, salt);
+            const saved = await this.userRepo.createNewUser(user);
+            
+            await this.createCodeConfirmationForUser(saved.id);
         } catch (error) {
             throw error;
         }
@@ -102,6 +112,27 @@ export class UserService {
         if(updateData.emailNotificationsEnabled !== undefined) user.emailNotificationsEnabled = updateData.emailNotificationsEnabled;
         const updatedUser = await this.userRepo.updateUser(user);
         return MapUserDAOtoDTO(updatedUser);
+    }
+
+    createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
+        const user = await this.userRepo.findUserById(userId);
+        if(!user) throw new NotFoundError(`User with id ${userId} not found`);
+
+        const codeString = randomInt(0, 1000000).toString().padStart(6, '0');
+        const expirationDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+        const saved = await this.codeService.create(codeString, expirationDate, user);
+
+        user.codeConfirmation = saved;
+        await this.userRepo.updateUser(user);
+
+        await this.mailService.sendMail({
+            to: user.email,
+            subject: 'Your verification code',
+            text: `Your verification code is: ${codeString}`,
+        });
+
+        return saved;
     }
 }
 
