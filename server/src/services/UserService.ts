@@ -129,7 +129,18 @@ export class UserService {
         await this.mailService.sendMail({
             to: user.email,
             subject: 'Your verification code',
-            text: `Your verification code is: ${codeString}`,
+            text: `Hi ${user.firstName || user.username || ''},\n\nYour verification code is: ${codeString}\nThe code expires in 30 minutes.\n\nIf you haven't requested this code, please ignore this email.\n\n---\nParticipium`,
+            html: `
+                <div style="font-family: Arial,Helvetica,sans-serif; color:#222;">
+                    <h2 style="margin:0 0 8px 0;">Participium - Verification code</h2>
+                    <p style="margin:0 0 16px 0;">Hi ${user.firstName || user.username || ''}, welcome to Participium!</p>
+                    <p style="margin:0 0 8px 0;">Your verification code is:</p>
+                    <p style="font-family: monospace; font-size: 26px; font-weight: 700; margin:8px 0;">${codeString}</p>
+                    <p style="margin:12px 0 0 0; color:#666;">The code expires in 30 minutes. If you haven't requested this code, please ignore this email.</p>
+                    <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+                    <small style="color:#888">This message was sent by Participium.</small>
+                </div>
+                `
         });
 
         return saved;

@@ -136,8 +136,6 @@ export const registerUser = async (
   if (!res.ok) {
     throw await toApiError(res);
   }
-
-  return res.json();
 };
 
 export const loginUser = async (
