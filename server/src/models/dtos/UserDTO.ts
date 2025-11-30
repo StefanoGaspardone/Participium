@@ -11,6 +11,7 @@ export interface UserDTO {
     userType: string;
     emailNotificationsEnabled?: boolean;
     office?: string | null;
+    isActive: boolean;
     createdAt: Date;
 }
 
@@ -27,7 +28,8 @@ export const MapUserDAOtoDTO = (user: UserDAO): UserDTO => {
         emailNotificationsEnabled: user.emailNotificationsEnabled,
         office: user.office? user.office.name : null,
         createdAt: new Date(user.createdAt),
-        passwordHash: user.passwordHash
+        passwordHash: user.passwordHash,
+        isActive: user.isActive,
     } as UserDTO;
 }
 

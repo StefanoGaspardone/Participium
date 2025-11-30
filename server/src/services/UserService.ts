@@ -60,8 +60,11 @@ export class UserService {
 
     login = async (username: string, password: string): Promise<UserDAO | null> => {
         try {
-            return this.userRepo.login(username, password);
-        }catch (error) {
+            const user = await this.userRepo.login(username, password);
+
+            if(user && !user.isActive) throw new BadRequestError('Account not activated. Please verify your email before logging in.');
+            return user;
+        } catch(error) {
             throw error;
         }
     }
