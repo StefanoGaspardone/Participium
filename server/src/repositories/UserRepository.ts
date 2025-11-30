@@ -23,6 +23,10 @@ export class UserRepository {
     return this.repo.findOne({ where: { telegramUsername } });
   }
 
+  findUserByUsername = async (username: string): Promise<UserDAO | null> => {
+    return this.repo.findOne({ where: { username }, relations: ['codeConfirmation'] });
+  }
+
   createNewUser = async (user: UserDAO): Promise<UserDAO> => {
     return this.repo.save(user);
   };

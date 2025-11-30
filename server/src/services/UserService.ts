@@ -114,7 +114,7 @@ export class UserService {
         return MapUserDAOtoDTO(updatedUser);
     }
 
-    createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
+    private createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
         const user = await this.userRepo.findUserById(userId);
         if(!user) throw new NotFoundError(`User with id ${userId} not found`);
 
@@ -145,7 +145,41 @@ export class UserService {
 
         return saved;
     }
-}
 
+    validateUser = async (username: string, code: string) => {
+        const user = await this.userRepo.findUserByUsername(username);
+
+        if (!user) throw new NotFoundError(`User with username ${username} not found`);
+        if(user.isActive) throw new BadRequestError('User is already active');
+
+        const confirmation = user.codeConfirmation;
+        if(!confirmation) throw new BadRequestError('No verification code found for this user');
+
+        const now = new Date();
+        if(confirmation.expirationDate && now > confirmation.expirationDate) throw new BadRequestError('Verification code has expired');
+
+        if(String(confirmation.code) !== String(code)) throw new BadRequestError('Invalid verification code');
+
+        try {
+            await this.codeService.deleteById(confirmation.id);
+        } catch(err) {
+            throw err;
+        }
+
+        user.codeConfirmation = undefined as any;
+        user.isActive = true;
+
+        await this.userRepo.updateUser(user);
+    }
+
+    resendCode = async (username: string) => {
+        const user = await this.userRepo.findUserByUsername(username);
+
+        if(!user) throw new NotFoundError(`User with username ${username} not found`);
+        if(user.isActive) throw new BadRequestError('User is already active');
+
+        await this.createCodeConfirmationForUser(user.id);
+    }
+}
 
 export const userService = new UserService();

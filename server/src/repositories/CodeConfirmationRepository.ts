@@ -17,6 +17,10 @@ export class CodeConfirmationRepository {
     findByUserId = async (userId: number): Promise<CodeConfirmationDAO | null> => {
         return await this.repo.findOne({ where: { user: { id: userId } }, relations: ['user'] });
     }
+
+    deleteById = async (id: number) => {
+        await this.repo.delete(id);
+    }
 }
 
 export const codeRepository = new CodeConfirmationRepository();

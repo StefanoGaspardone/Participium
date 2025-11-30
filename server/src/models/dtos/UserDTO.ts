@@ -54,3 +54,8 @@ export interface NewMunicipalityUserDTO {
     officeId?: number;
     image?: string;
 }
+
+export interface ValidateUserDTO {
+    username: string;
+    code: string;
+}

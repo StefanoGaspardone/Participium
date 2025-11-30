@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { UserService, userService } from "@services/UserService";
-import { NewMunicipalityUserDTO, NewUserDTO, MapUserDAOtoDTO } from "@dtos/UserDTO";
+import { NewMunicipalityUserDTO, NewUserDTO, MapUserDAOtoDTO, ValidateUserDTO } from "@dtos/UserDTO";
 import * as jwt from "jsonwebtoken";
 import { CONFIG } from "@config";
 import { BadRequestError } from "@errors/BadRequestError";
@@ -212,7 +212,35 @@ export class UserController {
           }
           next(error);
       }
-  };
+  }
+
+  validateUser = async (req: Request<{}, {}, { payload: ValidateUserDTO }>, res: Response, next: NextFunction) => {
+    try {
+      const { payload } = req.body;
+
+      if(!payload) throw new BadRequestError('Payload is missing');
+      if(!payload.username || !payload.username.trim()) throw new BadRequestError('Property \'username\' is missing or invalid');
+      if(!payload.code || !payload.code.trim()) throw new BadRequestError('Property \'code\' is missing or invalid');
+
+      await this.userService.validateUser(payload.username, payload.code);
+      return res.status(204).send();
+    } catch(error) {
+      next(error);
+    }
+  }
+
+  resendCode = async (req: Request<{}, {}, { username: string }>, res: Response, next: NextFunction) => {
+    try {
+      const { username } = req.body;
+
+      if(!username || !username.trim()) throw new BadRequestError('Property \'username\' is missing or invalid');
+      
+      await this.userService.resendCode(username);
+      return res.status(201).send();
+    } catch(error) {
+      next(error);
+    }
+  }
 }
 
 interface tokenDatas extends JwtPayload {

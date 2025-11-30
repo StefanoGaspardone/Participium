@@ -39,6 +39,10 @@ export class CodeConfirmationService {
 
         return await this.codeRepo.save(confirmation);
     }
+
+    deleteById = async (id: number) => {
+        await this.codeRepo.deleteById(id);
+    }
 }
 
 export const codeService = new CodeConfirmationService();
