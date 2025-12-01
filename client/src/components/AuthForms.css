@@ -115,6 +115,7 @@
     text-decoration: none;
     color: #265ea8;
     transition: color 0.25s ease;
+    cursor: pointer;
 }
 
 .auth-link-inline::after {

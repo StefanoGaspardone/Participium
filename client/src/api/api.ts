@@ -511,3 +511,21 @@ export const validateUser = async (payload: CodeConfirm) => {
       throw await toApiError(res);
   }
 }
+
+export interface ResendCode {
+  username: string;
+}
+
+export const resendCode = async (payload: ResendCode) => {
+  const res = await fetch(`${BASE_URL}/users/resend-user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if(!res.ok) {
+      throw await toApiError(res);
+  }
+}

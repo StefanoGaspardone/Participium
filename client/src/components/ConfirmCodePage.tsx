@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import CustomNavbar from './CustomNavbar';
 import { Container, Form, Button, Card, Row, Col } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import { validateUser } from '../api/api';
+import { validateUser, resendCode } from '../api/api';
 import toast from 'react-hot-toast';
 
 const ConfirmCodePage = () => {
@@ -13,6 +13,9 @@ const ConfirmCodePage = () => {
     const [username, setUsername] = useState('');
     const [codeDigits, setCodeDigits] = useState<string[]>(['', '', '', '', '', '']);
     const [loading, setLoading] = useState(false);
+    // Start with 60s cooldown on first arrival; user cannot resend immediately
+    const [cooldown, setCooldown] = useState<number>(60);
+    const [canResend, setCanResend] = useState<boolean>(false);
 
     const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -22,6 +25,25 @@ const ConfirmCodePage = () => {
         const state = location.state as { username?: string } | null;
         setUsername(state?.username || '');
     }, [location.state]);
+    
+    useEffect(() => {
+        if(cooldown > 0) {
+            setCanResend(false);
+
+            const t = setInterval(() => {
+                setCooldown(prev => {
+                    const next = prev > 0 ? prev - 1 : 0;
+                    if(next === 0) setCanResend(true);
+                    
+                    return next;
+                });
+            }, 1000);
+
+            return () => clearInterval(t);
+        } else {
+            setCanResend(true);
+        }
+    }, [cooldown]);
     
     const handleDigitChange = (index: number, value: string) => {
         if(!/^[0-9]?$/.test(value)) return;
@@ -79,13 +101,46 @@ const ConfirmCodePage = () => {
         try {
             await validateUser({ payload: { username: username.trim(), code: code.trim() } });
 
-            toast.success("Account verified! You can log in.");
+            toast.success('Account verified! You can log in.');
             navigate('/login');
         } catch(err) {
             console.error('Validate error', err);
-            alert((err as Error).message || 'Validation failed');
+            const msg = (err as Error)?.message || 'Validation failed';
+            toast.error(msg);
+            
+            setCooldown(0);
+            setCanResend(true);
         } finally {
             setLoading(false);
+        }
+    }
+
+    const handleResend = async () => {
+
+        console.log('here1');
+        if(!username.trim()) {
+            toast.error('Please enter username first');
+            return;
+        }
+
+        console.log('here2');
+
+        if(!canResend) return;
+
+        console.log('here3');
+
+        try {
+            setCanResend(false);
+
+            await resendCode({ username: username.trim() });
+            
+            toast.success('New code sent');
+            setCooldown(60);
+        } catch(err) {
+            console.error('Resend error', err);
+            toast.error((err as Error)?.message || 'Failed to resend');
+            
+            setCanResend(true);
         }
     }
 
@@ -111,7 +166,7 @@ const ConfirmCodePage = () => {
                                                 <Form.Label>Code</Form.Label>
                                                 <div className = 'd-flex justify-content-center' onPaste = { handlePaste }>
                                                     {Array.from({ length: 6 }).map((_, i) => (
-                                                        <input key = { i } ref = { el => { inputsRef.current[i] = el } } className='text-center otp-input' style = {{ width: '3.2rem', height: '3.2rem', fontSize: '1.25rem', padding: '0.25rem', marginRight: i < 5 ? '0.5rem' : 0 }} inputMode = 'numeric' pattern = '[0-9]*' maxLength = { 1 } value = { codeDigits[i] } onChange = { e => handleDigitChange(i, e.target.value) } onKeyDown = { e => handleKeyDown(e, i) } aria-label = { `Digit ${i + 1}` }/>
+                                                        <input key = { i } ref = { el => { inputsRef.current[i] = el } } className='text-center otp-input' inputMode = 'numeric' pattern = '[0-9]*' maxLength = { 1 } value = { codeDigits[i] } onChange = { e => handleDigitChange(i, e.target.value) } onKeyDown = { e => handleKeyDown(e, i) } aria-label = { `Digit ${i + 1}` }/>
                                                     ))}
                                                 </div>
                                             </Form.Group>
@@ -122,6 +177,13 @@ const ConfirmCodePage = () => {
                                             </Button>
                                         </motion.div>
                                     </Form>
+                                    <motion.div className = 'mt-3 text-center' initial = {{ opacity: 0 }} animate = {{ opacity: 1 }} transition = {{ delay: 0.65, duration: 0.45 }}>
+                                        {cooldown > 0 ? `Resend available in ${cooldown}s` : (
+                                            <div>
+                                                Click <span id = 'resend-code' onClick = { handleResend } className = 'auth-link-inline'>here</span> to resend the code
+                                            </div>
+                                        )}
+                                    </motion.div>
                                 </Card.Body>
                             </Card>
                         </motion.div>
