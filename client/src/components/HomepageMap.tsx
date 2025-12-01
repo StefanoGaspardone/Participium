@@ -197,16 +197,16 @@ const createReportIcon = (status: string) => {
 		className: 'custom-report-marker',
 		html: `
 			<div style='
-				width: 30px;
-				height: 30px;
+				width: 20px;
+				height: 20px;
 				background-color: ${statusColor};
 				border-radius: 50%;
 				box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 			'></div>
 		`,
-		iconSize: [30, 30],
-		iconAnchor: [15, 15],
-		popupAnchor: [0, -15]
+		iconSize: [20, 20],
+		iconAnchor: [10, 10],
+		popupAnchor: [0, -10]
 	});
 }
 
@@ -292,7 +292,7 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 	const center = { lat: 45.06985, lng: 7.68228 };
 	const zoom = 11;
 	const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
-	const [legendOpen, setLegendOpen] = useState(true);
+	const [legendOpen, setLegendOpen] = useState(false);
 	const statusEntries = useMemo(
 		() => Object.entries(REPORT_STATUS_COLORS).filter(([status]) => status !== 'Pending'),
 		[]
@@ -348,7 +348,14 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 				<MarkerClusterGroup chunkedLoading iconCreateFunction={createClusterCustomIcon} maxClusterRadius={80} spiderfyOnMaxZoom={true} showCoverageOnHover={false}>
 					{reports && reports.map((report) => (
 						<Marker key={report.id} position={[report.lat, report.long]} icon={createReportIcon(report.status)}>
-							<Popup>{report.title}</Popup>
+							<Popup>
+								<div style={{ textAlign: 'center' }}>
+									<p style={{ margin: '0 0 5px 0', fontWeight: 'bold' }}>{report.title}</p>
+									<p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
+										Issued by: {report.anonymous ? 'Anonymous' : `@${report.createdBy?.username || 'Unknown'}`}
+									</p>
+								</div>
+							</Popup>
 						</Marker>
 					))}
 				</MarkerClusterGroup>
