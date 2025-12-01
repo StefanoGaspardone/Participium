@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo, useId } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, Polygon } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
@@ -12,7 +13,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import './map.css';
 import { useAppContext } from '../contexts/AppContext';
 import type { Coord, Report } from '../models/models';
-import {REPORT_STATUS_COLORS} from "../constants/reportStatusColors.ts";
+import { REPORT_STATUS_COLORS } from '../constants/reportStatusColors';
+import { ChevronUp } from 'lucide-react';
 
 const DefaultIcon = L.icon({
 	iconUrl: icon,
@@ -160,11 +162,11 @@ const createClusterCustomIcon = (cluster: any) => {
 	const count = cluster.getChildCount();
 	let color;
 
-	if (count < 10) color = '#10B981'; // green
-	else if (count < 25) color = '#EAB308'; // yellow
-	else if (count < 50) color = '#F59E0B'; // orange
-	else if (count < 100) color = '#EF4444'; // red
-	else color = '#991B1B'; // dark red
+	if (count < 10) color = '#FDBA74'; // soft orange
+	else if (count < 25) color = '#FB923C'; // bright orange
+	else if (count < 50) color = '#F97316'; // vivid amber
+	else if (count < 100) color = '#EA580C'; // strong orange-red
+	else color = '#C2410C'; // deep red
 
 	return L.divIcon({
 		html: `
@@ -186,6 +188,8 @@ const createClusterCustomIcon = (cluster: any) => {
 		iconSize: L.point(50, 50, true),
 	});
 };
+
+const sanitizeId = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 const createReportIcon = (status: string) => {
 	const statusColor = REPORT_STATUS_COLORS[status] || '#6B7280';
@@ -288,6 +292,16 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 	const center = { lat: 45.06985, lng: 7.68228 };
 	const zoom = 11;
 	const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
+	const [legendOpen, setLegendOpen] = useState(true);
+	const statusEntries = useMemo(
+		() => Object.entries(REPORT_STATUS_COLORS).filter(([status]) => status !== 'Pending'),
+		[]
+	);
+	const legendPanelId = useId();
+	const legendBaseId = useMemo(() => `map-legend-${legendPanelId.replace(/[^a-zA-Z0-9]/g, '')}`, [legendPanelId]);
+	const legendContainerId = `${legendBaseId}-container`;
+	const legendToggleId = `${legendBaseId}-toggle`;
+	const legendListId = `${legendBaseId}-list`;
 
 	useEffect(() => {
 		const nominatimUrl = 'https://nominatim.openstreetmap.org/search.php?q=Turin%2C+Italy&polygon_geojson=1&format=jsonv2';
@@ -339,6 +353,79 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 					))}
 				</MarkerClusterGroup>
 			</MapContainer>
+			<motion.div
+				id={legendContainerId}
+				className='map-legend'
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.35, ease: 'easeOut' }}
+			>
+				<motion.button
+					type='button'
+					id={legendToggleId}
+					className='map-legend-toggle'
+					onClick={() => setLegendOpen((prev) => !prev)}
+					aria-expanded={legendOpen}
+					aria-controls={legendPanelId}
+					whileHover={{ scale: 1.01 }}
+					whileTap={{ scale: 0.98 }}
+				>
+					<div className='map-legend-title-block' id={`${legendBaseId}-title`}>
+						<span className='map-legend-title'>Report's color mapping</span>
+					</div>
+					<motion.span
+						id={`${legendBaseId}-caret`}
+						className={`map-legend-caret ${legendOpen ? 'open' : ''}`}
+						aria-hidden='true'
+						animate={{ rotate: legendOpen ? 0 : -180 }}
+						transition={{ duration: 0.3, ease: 'easeOut' }}
+					>
+						<ChevronUp size={16} />
+					</motion.span>
+				</motion.button>
+				<AnimatePresence initial={false}>
+					{legendOpen && (
+						<motion.div
+							key='map-legend-body'
+							id={legendPanelId}
+							className='map-legend-body'
+							initial={{ opacity: 0, height: 0 }}
+							animate={{ opacity: 1, height: 'auto' }}
+							exit={{ opacity: 0, height: 0 }}
+							transition={{ duration: 0.3, ease: 'easeOut' }}
+						>
+							<ul id={legendListId} className='map-legend-list'>
+								{statusEntries.map(([status, color], index) => {
+									const rowId = `${legendBaseId}-status-${sanitizeId(status)}`;
+									return (
+										<motion.li
+											id={rowId}
+											key={status}
+											className='map-legend-row'
+											initial={{ opacity: 0, x: -10 }}
+											animate={{ opacity: 1, x: 0 }}
+											exit={{ opacity: 0, x: -10 }}
+											transition={{ delay: 0.05 * index }}
+										>
+											<span
+												id={`${rowId}-swatch`}
+												className='map-legend-color'
+												style={{ backgroundColor: color }}
+												aria-hidden='true'
+											></span>
+											<div className='map-legend-labels'>
+												<span id={`${rowId}-label`} className='map-legend-status'>
+													{status}
+												</span>
+											</div>
+										</motion.li>
+									);
+								})}
+							</ul>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</motion.div>
 		</div>
 	);
 }
