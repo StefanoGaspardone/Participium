@@ -12,6 +12,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import './map.css';
 import { useAppContext } from '../contexts/AppContext';
 import type { Coord, Report } from '../models/models';
+import {REPORT_STATUS_COLORS} from "../constants/reportStatusColors.ts";
 
 const DefaultIcon = L.icon({
 	iconUrl: icon,
@@ -186,24 +187,15 @@ const createClusterCustomIcon = (cluster: any) => {
 	});
 };
 
-const REPORT_STATUS: Record<string, { color: string }> = {
-	//   'PendingApproval': { color: '#6B7280' }, // Gray
-	'Assigned': { color: '#F59E0B' }, // Orange
-	'InProgress': { color: '#3B82F6' }, // Blue
-	'Suspended': { color: '#8B5CF6' }, // Purple
-	//   'Rejected': { color: '#EF4444' }, // Red
-	'Resolved': { color: '#10B981' } // Green
-};
-
 const createReportIcon = (status: string) => {
-	const statusInfo = REPORT_STATUS[status] || { color: '#6B7280' };
+	const statusColor = REPORT_STATUS_COLORS[status] || '#6B7280';
 	return L.divIcon({
 		className: 'custom-report-marker',
 		html: `
 			<div style='
 				width: 30px;
 				height: 30px;
-				background-color: ${statusInfo.color};
+				background-color: ${statusColor};
 				border-radius: 50%;
 				box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 			'></div>

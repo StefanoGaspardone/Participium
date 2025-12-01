@@ -4,6 +4,7 @@ import { BsBell, BsBellFill } from "react-icons/bs";
 import { getMyNotifications, markNotificationAsSeen, type Notification } from "../api/api";
 import { motion, AnimatePresence } from "framer-motion";
 import "./Notifications.css";
+import {REPORT_STATUS_COLORS} from "../constants/reportStatusColors.ts";
 
 export default function Notifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -19,7 +20,6 @@ export default function Notifications() {
         setError(null);
         try {
             const data = await getMyNotifications();
-            console.log("data: ", data);
             setNotifications(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to load notifications");
@@ -232,9 +232,9 @@ export default function Notifications() {
                                                 </div>
                                                 <div className="notification-status" style={{ fontSize: '0.75rem', color: '#444' }}>
                                                     <span className="status-label" style={{ fontWeight: 500 }}>Status:</span>{' '}
-                                                    <span className="status-old" style={{ textDecoration: 'line-through', opacity: 0.6 }}>{notification.previousStatus}</span>
+                                                    <span className="status-old" style={{ textDecoration: 'line-through', opacity: 0.6, color: REPORT_STATUS_COLORS[notification.previousStatus] || '#6B7280' }}>{notification.previousStatus}</span>
                                                     {' → '}
-                                                    <span className="status-new" style={{ fontWeight: 600 }}>{notification.newStatus}</span>
+                                                    <span className="status-new" style={{ fontWeight: 600, color: REPORT_STATUS_COLORS[notification.newStatus] || '#6B7280' }}>{notification.newStatus}</span>
                                                 </div>
                                                 <div className="notification-time" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.6 }}>
                                                     {formatDate(notification.createdAt)}
