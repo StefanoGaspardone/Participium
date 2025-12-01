@@ -80,7 +80,7 @@ sections:
 - What lessons did you learn (both positive and negative) in this sprint?
 
   > Positive: We have gotten better at estimating task duration and sub-categorising the tasks into smaller pieces compared to the very first sprint.
-  > Negative: We learned that we should have a task for bug fixing or any other problems that may arise. 
+  > Negative: We learned that we should have a task for bug fixing or any other problems that may arise.
 
 - Which improvement goals set in the previous retrospective were you able to achieve?
 
@@ -100,4 +100,4 @@ sections:
 
   > We are Powerpuff Girls, we overcome all problems that arise without blaming anyone and help each other
 
-  <img src="./powerpuff_girls.jpg" alt="Powerpuff Girls" title="Powerpuff Girls — sugar, spice and everything nice!" style="max-width:80%; height:auto;" />
+  ![Powerpuff Girls](./powerpuff_girls.jpg)
