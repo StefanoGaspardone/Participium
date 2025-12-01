@@ -149,7 +149,7 @@ const ConfirmCodePage = () => {
             <CustomNavbar/>
             <Container className = 'my-5'>
                 <Row className = 'justify-content-md-center'>
-                    <Col md = { 9 } lg = { 7 }>
+                    <Col md = { 6 } lg = { 5 }>
                         <motion.div initial = {{ opacity: 0, y: 18 }} animate = {{ opacity: 1, y: 0 }} transition = {{ duration: 0.55, ease: 'easeOut' }}>
                             <Card className = 'auth-card'>
                                 <Card.Body>

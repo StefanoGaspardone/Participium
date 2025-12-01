@@ -48,7 +48,7 @@ export default function RegisterPage() {
 
             toast.success("Registration completed!");
             navigate("/confirm-code", { state: { username: username.trim() } });
-        } catch (err: any) {
+        } catch (err) {
             console.error("Registration error:", err);
             toast.error(err.message || "Registration failed. Please try again.");
         } finally {

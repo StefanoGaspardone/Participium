@@ -126,7 +126,7 @@ export const uploadImages = async (image: File): Promise<string> => {
 
 export const registerUser = async (
   payload: RegisterPayload
-): Promise<{ message: string }> => {
+) => {
   const res = await fetch(`${BASE_URL}/users/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
