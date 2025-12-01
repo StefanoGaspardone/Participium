@@ -13,6 +13,7 @@ import { useAppContext } from "./contexts/AppContext";
 import ProfilePage from "./components/ProfilePage.tsx";
 import type { Coord } from "./models/models.ts";
 import { Toaster } from "react-hot-toast";
+import ConfirmCodePage from "./components/ConfirmCodePage.tsx";
 
 function App() {
   const [selected, setSelected] = useState<Coord | null>(null);
@@ -117,6 +118,7 @@ function App() {
             )
           }
         />
+        <Route path = '/confirm-code' element = { user ? <Navigate to = '/'/> : <ConfirmCodePage/> }/>
       </Routes>
     </>
   );

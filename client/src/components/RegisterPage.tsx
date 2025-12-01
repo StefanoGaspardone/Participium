@@ -47,7 +47,7 @@ export default function RegisterPage() {
             await registerUser(payload);
 
             toast.success("Registration completed!");
-            navigate("/login");
+            navigate("/confirm-code", { state: { username: username.trim() } });
         } catch (err: any) {
             console.error("Registration error:", err);
             toast.error(err.message || "Registration failed. Please try again.");

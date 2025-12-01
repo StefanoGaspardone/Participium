@@ -43,7 +43,7 @@
     border-bottom: 2px solid #d3dae6 !important;
     border-radius: 0 !important;
     background: transparent !important;
-    padding-left: 0 !important;
+    margin-right: 0.5rem;
     padding-right: 0 !important;
     box-shadow: none !important;
     transition: border-color 0.3s ease, background-color 0.3s ease;
@@ -276,4 +276,31 @@
 
 .rs__menu-list::-webkit-scrollbar-thumb:hover {
     background: #b9c2ce;
+}
+
+/* OTP input styling */
+.otp-input {
+    width: 3.2rem;
+    height: 3.2rem;
+    font-size: 1.25rem;
+    padding: 0.25rem;
+    margin-right: 0.5rem;
+    text-align: center;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    outline: none !important;
+}
+
+.otp-input:last-child {
+    margin-right: 0;
+}
+
+.otp-input:focus,
+.otp-input:focus-visible,
+.otp-input.form-control:focus {
+    border-color: #275FA9 !important;
+    border-width: .15rem;
+    box-shadow: 0 0 0 0.18rem rgba(39,95,169,0.12) !important;
+    outline: none !important;
 }
