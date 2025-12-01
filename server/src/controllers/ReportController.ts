@@ -5,14 +5,19 @@ import { Response, NextFunction, Request } from 'express';
 import type { AuthRequest } from '@middlewares/authenticationMiddleware';
 import { isPointInTurin } from '@utils/geo_turin';
 import { ReportStatus } from '@daos/ReportDAO';
-import {notificationService, NotificationService} from "@services/NotificationService";
+import { notificationService, NotificationService } from "@services/NotificationService";
+import { ChatService, chatService } from '@services/ChatService';
+import { createChatDTO } from '@dtos/ChatDTO';
+import { pay } from 'telegraf/typings/button';
 
 export class ReportController {
 
     private reportService: ReportService;
+    private chatService: ChatService;
 
     constructor() {
         this.reportService = reportService;
+        this.chatService = chatService;
     }
 
     createReport = async (req: AuthRequest & { body: { payload: CreateReportDTO } }, res: Response, next: NextFunction) => {
@@ -161,6 +166,15 @@ export class ReportController {
         }
     }
 
+    /**
+     * The function to update the status of an existing report.
+     * If the status goes from x -> InProgress, then the chat between the Citizen creator of the report and the TOSM 
+     * in charge of it is created 
+     * @param req 
+     * @param res 
+     * @param next 
+     * @returns 
+     */
     updateReportStatus = async (
         req: AuthRequest & { params: { id: string }, body: { status: string } },
         res: Response,
@@ -185,7 +199,20 @@ export class ReportController {
             }
 
             const updated = await this.reportService.updateReportStatus(idParam, status as ReportStatus);
-            res.status(200).json({ message: 'Report status updated', report: updated });
+            // we create the chat if the report is assigned to a TOSM and it is now "In progress" 
+            if (updated.status === ReportStatus.InProgress && updated.assignedTo) {
+                const chats = await chatService.findByReportId(updated.id);
+                if (chats.length === 0) {
+                    // if we enter here, no chats were created, then we have to create it (them later)
+                    const payload = {} as createChatDTO;
+                    payload.tosm_user_id = updated.assignedTo.id;
+                    payload.second_user_id = updated.createdBy.id;
+                    payload.report_id = updated.id;
+                    await chatService.createChat(payload);
+                }
+            }
+            // IF it goes to another status, NO chat has to be created
+            res.status(200).json({ message: 'Report status updated and chat citizen-tosm created', report: updated });
         } catch (error) {
             next(error);
         }

@@ -11,7 +11,9 @@ import { reportRouter } from '@routes/report.routes';
 import {userRouter} from "@routes/user.routes";
 import {officeRouter} from "@routes/office.routes";
 import {notificationRouter} from "@routes/notification.routes";
-import {messageRouter} from "@routes/message.routes";
+// import {messageRouter} from "@routes/message.routes";
+import { chatRouter } from '@routes/chat.routes';
+import { companyRouter } from '@routes/company.routes';
 
 export const app = express();
 
@@ -47,7 +49,9 @@ app.use(CONFIG.ROUTES.REPORTS, reportRouter);
 app.use(CONFIG.ROUTES.USERS, userRouter);
 app.use(CONFIG.ROUTES.OFFICES, officeRouter);
 app.use(CONFIG.ROUTES.NOTIFICATIONS, notificationRouter);
-app.use(CONFIG.ROUTES.MESSAGES, messageRouter);
+// app.use(CONFIG.ROUTES.MESSAGES, messageRouter); // messages logic is now moved into chat's one
+app.use(CONFIG.ROUTES.CHATS, chatRouter);
+app.use(CONFIG.ROUTES.COMPANIES, companyRouter);
 app.use(errorHandler);
 
 const jwtSecret = jwtSecretEnv

@@ -23,7 +23,9 @@ export const CONFIG = {
     USERS: `${BASE_URL}/users`,
     OFFICES: `${BASE_URL}/offices`,
     NOTIFICATIONS: `${BASE_URL}/notifications`,
-    MESSAGES: `${BASE_URL}/messages`,
+    // MESSAGES: `${BASE_URL}/messages`, // messages logic is now moved into chat's one
+    CHATS: `${BASE_URL}/chats`,
+    COMPANIES: `${BASE_URL}/companies`
   },
   LOG: {
     LEVEL: process.env.LOG_LEVEL || "info",

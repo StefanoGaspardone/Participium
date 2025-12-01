@@ -3,7 +3,7 @@ import { FaUserCircle } from 'react-icons/fa';
 import { useEffect, useRef, useState } from 'react';
 import './chat.css';
 import type { Chat, Message, User, Report } from '../models/models';
-import { getChats, getMessages, sendMessage, type SendMessage } from '../api/api';
+import { getChatMessages, getUserChats, sendMessage, type SendMessage } from '../api/api';
 import { Badge, Alert } from 'react-bootstrap';
 import { useAppContext } from '../contexts/AppContext';
 
@@ -33,7 +33,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport }: Props) => 
         setError(null);
 
         try {
-            const res = await getChats();
+            const res = await getUserChats();
             setChats(res);
         } catch(error) {
             setError(error instanceof Error ? error.message : 'Failed to load assigned reports');
@@ -78,8 +78,12 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport }: Props) => 
         setError(null);
 
         try {
-            const res = await getMessages(activeReport!.id);
-            setMessages(res);
+            const messages_for_chats: Message[] = [];
+            chats.forEach(c => {
+                getChatMessages(c.id).then((res) => messages_for_chats.push(...res));    
+                ;
+            });
+            setMessages(messages_for_chats);
         } catch(error) {
             setError(error instanceof Error ? error.message : 'Failed to load messages');
         } finally {
@@ -98,6 +102,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport }: Props) => 
 
         const otherUser = deriveOther(activeReport);
         const chat: Chat = {
+            id: undefined,
             report: activeReport,
             users: [user ?? { id: -1, firstName: 'Utente', lastName: '', email: '', username: 'unknown', userType: 'CITIZEN', emailNotificationsEnabled: false, createdAt: new Date() }, otherUser],
             messages: []

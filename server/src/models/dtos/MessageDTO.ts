@@ -1,12 +1,14 @@
 import {MessageDAO} from "@daos/MessagesDAO";
 import {MapUserDAOtoDTO, UserDTO} from "@dtos/UserDTO";
 import {createReportDTO, ReportDTO} from "@dtos/ReportDTO";
+import { MapChatDAOtoDTO } from "./ChatDTO";
+import { ChatDTO } from "./ChatDTO";
 
 export class CreateMessageDTO {
     text: string;
     senderId: number;
     receiverId: number;
-    reportId: number;
+    chatId: number;
 }
 
 export class MessageDTO {
@@ -15,22 +17,17 @@ export class MessageDTO {
     sentAt: Date;
     sender: UserDTO;
     receiver: UserDTO;
-    report: ReportDTO;
-}
-
-export class ChatDTO {
-    report: ReportDTO;
-    users: UserDTO[];
-    messages: MessageDTO[];
+    chat: ChatDTO;
 }
 
 export const messageDAOtoDTO = (message: MessageDAO): MessageDTO =>{
-    return {
+    const dto = {
         id: message.id,
         text: message.text,
         sentAt: message.sentAt,
         sender: MapUserDAOtoDTO(message.sender),
         receiver: MapUserDAOtoDTO(message.receiver),
-        report: createReportDTO(message.report)
+        chat: MapChatDAOtoDTO(message.chat)
     };
+    return dto;
 }

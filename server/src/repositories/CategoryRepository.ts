@@ -17,6 +17,8 @@ export class CategoryRepository {
     findCategoryById = async (id: number): Promise<CategoryDAO | null> => {
         return this.repo.findOne({ where: { id } });
     }
+
+    
 }
 
 export const categoryRepository = new CategoryRepository();
