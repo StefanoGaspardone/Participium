@@ -189,8 +189,6 @@ const createClusterCustomIcon = (cluster: any) => {
 	});
 };
 
-const sanitizeId = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-
 const createReportIcon = (status: string) => {
 	const statusColor = REPORT_STATUS_COLORS[status] || '#6B7280';
 	return L.divIcon({
@@ -298,10 +296,6 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 		[]
 	);
 	const legendPanelId = useId();
-	const legendBaseId = useMemo(() => `map-legend-${legendPanelId.replace(/[^a-zA-Z0-9]/g, '')}`, [legendPanelId]);
-	const legendContainerId = `${legendBaseId}-container`;
-	const legendToggleId = `${legendBaseId}-toggle`;
-	const legendListId = `${legendBaseId}-list`;
 
 	useEffect(() => {
 		const nominatimUrl = 'https://nominatim.openstreetmap.org/search.php?q=Turin%2C+Italy&polygon_geojson=1&format=jsonv2';
@@ -354,7 +348,6 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 				</MarkerClusterGroup>
 			</MapContainer>
 			<motion.div
-				id={legendContainerId}
 				className='map-legend'
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -362,7 +355,6 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 			>
 				<motion.button
 					type='button'
-					id={legendToggleId}
 					className='map-legend-toggle'
 					onClick={() => setLegendOpen((prev) => !prev)}
 					aria-expanded={legendOpen}
@@ -370,11 +362,10 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 					whileHover={{ scale: 1.01 }}
 					whileTap={{ scale: 0.98 }}
 				>
-					<div className='map-legend-title-block' id={`${legendBaseId}-title`}>
+					<div className='map-legend-title-block'>
 						<span className='map-legend-title'>Report's color mapping</span>
 					</div>
 					<motion.span
-						id={`${legendBaseId}-caret`}
 						className={`map-legend-caret ${legendOpen ? 'open' : ''}`}
 						aria-hidden='true'
 						animate={{ rotate: legendOpen ? 0 : -180 }}
@@ -394,33 +385,22 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 							exit={{ opacity: 0, height: 0 }}
 							transition={{ duration: 0.3, ease: 'easeOut' }}
 						>
-							<ul id={legendListId} className='map-legend-list'>
-								{statusEntries.map(([status, color], index) => {
-									const rowId = `${legendBaseId}-status-${sanitizeId(status)}`;
-									return (
-										<motion.li
-											id={rowId}
-											key={status}
-											className='map-legend-row'
-											initial={{ opacity: 0, x: -10 }}
-											animate={{ opacity: 1, x: 0 }}
-											exit={{ opacity: 0, x: -10 }}
-											transition={{ delay: 0.05 * index }}
-										>
-											<span
-												id={`${rowId}-swatch`}
-												className='map-legend-color'
-												style={{ backgroundColor: color }}
-												aria-hidden='true'
-											></span>
-											<div className='map-legend-labels'>
-												<span id={`${rowId}-label`} className='map-legend-status'>
-													{status}
-												</span>
-											</div>
-										</motion.li>
-									);
-								})}
+							<ul className='map-legend-list'>
+								{statusEntries.map(([status, color], index) => (
+									<motion.li
+										key={status}
+										className='map-legend-row'
+										initial={{ opacity: 0, x: -10 }}
+										animate={{ opacity: 1, x: 0 }}
+										exit={{ opacity: 0, x: -10 }}
+										transition={{ delay: 0.05 * index }}
+									>
+										<span className='map-legend-color' style={{ backgroundColor: color }} aria-hidden='true'></span>
+										<div className='map-legend-labels'>
+											<span className='map-legend-status'>{status}</span>
+										</div>
+									</motion.li>
+								))}
 							</ul>
 						</motion.div>
 					)}
