@@ -50,7 +50,7 @@ export class ChatDAO {
   @ValidateIf((c) => c.tosm_user.userType === 'CITIZEN' || c.tosm_user.userType === 'EXTERNAL_MAINTAINER' )
   second_user: UserDAO;
 
-  @JoinColumn({ name: "report_id" })
+  @JoinColumn({ name: "report" })
   @ManyToOne(() => ReportDAO, { nullable: false })
   @IsNotEmpty()
   report: ReportDAO;

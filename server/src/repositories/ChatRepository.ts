@@ -25,7 +25,7 @@ export class ChatRepository {
   findByReportId = async (report: number): Promise<ChatDAO[]> => {
     return await this.repository.find({
       where: { report: { id: report } },
-      relations: ["tosm_user", "second_user"],
+      relations: ["tosm_user", "second_user", "report", "report.category", "report.createdBy", "report.assignedTo"],
       order: { id: "ASC" },
     });
   };
@@ -36,8 +36,8 @@ export class ChatRepository {
    */
   findAllByUserId = async (userId: number): Promise<ChatDAO[]> => {
     return await this.repository.find({
-      where: { tosm_user: { id: userId }, second_user: { id: userId } },
-      relations: ["tosm_user", "second_user", "report_id"],
+      where: [{ tosm_user: { id: userId } }, { second_user: { id: userId } }],
+      relations: ["tosm_user", "second_user", "report", "report.category", "report.createdBy", "report.assignedTo"],
       order: { id: "ASC" },
     });
   };
@@ -50,7 +50,7 @@ export class ChatRepository {
   findChatById = async (chatId: number): Promise<ChatDAO | null> => {
     return await this.repository.findOne({
       where: { id: chatId },
-      relations: ["tosm_user", "second_user", "report_id"],
+      relations: ["tosm_user", "second_user", "report", "report.category", "report.createdBy", "report.assignedTo"],
     });
   }
 }

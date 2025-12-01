@@ -50,7 +50,7 @@ export class ChatController {
     };
 
     /**
-     * controller function to find all the chats the currently logged user is in
+     * controller function to find all the chats of the currently logged user
      * @param req 
      * @param res 
      * @param next 
