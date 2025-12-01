@@ -1,19 +1,27 @@
+import { randomInt } from 'crypto';
 import {userRepository, UserRepository} from "@repositories/UserRepository";
+import { CodeConfirmationDAO } from '@daos/CodeConfirmationDAO';
 import {MapUserDAOtoDTO, NewMunicipalityUserDTO, NewUserDTO, UserDTO} from "@dtos/UserDTO";
 import {UserDAO, UserType} from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
 import {NotFoundError} from "@errors/NotFoundError";
+import { mailService, MailService } from "@services/MailService";
+import { CodeConfirmationService, codeService } from '@services/CodeConfirmationService';
 
 export class UserService {
 
     private userRepo: UserRepository;
     private officeRepo: OfficeRepository;
+    private mailService: MailService;
+    private codeService: CodeConfirmationService;
 
     constructor() {
         this.userRepo = userRepository;
         this.officeRepo = officeRepository;
+        this.mailService = mailService;
+        this.codeService = codeService;
     }
 
     findAllUsers = async (): Promise<UserDTO[]> => {
@@ -28,21 +36,23 @@ export class UserService {
         return MapUserDAOtoDTO(user);
     }
 
-    signUpUser = async (payload: NewUserDTO): Promise<UserDAO> => {
-        const user = new UserDAO();
-        user.firstName = payload.firstName;
-        user.lastName = payload.lastName;
-        user.email = payload.email;
-        user.username = payload.username;
-        user.userType = UserType.CITIZEN;
-        user.image = payload.image;
-        user.telegramUsername = payload.telegramUsername;
-        user.emailNotificationsEnabled = payload.emailNotificationsEnabled;
-        const salt = await bcrypt.genSalt(10);
-        user.passwordHash = await bcrypt.hash(payload.password, salt);
-
+    signUpUser = async (payload: NewUserDTO) => {
         try {
-            return this.userRepo.createNewUser(user);
+            let user = new UserDAO();
+            user.firstName = payload.firstName;
+            user.lastName = payload.lastName;
+            user.email = payload.email;
+            user.username = payload.username;
+            user.userType = UserType.CITIZEN;
+            user.image = payload.image;
+            user.telegramUsername = payload.telegramUsername;
+            user.emailNotificationsEnabled = payload.emailNotificationsEnabled;
+            user.isActive = false;
+            const salt = await bcrypt.genSalt(10);
+            user.passwordHash = await bcrypt.hash(payload.password, salt);
+            const saved = await this.userRepo.createNewUser(user);
+            
+            await this.createCodeConfirmationForUser(saved.id);
         } catch (error) {
             throw error;
         }
@@ -50,8 +60,11 @@ export class UserService {
 
     login = async (username: string, password: string): Promise<UserDAO | null> => {
         try {
-            return this.userRepo.login(username, password);
-        }catch (error) {
+            const user = await this.userRepo.login(username, password);
+
+            if(user && !user.isActive) throw new BadRequestError('Account not activated. Please verify your email before logging in.');
+            return user;
+        } catch(error) {
             throw error;
         }
     }
@@ -103,7 +116,73 @@ export class UserService {
         const updatedUser = await this.userRepo.updateUser(user);
         return MapUserDAOtoDTO(updatedUser);
     }
-}
 
+    private createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
+        const user = await this.userRepo.findUserById(userId);
+        if(!user) throw new NotFoundError(`User with id ${userId} not found`);
+
+        const codeString = randomInt(0, 1000000).toString().padStart(6, '0');
+        const expirationDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+        const saved = await this.codeService.create(codeString, expirationDate, userId);
+
+        user.codeConfirmation = saved;
+        await this.userRepo.updateUser(user);
+
+        await this.mailService.sendMail({
+            to: user.email,
+            subject: 'Your verification code',
+            text: `Hi ${user.firstName || user.username || ''},\n\nYour verification code is: ${codeString}\nThe code expires in 30 minutes.\n\nIf you haven't requested this code, please ignore this email.\n\n---\nParticipium`,
+            html: `
+                <div style="font-family: Arial,Helvetica,sans-serif; color:#222;">
+                    <h2 style="margin:0 0 8px 0;">Participium - Verification code</h2>
+                    <p style="margin:0 0 16px 0;">Hi ${user.firstName || user.username || ''}, welcome to Participium!</p>
+                    <p style="margin:0 0 8px 0;">Your verification code is:</p>
+                    <p style="font-family: monospace; font-size: 26px; font-weight: 700; margin:8px 0;">${codeString}</p>
+                    <p style="margin:12px 0 0 0; color:#666;">The code expires in 30 minutes. If you haven't requested this code, please ignore this email.</p>
+                    <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+                    <small style="color:#888">This message was sent by Participium.</small>
+                </div>
+                `
+        });
+
+        return saved;
+    }
+
+    validateUser = async (username: string, code: string) => {
+        const user = await this.userRepo.findUserByUsername(username);
+
+        if (!user) throw new NotFoundError(`User with username ${username} not found`);
+        if(user.isActive) throw new BadRequestError('User is already active');
+
+        const confirmation = user.codeConfirmation;
+        if(!confirmation) throw new BadRequestError('No verification code found for this user');
+
+        const now = new Date();
+        if(confirmation.expirationDate && now > confirmation.expirationDate) throw new BadRequestError('Verification code has expired');
+
+        if(String(confirmation.code) !== String(code)) throw new BadRequestError('Invalid verification code');
+
+        try {
+            await this.codeService.deleteById(confirmation.id);
+        } catch(err) {
+            throw err;
+        }
+
+        user.codeConfirmation = undefined as any;
+        user.isActive = true;
+
+        await this.userRepo.updateUser(user);
+    }
+
+    resendCode = async (username: string) => {
+        const user = await this.userRepo.findUserByUsername(username);
+
+        if(!user) throw new NotFoundError(`User with username ${username} not found`);
+        if(user.isActive) throw new BadRequestError('User is already active');
+
+        await this.createCodeConfirmationForUser(user.id);
+    }
+}
 
 export const userService = new UserService();

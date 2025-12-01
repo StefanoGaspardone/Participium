@@ -20,6 +20,7 @@ export interface User {
   emailNotificationsEnabled: boolean;
   office?: string | null;
   createdAt: Date;
+  isActive: boolean;
 }
 
 export interface Report {

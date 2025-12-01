@@ -23,6 +23,10 @@ export class UserRepository {
     return this.repo.findOne({ where: { telegramUsername } });
   }
 
+  findUserByUsername = async (username: string): Promise<UserDAO | null> => {
+    return this.repo.findOne({ where: { username }, relations: ['codeConfirmation'] });
+  }
+
   createNewUser = async (user: UserDAO): Promise<UserDAO> => {
     return this.repo.save(user);
   };
@@ -58,13 +62,12 @@ export class UserRepository {
   };
 
   updateUser = async (user: UserDAO): Promise<UserDAO> => {
-    await this.repo.update(user.id, user);
-    const updatedUser = await this.repo.findOneBy({ id: user.id });
-    if (!updatedUser) {
+    // Use save to persist nested relations (e.g. codeConfirmation).
+    const saved = await this.repo.save(user);
+    if (!saved) {
       throw new Error(`User with id ${user.id} not found`);
     }
-    console.log(updatedUser);
-    return updatedUser;
+    return saved;
   };
 }
 

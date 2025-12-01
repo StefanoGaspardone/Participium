@@ -118,7 +118,7 @@ export default function HomePage({ selected, setSelected }: Props) {
                   transition={{ type: "spring", stiffness: 300, damping: 22 }}
                 />
               </motion.div>
-              <p className="lead text-muted mb-4 px-2">
+              <p className="lead mb-4 px-2">
                 Participium is a web application for <strong>citizen participation</strong> in the
                 management of <strong>urban environments</strong>.<br />
                 It enables citizens to interact with the public administration by <strong>reporting </strong>

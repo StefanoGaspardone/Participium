@@ -126,7 +126,7 @@ export const uploadImages = async (image: File): Promise<string> => {
 
 export const registerUser = async (
   payload: RegisterPayload
-): Promise<{ message: string }> => {
+) => {
   const res = await fetch(`${BASE_URL}/users/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -136,8 +136,6 @@ export const registerUser = async (
   if (!res.ok) {
     throw await toApiError(res);
   }
-
-  return res.json();
 };
 
 export const loginUser = async (
@@ -491,4 +489,43 @@ export const sendMessage = async (payload: SendMessage) => {
     if (!res.ok) {
         throw await toApiError(res);
     }
+}
+
+interface CodeConfirm {
+  payload: {
+    username: string;
+    code: string;
+  }
+}
+
+export const validateUser = async (payload: CodeConfirm) => {
+  const res = await fetch(`${BASE_URL}/users/validate-user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if(!res.ok) {
+      throw await toApiError(res);
+  }
+}
+
+export interface ResendCode {
+  username: string;
+}
+
+export const resendCode = async (payload: ResendCode) => {
+  const res = await fetch(`${BASE_URL}/users/resend-user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if(!res.ok) {
+      throw await toApiError(res);
+  }
 }
