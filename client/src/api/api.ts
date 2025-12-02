@@ -408,6 +408,51 @@ export const markNotificationAsSeen = async (id: number) => {
   }
 }
 
+/** CODE for REGISTRATION ******************************************************************************************************* */
+
+interface CodeConfirm {
+  payload: {
+    username: string;
+    code: string;
+  }
+}
+
+export const validateUser = async (payload: CodeConfirm) => {
+  const res = await fetch(`${BASE_URL}/users/validate-user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+}
+
+export interface ResendCode {
+  username: string;
+}
+
+export const resendCode = async (payload: ResendCode) => {
+  const res = await fetch(`${BASE_URL}/users/resend-user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+}
+
+
 /* CHATs & MESSAGEs  ****************************************************************************************************************************/
 
 type ChatsResponse = {
@@ -440,10 +485,6 @@ export const getUserChats = async (): Promise<Chat[]> => {
   return chatsArray;
 }
 
-interface MessagesResponse {
-  messages: Message[];
-}
-
 export const getChatMessages = async (chatId: number): Promise<Message[]> => {
   const res = await fetch(`${BASE_URL}/chats/${chatId}/messages`, {
     method: "GET",
@@ -453,7 +494,7 @@ export const getChatMessages = async (chatId: number): Promise<Message[]> => {
   });
   if (!res.ok) { console.log("PROBLEM"); throw await toApiError(res); }
 
-  
+
   let data;
   try {
     data = await res.json();
@@ -482,48 +523,6 @@ export const sendMessage = async (chatId: number, payload: SendMessage) => {
 
   if (!res.ok) {
     throw await toApiError(res);
-  }
-    if (!res.ok) {
-        throw await toApiError(res);
-    }
-}
-
-interface CodeConfirm {
-  payload: {
-    username: string;
-    code: string;
-  }
-}
-
-export const validateUser = async (payload: CodeConfirm) => {
-  const res = await fetch(`${BASE_URL}/users/validate-user`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if(!res.ok) {
-      throw await toApiError(res);
-  }
-}
-
-export interface ResendCode {
-  username: string;
-}
-
-export const resendCode = async (payload: ResendCode) => {
-  const res = await fetch(`${BASE_URL}/users/resend-user`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if(!res.ok) {
-      throw await toApiError(res);
   }
 }
 

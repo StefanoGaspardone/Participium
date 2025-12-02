@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import "./chat.css";
 import type { Chat, Message, Report } from "../models/models";
 import {
-    createChat,
     getChatMessages,
     getUserChats,
     sendMessage,
