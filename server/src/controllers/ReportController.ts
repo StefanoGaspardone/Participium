@@ -182,6 +182,12 @@ export class ReportController {
     ) => {
         try {
             const idParam = Number(req.params.id);
+            const userId = req.token?.user?.id;
+            const userType = req.token?.user?.userType;
+            if(!userId || !userType){
+                throw new BadRequestError('Missing token');
+            }
+
             const { status } = req.body || {};
 
             const errors: Record<string, string> = {};
@@ -198,7 +204,7 @@ export class ReportController {
                 return next(err);
             }
 
-            const updated = await this.reportService.updateReportStatus(idParam, status as ReportStatus);
+            const updated = await this.reportService.updateReportStatus(idParam, status as ReportStatus, userId, userType);
             // we create the chat if the report is assigned to a TOSM and it is now "In progress" 
             if (updated.status === ReportStatus.InProgress && updated.assignedTo) {
                 const chats = await chatService.findByReportId(updated.id);

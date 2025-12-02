@@ -1,6 +1,6 @@
 import {ReportDAO, ReportStatus} from '@daos/ReportDAO';
 import {createReportDTO, CreateReportDTO, ReportDTO} from '@dtos/ReportDTO';
-import {UserDAO} from '@daos/UserDAO';
+import {UserDAO, UserType} from '@daos/UserDAO';
 import {NotFoundError} from '@errors/NotFoundError';
 import {BadRequestError} from '@errors/BadRequestError';
 import {categoryRepository, CategoryRepository} from '@repositories/CategoryRepository';
@@ -119,7 +119,9 @@ export class ReportService {
 
     updateReportStatus = async (
         reportId: number,
-        newStatus: ReportStatus
+        newStatus: ReportStatus,
+        userId: number,
+        userType: string
     ): Promise<ReportDTO> => {
         const report = await this.reportRepo.findReportById(reportId);
         if (!report) throw new NotFoundError(`Report ${reportId} not found`);
@@ -137,6 +139,14 @@ export class ReportService {
 
         if(report.status === ReportStatus.Suspended && newStatus !== ReportStatus.InProgress) {
             throw new BadRequestError('Invalid status transition. Suspended report can only move to InProgress');
+        }
+
+        if(userType === UserType.TECHNICAL_STAFF_MEMBER && report.assignedTo.id !== userId){
+            throw new BadRequestError("You're not assigned to the report");
+        }else if(userType === UserType.EXTERNAL_MAINTAINER && !report.coAssignedTo){
+            throw new BadRequestError("There's no external maintainer assigned to the report");
+        }else if(userType === UserType.EXTERNAL_MAINTAINER && report.coAssignedTo.id !== userId){
+            throw new BadRequestError("You're not assigned to the report");
         }
 
         const notifications:NewNotificationDTO = {

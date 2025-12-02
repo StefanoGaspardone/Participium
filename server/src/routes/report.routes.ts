@@ -31,7 +31,7 @@ router.get(
 
 router.put(
     '/:id/status/technical',
-    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
+    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER, UserType.EXTERNAL_MAINTAINER]),
     reportController.updateReportStatus
 );
 

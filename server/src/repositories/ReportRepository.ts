@@ -15,11 +15,11 @@ export class ReportRepository {
     }
 
     findReportsByStatus = async (status: ReportStatus): Promise<ReportDAO[]> => {
-        return this.repo.find({ where: { status }, relations: ["category", "createdBy"] });
+        return this.repo.find({ where: { status }, relations: ["category", "createdBy", "assignedTo", "coAssignedTo"] });
     }
 
     findReportById = async (id: number): Promise<ReportDAO | null> => {
-        return this.repo.findOne({ where: { id }, relations: ["category", "category.office", "createdBy", "assignedTo"] });
+        return this.repo.findOne({ where: { id }, relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo"] });
     }
 
     save = async (report: ReportDAO): Promise<ReportDAO> => {
