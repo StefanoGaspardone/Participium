@@ -18,7 +18,11 @@ router.put(
     authMiddleware([UserType.PUBLIC_RELATIONS_OFFICER]),
     reportController.assignOrRejectReport
 );
-
+router.put(
+    '/:id/assign-em',
+    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
+    reportController.assignExternalMaintainer
+)
 router.get(
     '/assigned',
     authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),

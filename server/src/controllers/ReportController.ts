@@ -217,6 +217,26 @@ export class ReportController {
             next(error);
         }
     }
+    assignExternalMaintainer = async (req: AuthRequest & { params: { id: string }}, res:Response, next: NextFunction) => {
+        try {
+            const reportId = Number(req.params.id);
+            if (Number.isNaN(reportId) || reportId <= 0) {
+                throw new BadRequestError('Report id must be a positive number');
+            }
+            const tosm_id = req.token?.user?.id;
+            if (!tosm_id) {
+                throw new BadRequestError('Missing user id in token');
+            }
+            if(!req.body.maintainerId || typeof req.body.maintainerId !== 'number' || req.body.maintainerId <=0){
+                throw new BadRequestError('maintainerId is missing or it is not a positive number');
+            }
+            const updatedReport = await this.reportService.assignExternalMaintainer(reportId, tosm_id, req.body.maintainerId);
+            return res.status(201).json(updatedReport);
+
+        }catch (error) {
+            next(error);
+        }
+    }
 }
 
 export const reportController = new ReportController();
