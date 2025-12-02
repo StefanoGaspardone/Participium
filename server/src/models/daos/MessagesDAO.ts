@@ -20,13 +20,13 @@ export class MessageDAO {
     @ManyToOne(() => UserDAO, { nullable: false })
     @JoinColumn({ name: 'sender_id' })
     @IsNotEmpty()
-    @ValidateIf((msg) => msg.sender.id === msg.chat.tosm_user.id || msg.sender.id === msg.chat.second_user.id )
+    // @ValidateIf((msg) => msg.sender.id === msg.chat.tosm_user.id || msg.sender.id === msg.chat.second_user.id )
     sender: UserDAO;
 
     @ManyToOne(() => UserDAO, { nullable: false })
     @JoinColumn({ name: 'receiver_id' })
     @IsNotEmpty()
-    @ValidateIf((msg) => msg.receiver.id === msg.chat.tosm_user.id || msg.receiver.id === msg.chat.second_user.id )
+    // @ValidateIf((msg) => msg.receiver.id === msg.chat.tosm_user.id || msg.receiver.id === msg.chat.second_user.id )
     receiver: UserDAO;
 
     @ManyToOne(() => ChatDAO, { nullable: false })

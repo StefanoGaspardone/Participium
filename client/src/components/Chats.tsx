@@ -12,6 +12,10 @@ import {
 import { Badge, Alert } from "react-bootstrap";
 import { useAppContext } from "../contexts/AppContext";
 
+/**
+ * activeReport is used to open the chat related to that Report, it will need to change bc it will have 
+ * 2 chats for each report, maybe one button for each (one for citizen, one for external maintainer)
+ */
 interface Props {
     show: boolean;
     handleToggle: () => void;
@@ -36,6 +40,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
     const [showedMessages, setShowedMessages] = useState<Message[] | undefined>(
         undefined
     );
+    const showedRef = useRef<Message[] | undefined>(showedMessages);
 
     const [text, setText] = useState<string>("");
 
@@ -70,12 +75,119 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
         setMessagesLoading(true);
         setError(null);
         try {
+            console.log("PROVO A RICHIEDERE PER CHAT #" + selectedChat)
+            // ERROR HERE !!! in getChatMessages
             const retrievedMessages = await getChatMessages(selectedChat);
             setShowedMessages(retrievedMessages);
+            showedRef.current = retrievedMessages;
+            console.log("SHOWED MESSAGES : \n" + JSON.stringify(showedRef.current));
         } catch (error) {
             setError(error instanceof Error ? error.message : "Failed to load messages");
         } finally {
             setMessagesLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        console.log("showed messages update:", showedMessages);
+    }, [showedMessages])
+
+    // Fetch all chats when popover opens
+    useEffect(() => {
+        if (!show) return;
+        displayChats();
+    }, [show]);
+
+    // When activeReport changes externally (user clicks "Send message" on a report)
+    useEffect(() => {
+        if (!activeReport || !show || !chats) return;
+
+        // Find if a chat already exists for this report
+        const existingChat = chats.find(c => c.report.id === activeReport.id);
+        if (existingChat) {
+            setSelectedChat(existingChat.id);
+        } else {
+            // No chat exists yet — will create when user sends first message
+            setSelectedChat(undefined);
+            setShowedMessages(undefined);
+        }
+    }, [activeReport, chats, show]);
+
+    // Fetch messages when selectedChat changes
+    useEffect(() => {
+        if (selectedChat === undefined) {
+            setShowedMessages(undefined);
+            return;
+        }
+        displayChatMessages();
+    }, [selectedChat]);
+
+    // Auto-scroll to bottom when messages change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [showedMessages]);
+
+    // Close popover when clicking outside
+    useEffect(() => {
+        if (!show) return;
+
+        const onPointerDown = (ev: PointerEvent) => {
+            const target = ev.target as Node | null;
+            if (popoverRef.current?.contains(target)) return;
+            if (toggleRef.current?.contains(target)) return;
+            handleToggle();
+        };
+
+        document.addEventListener('pointerdown', onPointerDown);
+        return () => document.removeEventListener('pointerdown', onPointerDown);
+    }, [show, handleToggle]);
+
+    const handleChatSelect = (chat: Chat) => {
+        setSelectedChat(chat.id);
+        setActiveReport(chat.report);
+        setError(null);
+    };
+
+    const handleSendMessage = async () => {
+        if (!text.trim() || !activeReport || !user) return;
+
+        setSendingMessage(true);
+        setError(null);
+
+        try {
+            const chatIdToUse = selectedChat;
+
+            // If no chat exists, something went wrong
+            if (chatIdToUse === undefined) {
+                return
+            }
+
+            // Get current chat to find receiver
+            const currentChat = chats?.find(c => c.id === chatIdToUse);
+            if (!currentChat)
+                throw new Error('Chat not found');
+
+            const receiverUser = currentChat.tosm_user.id === user.id
+                ? currentChat.second_user
+                : currentChat.tosm_user;
+            
+            // if no receiver, something went wrong
+            if(receiverUser === null || receiverUser === undefined) 
+                return;
+
+            await sendMessage(chatIdToUse, {
+                receiverId: receiverUser.id!,
+                text: text.trim(),
+            });
+
+            // Refresh messages
+            await displayChatMessages();
+            setText('');
+        } catch (err) {
+            console.error('Failed to send message:', err);
+            setError(err instanceof Error ? err.message : 'Failed to send message');
+        } finally {
+            setSendingMessage(false);
         }
     };
 
@@ -94,7 +206,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
                                     <div className="d-flex align-items-center justify-content-center h-100">
                                         <Loader2 className="chat-loader" size={32} />
                                     </div>
-                                ) : chats.length === 0 ? (
+                                ) : !chats || chats.length === 0 ? (
                                     <div className="p-3 text-center text-muted">
                                         <p className="mb-1">No chats yet.</p>
                                         <small>Click "Send message" on a report to start.</small>
@@ -102,15 +214,16 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
                                 ) : (
                                     <div className="list-group list-group-flush">
                                         {chats.map((chat) => {
-                                            const otherUser = getOtherUser(chat);
-                                            const isActive = selectedChat?.id === chat.id;
+                                            const otherUser = chat.tosm_user.id === user?.id
+                                                ? chat.second_user
+                                                : chat.tosm_user;
+                                            const isActive = selectedChat === chat.id;
 
                                             return (
                                                 <button
                                                     key={chat.id}
                                                     type="button"
-                                                    className={`list-group-item list-group-item-action d-flex flex-column ${isActive ? "active" : ""
-                                                        }`}
+                                                    className={`list-group-item list-group-item-action d-flex flex-column ${isActive ? "active" : ""}`}
                                                     onClick={() => handleChatSelect(chat)}
                                                 >
                                                     <div className="d-flex align-items-center w-100 mb-1">
@@ -152,7 +265,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
 
                         {/* Right column: selected chat messages */}
                         <div className="col-8 d-flex flex-column p-0 chat-messages-container">
-                            {!selectedChat && !activeReport ? (
+                            {selectedChat === undefined && !activeReport ? (
                                 <div className="h-100 d-flex align-items-center justify-content-center">
                                     <div className="text-muted">
                                         Select a chat to view messages
@@ -166,7 +279,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
                                             type="button"
                                             className="btn btn-sm btn-light d-md-none"
                                             onClick={() => {
-                                                setSelectedChat(null);
+                                                setSelectedChat(undefined);
                                                 setActiveReport(null);
                                             }}
                                             style={{ minWidth: "2.5rem" }}
@@ -174,8 +287,11 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
                                             ←
                                         </button>
                                         {(() => {
-                                            const otherUser = selectedChat
-                                                ? getOtherUser(selectedChat)
+                                            const currentChat = chats?.find(c => c.id === selectedChat);
+                                            const otherUser = currentChat
+                                                ? (currentChat.tosm_user.id === user?.id
+                                                    ? currentChat.second_user
+                                                    : currentChat.tosm_user)
                                                 : null;
                                             return (
                                                 <>
@@ -215,13 +331,13 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
                                             <Alert variant="danger" className="text-center mb-0">
                                                 {error}
                                             </Alert>
-                                        ) : messages.length === 0 ? (
+                                        ) : !showedMessages || showedMessages.length === 0 ? (
                                             <div className="h-100 d-flex align-items-center justify-content-center text-muted">
                                                 No messages yet. Start the conversation!
                                             </div>
                                         ) : (
                                             <>
-                                                {messages.map((msg) => {
+                                                {showedMessages.map((msg) => {
                                                     const isMine = msg.sender.id === user?.id;
                                                     return (
                                                         <div
@@ -232,8 +348,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
                                                                 }`}
                                                         >
                                                             <div
-                                                                className={`message-bubble ${isMine ? "mine" : "other"
-                                                                    }`}
+                                                                className={`message-bubble ${isMine ? "mine" : "other"}`}
                                                             >
                                                                 <div>{msg.text}</div>
                                                                 <div className="small text-muted mt-1 text-end">

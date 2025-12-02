@@ -15,6 +15,7 @@ export interface UserDTO {
 }
 
 export const MapUserDAOtoDTO = (user: UserDAO): UserDTO => {
+    console.log("REMAPPING : \n" + JSON.stringify(user));
     return {
         id: user.id,
         firstName: user.firstName,
