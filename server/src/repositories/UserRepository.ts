@@ -17,7 +17,7 @@ export class UserRepository {
   };
 
   findUserById = async (id: number): Promise<UserDAO | null> => {
-    return this.repo.findOne({ where: { id } });
+    return this.repo.findOne({ where: { id }, relations: ["office", "company", "company.categories"] });
   }
 
   findUserByTelegramUsername = async (telegramUsername: string): Promise<UserDAO | null> => {
