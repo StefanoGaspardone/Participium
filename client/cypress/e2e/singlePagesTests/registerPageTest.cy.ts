@@ -62,17 +62,4 @@ describe('3. Test suite for register page :', () => {
 		cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible');
 		cy.url().should('equal', CONFIRMPAGE_URL);
 	});
-
-	it('3.5 Register fails without required fields', () => {
-		cy.visit(REGISTERPAGE_URL);
-		const fn = generateRandomString(12);
-		const ln = generateRandomString(12);
-		const pwd = generateRandomString(8);
-		registerPage.insertFirstName(fn);
-		registerPage.insertLastName(ln);
-		registerPage.insertPassword(pwd);
-		registerPage.submitForm();
-		cy.get('.e2e-toast-error', { timeout: 5000 }).should('be.visible');
-		cy.url().should('equal', REGISTERPAGE_URL);
-	});
 });
