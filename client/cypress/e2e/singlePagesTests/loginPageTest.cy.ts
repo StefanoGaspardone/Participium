@@ -1,5 +1,7 @@
 import { LOGINPAGE_URL, REGISTERPAGE_URL, HOMEPAGE_URL, ADMINPAGE_URL, TSMPAGE_URL, PUBRELOFFPAGE_URL, MUNADMPAGE_URL, CONFIRMPAGE_URL } from '../../support/utils';
 import { loginPage } from '../../pageObjects/loginPage';
+import { registerPage } from '../../pageObjects/registerPage';
+import { generateRandomString } from '../../pageObjects/utils';
 
 describe('2. Test suite for login page :', () => {
 	it('2.1 Register button should lead to right register page', () => {
@@ -70,5 +72,30 @@ describe('2. Test suite for login page :', () => {
 		loginPage.submitForm();
 		cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible').and('contain.text', 'Welcome pro!');
 		cy.url().should('equal', PUBRELOFFPAGE_URL);
+	});
+
+
+	it('2.10 Login fails for not-activated user after registration', () => {
+		cy.visit(REGISTERPAGE_URL);
+		const fn = generateRandomString(10);
+		const ln = generateRandomString(10);
+		const un = generateRandomString(8);
+		const email = generateRandomString(8) + '@partest.test';
+		const pwd = generateRandomString(10);
+		registerPage.insertFirstName(fn);
+		registerPage.insertLastName(ln);
+		registerPage.insertUsername(un);
+		registerPage.insertEmail(email);
+		registerPage.insertPassword(pwd);
+		registerPage.submitForm();
+		cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible');
+		cy.url().should('equal', CONFIRMPAGE_URL);
+
+		cy.visit(LOGINPAGE_URL);
+		loginPage.insertUsername(un);
+		loginPage.insertPassword(pwd);
+		loginPage.submitForm();
+		cy.get('.e2e-toast-error', { timeout: 5000 }).should('be.visible');
+		cy.url().should('equal', LOGINPAGE_URL);
 	});
 });
