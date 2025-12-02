@@ -15,6 +15,6 @@ router.post('/me', authMiddleware([
     UserType.PUBLIC_RELATIONS_OFFICER,
     UserType.TECHNICAL_STAFF_MEMBER]), userController.me);
 router.get('/maintainers', userController.findMaintainersByCategory);
-router.get('/:telegramUsername', userController.findUserByTelegramUsername)
 router.patch('/me', authMiddleware([UserType.CITIZEN]), userController.updateUser);
+router.get('/:telegramUsername', userController.findUserByTelegramUsername)
 export const userRouter = router;

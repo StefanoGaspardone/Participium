@@ -303,6 +303,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
 
+  /users/maintainers:
+    get:
+      tags: [Users]
+      summary: Get external maintainers by category
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: categoryId
+          required: true
+          schema:
+            type: integer
+          description: Category ID to filter maintainers
+      responses:
+        "200":
+          description: List of external maintainers for the specified category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
   /users/me:
     post:
       tags: [Users]
