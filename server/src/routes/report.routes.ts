@@ -19,7 +19,7 @@ router.put(
     reportController.assignOrRejectReport
 );
 router.put(
-    '/:id/assign-em',
+    '/:id/assign-external',
     authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
     reportController.assignExternalMaintainer
 )
