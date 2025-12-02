@@ -19,7 +19,6 @@ export default function Notifications() {
         setError(null);
         try {
             const data = await getMyNotifications();
-            console.log("data: ", data);
             setNotifications(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to load notifications");

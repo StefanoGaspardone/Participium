@@ -463,9 +463,7 @@ export const getChatMessages = async (chatId: number): Promise<Message[]> => {
     throw new Error("Failed to fetch your chats");
   }
 
-  console.log("RICEVO : \n" + JSON.stringify(data));
   const chatsArray = data.chats;
-  console.log("chatArray : \n " + JSON.stringify(chatsArray));
   return chatsArray;
 }
 

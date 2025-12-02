@@ -70,9 +70,7 @@ export class MessageService {
         if(!chat) {
             throw new NotFoundError('Chat not found');
         }
-        // ERROR HERE
         const messages = await messageRepository.findByChatId(chat.id);
-        console.log("FOUND : \n" + JSON.stringify(messages));
         return messages.map((m) => messageDAOtoDTOforChats(m));
     }
 }

@@ -75,12 +75,9 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
         setMessagesLoading(true);
         setError(null);
         try {
-            console.log("PROVO A RICHIEDERE PER CHAT #" + selectedChat)
-            // ERROR HERE !!! in getChatMessages
             const retrievedMessages = await getChatMessages(selectedChat);
             setShowedMessages(retrievedMessages);
             showedRef.current = retrievedMessages;
-            console.log("SHOWED MESSAGES : \n" + JSON.stringify(showedRef.current));
         } catch (error) {
             setError(error instanceof Error ? error.message : "Failed to load messages");
         } finally {
@@ -88,9 +85,6 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
         }
     };
 
-    useEffect(() => {
-        console.log("showed messages update:", showedMessages);
-    }, [showedMessages])
 
     // Fetch all chats when popover opens
     useEffect(() => {
@@ -338,7 +332,14 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
                                         ) : (
                                             <>
                                                 {showedMessages.map((msg) => {
-                                                    const isMine = msg.sender.id === user?.id;
+                                                    // support both shapes: sender can be a number (id) or an object with .id
+                                                    const rawSender: any = (msg as any).sender;
+                                                    const senderId: number | undefined =
+                                                        typeof rawSender === "number"
+                                                            ? rawSender
+                                                            : rawSender?.id;
+                                                    const isMine = senderId === user?.id;
+
                                                     return (
                                                         <div
                                                             key={msg.id}
@@ -351,7 +352,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, }: Props) =>
                                                                 className={`message-bubble ${isMine ? "mine" : "other"}`}
                                                             >
                                                                 <div>{msg.text}</div>
-                                                                <div className="small text-muted mt-1 text-end">
+                                                                <div className={`small mt-1 ${isMine ? 'text-end' : 'text-start'} text-muted`}>
                                                                     {new Date(msg.sentAt).toLocaleTimeString([], {
                                                                         hour: "2-digit",
                                                                         minute: "2-digit",

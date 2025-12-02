@@ -61,7 +61,7 @@ export class ChatRepository {
    */
   findChatById = async (chatId: number): Promise<ChatDAO | null> => {
     return await this.repository.findOne({
-      where: { id: chatId },  // ERRORE QUI
+      where: { id: chatId }, 
       relations: ["tosm_user", "second_user", "report"],
     });
   }

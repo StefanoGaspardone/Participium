@@ -25,20 +25,10 @@ export class MessageRepository {
    * @returns the MessageDAO[] arra containing ALL the messages related to a chat
    */
   findByChatId = async (chatId: number): Promise<MessageDAO[]> => {
-    console.log("CHECKPOINT !!! ID is", chatId);
 
     if (chatId === undefined || chatId === null) {
       throw new Error("findByChatId: chatId is required");
     }
-
-    // debug metadata to check that TypeORM knows the relations/columns
-    try {
-      console.log("Message entity columns:", this.repository.metadata.columns.map(c => c.propertyName));
-      console.log("Message entity relations:", this.repository.metadata.relations.map(r => r.propertyName));
-    } catch (e) {
-      console.warn("Failed to log repository metadata:", e);
-    }
-
     // use QueryBuilder to avoid potential issues with nested where objects and give clearer errors
     return await this.repository.find({ where: { chat: { id: chatId } }, relations: ["sender", "receiver", "chat", "chat.tosm_user", "chat.second_user", "chat.report", "chat.report.category", "chat.report.createdBy", "chat.report.assignedTo", "chat.report.coAssignedTo", ] });
   };

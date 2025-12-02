@@ -20,7 +20,6 @@ export class MessageController {
      * @param next 
      */
     createMessage = async (req: AuthRequest, res: Response, next: NextFunction) => {
-        console.log("ENTRIAMO");
         try {
             if (!req.token?.user) {
                 throw new BadRequestError("Invalid token");
@@ -75,9 +74,7 @@ export class MessageController {
             if(Number.isNaN(chatIdParam) || chatIdParam < 0) {
                 throw new BadRequestError('The chat id must be a valid number');
             }
-            //ERROR HERE
             const chats = await this.messageService.getChatMessages(chatIdParam);
-            console.log("RETURNING : \n" + JSON.stringify(chats));
             return res.status(200).json({ chats });
         } catch (error) {
             next(error);
