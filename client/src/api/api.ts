@@ -453,23 +453,17 @@ export const getChatMessages = async (chatId: number): Promise<Message[]> => {
       Authorization: `Bearer ${getToken()}`,
     },
   });
+  if (!res.ok) { console.log("PROBLEM"); throw await toApiError(res); }
 
-  if (!res.ok) throw await toApiError(res);
-
-  let data: MessagesResponse;
+  
+  let data;
   try {
     data = await res.json();
   } catch {
     throw new Error("Failed to fetch your chats");
   }
 
-  const chatsArray =
-    Array.isArray(data)
-      ? data
-      : Array.isArray(data.messages)
-        ? data.messages
-        : [];
-
+  const chatsArray = data.chats;
   return chatsArray;
 }
 

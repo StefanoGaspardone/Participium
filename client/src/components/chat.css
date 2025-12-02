@@ -105,6 +105,18 @@
     background: #ffffff;
 }
 
+/* Ensure bubbles stay compact and align nicely */
+.message-bubble.mine {
+    margin-left: auto;
+}
+.message-bubble.other {
+    margin-right: auto;
+}
+
+.message-bubble {
+    word-break: break-word;
+}
+
 @media (max-width: 768px) {
     .message-bubble {
         max-width: 85%;

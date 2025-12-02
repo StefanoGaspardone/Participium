@@ -23,11 +23,17 @@ export class ChatRepository {
    * @returns 2 ChatDAO instances in an array ChatDAO[]
    */
   findByReportId = async (report: number): Promise<ChatDAO[]> => {
-    return await this.repository.find({
-      where: { report: { id: report } },
-      relations: ["tosm_user", "second_user", "report", "report.category", "report.createdBy", "report.assignedTo"],
-      order: { id: "ASC" },
-    });
+    return await this.repository
+      .createQueryBuilder("chat")
+      .leftJoinAndSelect("chat.tosm_user", "tosm_user")
+      .leftJoinAndSelect("chat.second_user", "second_user")
+      .leftJoinAndSelect("chat.report", "report")
+      .leftJoinAndSelect("report.category", "category")
+      .leftJoinAndSelect("report.createdBy", "createdBy")
+      .leftJoinAndSelect("report.assignedTo", "assignedTo")
+      .where("report.id = :reportId", { reportId: report })
+      .orderBy("chat.id", "ASC")
+      .getMany();
   };
 
   /**
@@ -35,11 +41,17 @@ export class ChatRepository {
    * @param userId = the id of the user to retrieve chat of
    */
   findAllByUserId = async (userId: number): Promise<ChatDAO[]> => {
-    return await this.repository.find({
-      where: [{ tosm_user: { id: userId } }, { second_user: { id: userId } }],
-      relations: ["tosm_user", "second_user", "report", "report.category", "report.createdBy", "report.assignedTo"],
-      order: { id: "ASC" },
-    });
+    return await this.repository
+      .createQueryBuilder("chat")
+      .leftJoinAndSelect("chat.tosm_user", "tosm_user")
+      .leftJoinAndSelect("chat.second_user", "second_user")
+      .leftJoinAndSelect("chat.report", "report")
+      .leftJoinAndSelect("report.category", "category")
+      .leftJoinAndSelect("report.createdBy", "createdBy")
+      .leftJoinAndSelect("report.assignedTo", "assignedTo")
+      .where("tosm_user.id = :userId OR second_user.id = :userId", { userId })
+      .orderBy("chat.id", "ASC")
+      .getMany();
   };
 
   /**
@@ -49,8 +61,8 @@ export class ChatRepository {
    */
   findChatById = async (chatId: number): Promise<ChatDAO | null> => {
     return await this.repository.findOne({
-      where: { id: chatId },
-      relations: ["tosm_user", "second_user", "report", "report.category", "report.createdBy", "report.assignedTo"],
+      where: { id: chatId }, 
+      relations: ["tosm_user", "second_user", "report"],
     });
   }
 }

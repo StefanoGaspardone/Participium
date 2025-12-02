@@ -25,18 +25,12 @@ export class MessageRepository {
    * @returns the MessageDAO[] arra containing ALL the messages related to a chat
    */
   findByChatId = async (chatId: number): Promise<MessageDAO[]> => {
-    return await this.repository.find({
-      where: { chat: { id: chatId } },
-      relations: [  // possible useful datas, maybe TO DELETE some !!
-        "sender",
-        "receiver",
-        "chat",
-        "chat.tosm_user",
-        "chat.second_user",
-        "chat.report.id"
-      ],
-      order: { sentAt: "ASC" },
-    });
+
+    if (chatId === undefined || chatId === null) {
+      throw new Error("findByChatId: chatId is required");
+    }
+    // use QueryBuilder to avoid potential issues with nested where objects and give clearer errors
+    return await this.repository.find({ where: { chat: { id: chatId } }, relations: ["sender", "receiver", "chat", "chat.tosm_user", "chat.second_user", "chat.report", "chat.report.category", "chat.report.createdBy", "chat.report.assignedTo", "chat.report.coAssignedTo", ] });
   };
 
   // findAllByUserId = async (userId: number): Promise<MessageDAO[]> => {

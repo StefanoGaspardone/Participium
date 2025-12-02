@@ -3,6 +3,7 @@ import { messageService, MessageService } from '@services/MessageService';
 import { CreateMessageDTO, MessageDTO } from '@dtos/MessageDTO';
 import { AuthRequest } from "@middlewares/authenticationMiddleware";
 import { BadRequestError } from "@errors/BadRequestError";
+import { Console } from 'console';
 
 export class MessageController {
     private messageService: MessageService;

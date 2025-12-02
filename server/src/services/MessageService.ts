@@ -1,7 +1,7 @@
 import {messageRepository, MessageRepository} from '@repositories/MessageRepository';
 import {userRepository, UserRepository} from '@repositories/UserRepository';
 import {reportRepository, ReportRepository} from '@repositories/ReportRepository';
-import {CreateMessageDTO, messageDAOtoDTO, MessageDTO} from '@dtos/MessageDTO';
+import {CreateMessageDTO, messageDAOtoDTO, messageDAOtoDTOforChats, MessageDTO, MessageDTOforChats} from '@dtos/MessageDTO';
 import { MessageDAO } from '@daos/MessagesDAO';
 import {NotFoundError} from "@errors/NotFoundError";
 import { createReportDTO, ReportDTO } from '@dtos/ReportDTO';
@@ -30,7 +30,7 @@ export class MessageService {
      * a new message (text, senderId, receiverId, chatId)
      * @returns the MessageDTO instance of the newly created/sent message
      */
-    async createMessage(createMessageDTO: CreateMessageDTO): Promise<MessageDTO> {
+    async createMessage(createMessageDTO: CreateMessageDTO): Promise<MessageDTOforChats> {
         const sender = await this.userRepository.findUserById(createMessageDTO.senderId);
         if (!sender) {
             throw new NotFoundError('Sender not found');
@@ -57,7 +57,7 @@ export class MessageService {
         message.text = createMessageDTO.text;
 
         const savedMessage = await this.messageRepository.create(message);
-        return messageDAOtoDTO(savedMessage);
+        return messageDAOtoDTOforChats(savedMessage);
     }
 
     /**
@@ -65,13 +65,13 @@ export class MessageService {
      * @param chatId: number, the identifier of the chat in the DB 
      * @returns MessageDTO[] array containing the messages of the specified chat 
      */
-    async getChatMessages (chatId: number): Promise<MessageDTO[]> {
+    async getChatMessages (chatId: number): Promise<MessageDTOforChats[]> {
         const chat = await chatRepository.findChatById(chatId);
         if(!chat) {
             throw new NotFoundError('Chat not found');
         }
         const messages = await messageRepository.findByChatId(chat.id);
-        return messages.map((m) => messageDAOtoDTO(m));
+        return messages.map((m) => messageDAOtoDTOforChats(m));
     }
 }
 
