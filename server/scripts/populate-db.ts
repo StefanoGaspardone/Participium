@@ -9,6 +9,7 @@ import * as bcrypt from "bcryptjs";
 import { NotificationDAO } from '@daos/NotificationsDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import { UserDAO } from '@daos/UserDAO';
+import { CodeConfirmationDAO } from '@daos/CodeConfirmationDAO';
 
 const OFFICES: string[] = [
     'Organization',
@@ -31,6 +32,7 @@ const USERS: Array<{ username:string; email:string; password:string; firstName: 
     { username: 'tsm6', email: 'tsm6@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 6},
     { username: 'munadm', email: 'munadm@part.se', firstName: 'Giorgio', lastName: 'Turio', password: 'password', userType: UserType.MUNICIPAL_ADMINISTRATOR},
     { username: 'pro', email: 'pro@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.PUBLIC_RELATIONS_OFFICER}
+    ,{ username: 'testuser', email: 'testuser@example.test', firstName: 'Test', lastName: 'User', password: 'testpass', userType: UserType.CITIZEN }
 ];
 
 const CATEGORIES: Array<{ name: string; office: string }> = [
@@ -290,11 +292,46 @@ async function upsertNotifications() {
 }
 
 async function deleteActualState() {
-    const tables = ['users', 'reports', 'office_roles', 'categories', 'notifications'];
+    const tables = ['code_confirmations','users', 'reports', 'office_roles', 'categories', 'notifications'];
     for (const t of tables) {
         const sql = "TRUNCATE TABLE " + t + " RESTART IDENTITY CASCADE";
         await AppDataSource.query(sql);
         console.log("Cleaned table *" + t +"*");
+    }
+}
+
+async function ensureTestUserConfirmation() {
+    const userRepo = AppDataSource.getRepository('UserDAO');
+    const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
+
+    const user = await userRepo.findOne({ where: { username: 'testuser' } });
+    if (!user) {
+        logError('[populate-db] testuser not found; skipping code confirmation creation');
+        return;
+    }
+
+    // make sure user is not active (so confirmation is required)
+    if (user.isActive) {
+        user.isActive = false;
+        await userRepo.save(user);
+        logInfo('[populate-db] Marked testuser as inactive');
+    }
+
+    const expiration = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+    let existing = await codeRepo.findOne({ where: { user: { id: user.id } }, relations: ['user'] });
+    if (!existing) {
+        const cc = codeRepo.create({ code: '123456', expirationDate: expiration, user });
+        await codeRepo.save(cc);
+        logInfo('[populate-db] Created code confirmation for testuser (123456)');
+    } else {
+        existing.code = '123456';
+        existing.expirationDate = expiration;
+        const u = new UserDAO();
+        u.id = user.id;
+        existing.user = u as any;
+        await codeRepo.save(existing);
+        logInfo('[populate-db] Updated existing code confirmation for testuser to 123456');
     }
 }
 
@@ -308,6 +345,9 @@ async function main() {
         await upsertCategories(CATEGORIES, rolesByName);
 
         await upsertUsers(USERS);
+
+        // ensure test user has a pending code confirmation with code 123456
+        await ensureTestUserConfirmation();
 
         await upsertReports();
         await upsertNotifications();
