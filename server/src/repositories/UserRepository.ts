@@ -13,7 +13,7 @@ export class UserRepository {
   }
 
   findAllUsers = async (): Promise<UserDAO[]> => {
-    return this.repo.find({ relations: ["office"] });
+    return this.repo.find({ relations: ["office", "company", "company.categories"] });
   };
 
   findUserById = async (id: number): Promise<UserDAO | null> => {

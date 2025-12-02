@@ -15,6 +15,10 @@ export class CompanyRepository {
         return this.repo.find();
     }
 
+    findCompanyById = async(id: number): Promise<CompanyDAO | null> => {
+        return this.repo.findOneBy({id});
+    }
+
     createNewCompany = async(company: CompanyDAO): Promise<CompanyDAO> => {
         return this.repo.save(company);
     }    

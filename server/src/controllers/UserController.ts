@@ -129,6 +129,12 @@ export class UserController {
       ) {
         throw new BadRequestError("Missing office id");
       }
+      if (
+          req.body.userType == UserType.EXTERNAL_MAINTAINER &&
+          !req.body.companyId
+      ) {
+          throw new BadRequestError("Missing company id");
+      }
       if (!Object.values(UserType).includes(req.body.userType)) {
         throw new BadRequestError("User type is invalid");
       }
@@ -140,6 +146,7 @@ export class UserController {
       payload.username = req.body.username;
       payload.userType = req.body.userType;
       payload.officeId = req.body.officeId;
+      payload.companyId = req.body.companyId;
       const user = await this.userService.createMunicipalityUser(req.body);
       res.status(201).json({ message: "Municipality user created" });
     } catch (error) {

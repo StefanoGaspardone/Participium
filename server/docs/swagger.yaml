@@ -465,49 +465,6 @@ paths:
               properties:
                 categoryId:
                   type: integer
-    /reports/{id}/status:
-      put:
-        tags: [Reports]
-        summary: Change report status (public relations officer)
-        security:
-          - bearerAuth: []
-        parameters:
-          - in: path
-            name: id
-            required: true
-            schema:
-              type: integer
-        requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [status]
-                properties:
-                  status:
-                    type: string
-                    enum: [Assigned, Rejected]
-                  rejectedDescription:
-                    type: string
-                    nullable: true
-                    description: Required when status is Rejected
-        description: |
-          Accept (Assigned) or reject (Rejected) a report currently in PendingApproval.
-          When accepted, the report is automatically assigned to the least-loaded technical staff member
-          of the office associated with the report's category (tie-breaker alphabetical).
-        responses:
-          "200":
-            description: Report status updated
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    message:
-                      type: string
-                    report:
-                      $ref: "#/components/schemas/Report"
       responses:
         "200":
           description: Report category updated
@@ -521,4 +478,88 @@ paths:
                   report:
                     $ref: "#/components/schemas/Report"
 
+  /reports/{id}/status:
+    put:
+      tags: [Reports]
+      summary: Change report status (public relations officer)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [Assigned, Rejected]
+                rejectedDescription:
+                  type: string
+                  nullable: true
+                  description: Required when status is Rejected
+      description: |
+        Accept (Assigned) or reject (Rejected) a report currently in PendingApproval.
+        When accepted, the report is automatically assigned to the least-loaded technical staff member
+        of the office associated with the report's category (tie-breaker alphabetical).
+      responses:
+        "200":
+          description: Report status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  report:
+                    $ref: "#/components/schemas/Report"
+
+  /reports/{id}/assign-external:
+    put:
+      tags: [Reports]
+      summary: Assign report to external maintainer (Technical Staff member)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Report ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [maintainerId]
+              properties:
+                maintainerId:
+                  type: integer
+                  description: ID of the external maintainer to assign the report to
+      responses:
+        "200":
+          description: Report assigned to external maintainer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  report:
+                    $ref: "#/components/schemas/Report"
+        "400":
+          description: Invalid request (missing maintainerId or invalid report ID)
+        "404":
+          description: Report or maintainer not found
 components_x_generated_from: server

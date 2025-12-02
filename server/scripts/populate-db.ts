@@ -313,8 +313,8 @@ async function upsertCompanies() {
     const categoryRepo = AppDataSource.getRepository(CategoryDAO);
 
     const companies = [
-        { name: 'TechCorp', categoryNames: ['Water Supply - Drinking Water', 'Sewer System'] },
-        { name: 'UrbanSolutions', categoryNames: ['Public Lighting', 'Roads and Urban Furnishings'] },
+        { name: 'Iren', categoryNames: ['Water Supply - Drinking Water', 'Sewer System'] },
+        { name: 'Enel', categoryNames: ['Public Lighting', 'Road Signs and Traffic Lights'] },
     ];
 
     for (const { name, categoryNames } of companies) {
