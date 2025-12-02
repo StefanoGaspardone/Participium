@@ -5,15 +5,18 @@ import * as bcrypt from "bcryptjs";
 import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
 import {NotFoundError} from "@errors/NotFoundError";
+import {categoryRepository, CategoryRepository} from "@repositories/CategoryRepository";
 
 export class UserService {
 
     private userRepo: UserRepository;
     private officeRepo: OfficeRepository;
+    private categoryRepo: CategoryRepository
 
     constructor() {
         this.userRepo = userRepository;
         this.officeRepo = officeRepository;
+        this.categoryRepo = categoryRepository;
     }
 
     findAllUsers = async (): Promise<UserDTO[]> => {
@@ -102,6 +105,15 @@ export class UserService {
         if(updateData.emailNotificationsEnabled !== undefined) user.emailNotificationsEnabled = updateData.emailNotificationsEnabled;
         const updatedUser = await this.userRepo.updateUser(user);
         return MapUserDAOtoDTO(updatedUser);
+    }
+
+    findMaintainersByCategory = async (categoryId: number): Promise<UserDTO[]> =>{
+        const categoryDAO = await this.categoryRepo.findCategoryById(categoryId);
+        if(!categoryDAO){
+            throw new NotFoundError(`Category with id ${categoryId} not found`);
+        }
+        const maintainers = await this.userRepo.findMaintainersByCategory(categoryDAO);
+        return maintainers.map(MapUserDAOtoDTO);
     }
 }
 

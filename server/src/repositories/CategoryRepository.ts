@@ -18,7 +18,6 @@ export class CategoryRepository {
         return this.repo.findOne({ where: { id } });
     }
 
-    
 }
 
 export const categoryRepository = new CategoryRepository();

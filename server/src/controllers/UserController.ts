@@ -212,6 +212,20 @@ export class UserController {
           next(error);
       }
   };
+
+
+    findMaintainersByCategory = async (req: Request<{}, {}, {}, { categoryId: string }>, res: Response, next: NextFunction) => {
+        try {
+            const { categoryId } = req.query;
+            if (!categoryId) throw new BadRequestError('categoryId query parameter is required');
+            const id = parseInt(req.query.categoryId, 10);
+            if (isNaN(id)) throw new BadRequestError('Id must be a valid number');
+            const maintainers = await this.userService.findMaintainersByCategory(id);
+            res.status(200).json(maintainers);
+        } catch (error) {
+            next(error);
+        }
+    };
 }
 
 interface tokenDatas extends JwtPayload {
