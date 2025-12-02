@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ReportDAO } from '@daos/ReportDAO';
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { IsString } from 'class-validator';
+import { CompanyDAO } from './CompanyDAO';
 
 @Entity({ name: 'categories' })
 export class CategoryDAO {
@@ -18,4 +19,7 @@ export class CategoryDAO {
     @ManyToOne(() => OfficeDAO, office => office.categories)
     @JoinColumn({ name: 'office_id' })
     office: OfficeDAO;
+
+    @ManyToMany(() => CompanyDAO, (company) => company.categories)
+    companies: CompanyDAO[];
 }

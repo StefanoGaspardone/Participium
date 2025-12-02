@@ -212,35 +212,21 @@ export class UserController {
           }
           next(error);
       }
-  }
+  };
 
-  validateUser = async (req: Request<{}, {}, { payload: ValidateUserDTO }>, res: Response, next: NextFunction) => {
-    try {
-      const { payload } = req.body;
 
-      if(!payload) throw new BadRequestError('Payload is missing');
-      if(!payload.username || !payload.username.trim()) throw new BadRequestError('Property \'username\' is missing or invalid');
-      if(!payload.code || !payload.code.trim()) throw new BadRequestError('Property \'code\' is missing or invalid');
-
-      await this.userService.validateUser(payload.username, payload.code);
-      return res.status(204).send();
-    } catch(error) {
-      next(error);
-    }
-  }
-
-  resendCode = async (req: Request<{}, {}, { username: string }>, res: Response, next: NextFunction) => {
-    try {
-      const { username } = req.body;
-
-      if(!username || !username.trim()) throw new BadRequestError('Property \'username\' is missing or invalid');
-      
-      await this.userService.resendCode(username);
-      return res.status(201).send();
-    } catch(error) {
-      next(error);
-    }
-  }
+    findMaintainersByCategory = async (req: Request<{}, {}, {}, { categoryId: string }>, res: Response, next: NextFunction) => {
+        try {
+            const { categoryId } = req.query;
+            if (!categoryId) throw new BadRequestError('categoryId query parameter is required');
+            const id = parseInt(req.query.categoryId, 10);
+            if (isNaN(id)) throw new BadRequestError('Id must be a valid number');
+            const maintainers = await this.userService.findMaintainersByCategory(id);
+            res.status(200).json(maintainers);
+        } catch (error) {
+            next(error);
+        }
+    };
 }
 
 interface tokenDatas extends JwtPayload {

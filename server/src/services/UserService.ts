@@ -7,6 +7,7 @@ import * as bcrypt from "bcryptjs";
 import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
 import {NotFoundError} from "@errors/NotFoundError";
+import {categoryRepository, CategoryRepository} from "@repositories/CategoryRepository";
 import { mailService, MailService } from "@services/MailService";
 import { CodeConfirmationService, codeService } from '@services/CodeConfirmationService';
 
@@ -16,10 +17,12 @@ export class UserService {
     private officeRepo: OfficeRepository;
     private mailService: MailService;
     private codeService: CodeConfirmationService;
+    private categoryRepo: CategoryRepository
 
     constructor() {
         this.userRepo = userRepository;
         this.officeRepo = officeRepository;
+        this.categoryRepo = categoryRepository;
         this.mailService = mailService;
         this.codeService = codeService;
     }
@@ -116,6 +119,17 @@ export class UserService {
         const updatedUser = await this.userRepo.updateUser(user);
         return MapUserDAOtoDTO(updatedUser);
     }
+
+    findMaintainersByCategory = async (categoryId: number): Promise<UserDTO[]> =>{
+        const categoryDAO = await this.categoryRepo.findCategoryById(categoryId);
+        if(!categoryDAO){
+            throw new NotFoundError(`Category with id ${categoryId} not found`);
+        }
+        const maintainers = await this.userRepo.findMaintainersByCategory(categoryDAO);
+        return maintainers.map(MapUserDAOtoDTO);
+    }
+
+
 
     private createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
         const user = await this.userRepo.findUserById(userId);
