@@ -29,7 +29,14 @@ export class ReportRepository {
     findReportsAssignedTo = async (userId: number): Promise<ReportDAO[]> => {
         return this.repo.find({
             where: { assignedTo: { id: userId } as any },
-            relations: ["category", "createdBy", "assignedTo"],
+            relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
+            order: { createdAt: "DESC" }
+        });
+    }
+    findReportsCoAssignedTo = async (userId: number): Promise<ReportDAO[]> => {
+        return this.repo.find({
+            where: { coAssignedTo: { id: userId } as any },
+            relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
             order: { createdAt: "DESC" }
         });
     }

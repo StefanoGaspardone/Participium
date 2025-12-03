@@ -25,7 +25,7 @@ router.put(
 )
 router.get(
     '/assigned',
-    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
+    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER, UserType.EXTERNAL_MAINTAINER]),
     reportController.getAssignedReports
 );
 

@@ -113,8 +113,17 @@ export class ReportService {
     }
 
     listAssignedReports = async (userId: number): Promise<ReportDTO[]> => {
-        const reports = await this.reportRepo.findReportsAssignedTo(userId);
-        return reports.map(createReportDTO);
+        const user = await this.userRepo.findUserById(userId);
+        if (!user) throw new NotFoundError(`User ${userId} not found`);
+        if (user.userType === UserType.TECHNICAL_STAFF_MEMBER) {
+            const reports = await this.reportRepo.findReportsAssignedTo(userId);
+            return reports.map(createReportDTO);
+        }else if (user.userType === UserType.EXTERNAL_MAINTAINER) {
+            const reports = await this.reportRepo.findReportsCoAssignedTo(userId);
+            return reports.map(createReportDTO);
+        }else{
+            throw new BadRequestError('Only technical staff members and external maintainers have assigned reports');
+        }
     }
 
     updateReportStatus = async (
