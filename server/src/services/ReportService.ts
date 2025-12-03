@@ -175,7 +175,7 @@ export class ReportService {
     assignExternalMaintainer = async (
         reportId: number,
         tosmId: number,
-        mainteinerId: number
+        maintainerId: number
     ): Promise<ReportDTO> => {
         const report = await this.reportRepo.findReportById(reportId);
         if (!report) throw new NotFoundError(`Report ${reportId} not found`);
@@ -184,17 +184,17 @@ export class ReportService {
             throw new BadRequestError("You're not assigned to the report");
         }
 
-        const maintainer = await this.userRepo.findUserById(mainteinerId);
+        const maintainer = await this.userRepo.findUserById(maintainerId);
         if(!maintainer){
-            throw new NotFoundError(`Maintainer with id ${mainteinerId} not found`);
+            throw new NotFoundError(`Maintainer with id ${maintainerId} not found`);
         }
         if(maintainer.userType !== 'EXTERNAL_MAINTAINER'){
-            throw new BadRequestError(`User with id ${mainteinerId} is not an external maintainer`);
+            throw new BadRequestError(`User with id ${maintainerId} is not an external maintainer`);
         }
 
         /*
         if(!maintainer.company.categories.includes(report.category)){
-            throw new BadRequestError(`Maintainer with id ${mainteinerId} is not authorized to maintain reports of category ${report.category.id}`);
+            throw new BadRequestError(`Maintainer with id ${maintainerId} is not authorized to maintain reports of category ${report.category.id}`);
         }*/
 
         report.coAssignedTo = maintainer;
