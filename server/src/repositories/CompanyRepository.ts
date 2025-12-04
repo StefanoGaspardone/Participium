@@ -12,7 +12,7 @@ export class CompanyRepository {
     }
 
     findAllCompanies = async(): Promise<CompanyDAO[]> => {
-        return this.repo.find();
+        return this.repo.find({ relations: { categories: true } });
     }
 
     findCompanyById = async(id: number): Promise<CompanyDAO | null> => {

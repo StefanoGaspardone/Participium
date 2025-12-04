@@ -162,6 +162,7 @@ export const createEmployee = async (payload: {
   password: string;
   userType: string;
   officeId?: number;
+  companyId?: number;
 }): Promise<{ message: string }> => {
   const res = await fetch(`${BASE_URL}/users/employees`, {
     method: "POST",
