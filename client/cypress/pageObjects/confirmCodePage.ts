@@ -7,30 +7,35 @@ const confirmCodePage = {
 
     setUsername: (username: string) => cy.get('#username').clear().type(username),
 
-    // Type code digits into OTP inputs (array of 6 chars)
+    elements: {
+        username: () => cy.get('#username'),
+        otpContainer: () => cy.get('#otp-container'),
+        otpDigit: (i: number) => cy.get(`#otp-digit-${i}`),
+        submitButton: () => cy.get('#submit-button'),
+        resendLink: () => cy.get('#resend-code'),
+        cooldownText: () => cy.get('#cooldown-text'),
+    },
+
     typeCode: (code: string) => {
         const digits = code.split('');
         digits.forEach((d, i) => {
-            cy.get('.otp-input').eq(i).clear().type(d);
+            confirmCodePage.elements.otpDigit(i).clear().type(d);
         });
     },
 
-    // Simulate paste into the OTP container (the component listens on the wrapper div)
     pasteCode: (code: string) => {
-        // Use Cypress trigger for clipboard paste so it works in the test runner
-        cy.get('.d-flex.justify-content-center').trigger('paste', {
+        confirmCodePage.elements.otpContainer().trigger('paste', {
             clipboardData: {
                 getData: () => code
             }
         });
     },
 
-    submit: () => cy.get('#submit-button').should('not.be.disabled').click(),
+    submit: () => confirmCodePage.elements.submitButton().should('not.be.disabled').click(),
 
-    clickResend: () => cy.get('#resend-code').click(),
+    clickResend: () => confirmCodePage.elements.resendLink().click(),
 
-    // helper to check cooldown text when present
-    getCooldownText: () => cy.contains(/^Resend available in \d+s$/),
+    getCooldownText: () => confirmCodePage.elements.cooldownText(),
 };
 
 export { confirmCodePage };
