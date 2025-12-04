@@ -1,4 +1,4 @@
-import type { Category, Office, Report, User, Chat, Message } from "../models/models";
+import type { Category, Office, Report, User, Chat, Message, Company } from "../models/models";
 import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
@@ -289,21 +289,21 @@ export const assignOrRejectReport = async (reportId: number, status: 'Assigned' 
 };
 
 interface StatusUpdatePayload {
-    status: "InProgress" | "Suspended" | "Resolved";
+  status: "InProgress" | "Suspended" | "Resolved";
 }
 export const updateReportStatus = async (reportId: number, status: "InProgress" | "Suspended" | "Resolved",): Promise<Report> => {
-    const body: StatusUpdatePayload = { status };
-    const res = await fetch(`${BASE_URL}/reports/${reportId}/status/technical`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`
-        },
-        body: JSON.stringify(body)
-    });
-    if (!res.ok) throw await toApiError(res);
-    const data = await res.json();
-    return data.report as Report;
+  const body: StatusUpdatePayload = { status };
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/status/technical`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw await toApiError(res);
+  const data = await res.json();
+  return data.report as Report;
 };
 
 
@@ -354,142 +354,61 @@ export const updateUser = async (
 };
 
 export interface Notification {
+  id: number;
+  previousStatus: string;
+  newStatus: string;
+  seen: boolean;
+  createdAt: string;
+  report: {
     id: number;
-    previousStatus: string;
-    newStatus: string;
-    seen: boolean;
-    createdAt: string;
-    report: {
-        id: number;
-        title: string;
-    };
+    title: string;
+  };
 }
 type NotificationsResponse = {
-    notifications: Notification[];
+  notifications: Notification[];
 }
 export const getMyNotifications = async (): Promise<Notification[]> => {
   const res = await fetch(`${BASE_URL}/notifications/my`, {
     method: "GET",
     headers: {
-        Authorization: `Bearer ${getToken()}`,
+      Authorization: `Bearer ${getToken()}`,
     },
-    });
-    if (!res.ok) {
-        throw await toApiError(res);
-    }
+  });
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
 
-    let data: NotificationsResponse;
-    try {
-        data = await res.json();
-    } catch {
-        throw new Error("Invalid JSON in /offices response");
-    }
+  let data: NotificationsResponse;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Invalid JSON in /offices response");
+  }
 
-    const notificationsArray =
-        Array.isArray(data)
-            ? data
-            : Array.isArray(data.notifications)
-                ? data.notifications
-                : [];
+  const notificationsArray =
+    Array.isArray(data)
+      ? data
+      : Array.isArray(data.notifications)
+        ? data.notifications
+        : [];
 
-    return notificationsArray;
+  return notificationsArray;
 }
 
 export const markNotificationAsSeen = async (id: number) => {
-    const res = await fetch(`${BASE_URL}/notifications/seen/${id}`, {
-        method: "PATCH",
-        headers: {
-            Authorization: `Bearer ${getToken()}`,
-        }
-    });
-
-    if (!res.ok) {
-        throw await toApiError(res);
-    }
-}
-
-type ChatsResponse = {
-    chats: Chat[];
-}
-
-export const getChats = async (): Promise<Chat[]> => {
-  const res = await fetch(`${BASE_URL}/messages`, {
-    method: "GET",
+  const res = await fetch(`${BASE_URL}/notifications/seen/${id}`, {
+    method: "PATCH",
     headers: {
-        Authorization: `Bearer ${getToken()}`,
-    },
+      Authorization: `Bearer ${getToken()}`,
+    }
   });
 
-  if(!res.ok) throw await toApiError(res);
-
-  let data: ChatsResponse;
-  try {
-      data = await res.json();
-  } catch {
-      throw new Error("Failed to fetch your chats");
+  if (!res.ok) {
+    throw await toApiError(res);
   }
-
-  const chatsArray =
-        Array.isArray(data)
-            ? data
-            : Array.isArray(data.chats)
-                ? data.chats
-                : [];
-
-    return chatsArray;
 }
 
-interface MessagesResponse {
-  messages: Message[];
-}
-
-export const getMessages = async (id: number): Promise<Message[]> => {
-  const res = await fetch(`${BASE_URL}/messages/report/${id}`, {
-    method: "GET",
-    headers: {
-        Authorization: `Bearer ${getToken()}`,
-    },
-  });
-
-  if(!res.ok) throw await toApiError(res);
-
-  let data: MessagesResponse;
-  try {
-      data = await res.json();
-  } catch {
-      throw new Error("Failed to fetch your chats");
-  }
-
-  const chatsArray =
-        Array.isArray(data)
-            ? data
-            : Array.isArray(data.messages)
-                ? data.messages
-                : [];
-
-    return chatsArray;
-}
-
-export interface SendMessage {
-  reportId: number,
-  receiverId: number,
-  text: string,
-}
-
-export const sendMessage = async (payload: SendMessage) => {
-    const res = await fetch(`${BASE_URL}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-        throw await toApiError(res);
-    }
-}
+/** CODE for REGISTRATION ******************************************************************************************************* */
 
 interface CodeConfirm {
   payload: {
@@ -507,8 +426,8 @@ export const validateUser = async (payload: CodeConfirm) => {
     body: JSON.stringify(payload),
   });
 
-  if(!res.ok) {
-      throw await toApiError(res);
+  if (!res.ok) {
+    throw await toApiError(res);
   }
 }
 
@@ -525,7 +444,133 @@ export const resendCode = async (payload: ResendCode) => {
     body: JSON.stringify(payload),
   });
 
-  if(!res.ok) {
-      throw await toApiError(res);
+  if (!res.ok) {
+    throw await toApiError(res);
   }
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+}
+
+
+/* CHATs & MESSAGEs  ****************************************************************************************************************************/
+
+type ChatsResponse = {
+  chats: Chat[];
+}
+
+export const getUserChats = async (): Promise<Chat[]> => {
+  const res = await fetch(`${BASE_URL}/chats`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!res.ok) throw await toApiError(res);
+  let data: ChatsResponse;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Failed to fetch your chats");
+  }
+
+  const chatsArray =
+    Array.isArray(data)
+      ? data
+      : Array.isArray(data.chats)
+        ? data.chats
+        : [];
+
+  return chatsArray;
+}
+
+export const getChatMessages = async (chatId: number): Promise<Message[]> => {
+  const res = await fetch(`${BASE_URL}/chats/${chatId}/messages`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+  if (!res.ok) { console.log("PROBLEM"); throw await toApiError(res); }
+
+
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Failed to fetch your chats");
+  }
+
+  const chatsArray = data.chats;
+  return chatsArray;
+}
+
+export interface SendMessage {
+  receiverId: number,
+  text: string,
+}
+
+export const sendMessage = async (chatId: number, payload: SendMessage) => {
+  const res = await fetch(`${BASE_URL}/chats/${chatId}/newMessage`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+}
+
+export interface CreateChatPayload {
+  secondUserId: number,
+  reportId: number
+}
+
+export const createChat = async (payload: CreateChatPayload) => {
+  const res = await fetch(`${BASE_URL}/chats`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+}
+
+
+/* COMPANIES  ****************************************************************************************************************************/
+
+export const createCompany = async (payload: Company) => {
+  const res = await fetch(`${BASE_URL}/companies`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+}
+
+export const getAllCompanies = async () => {
+  const res = await fetch(`${BASE_URL}/companies`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+  return await res.json();
 }

@@ -65,7 +65,8 @@ export default function CustomNavbar() {
       className="custom-navbar"
       style={{
         transition: 'transform 0.3s ease',
-        willChange: 'transform'
+        willChange: 'transform',
+        zIndex: 10000
       }}
     >
       <Container fluid className="navbar-container">

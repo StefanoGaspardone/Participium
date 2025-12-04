@@ -39,11 +39,15 @@ export default function HomePage({ selected, setSelected }: Props) {
         const fetchedReportsInProgress: Report[] = await getReportsByStatus(
           "InProgress"
         );
+        const fetchedReportsSuspended: Report[] = await getReportsByStatus(
+          "Suspended"
+        );
         const fetchedReportsResolved: Report[] = await getReportsByStatus(
           "Resolved"
         );
         const fetchedReports = fetchedReportsAssigned
           .concat(fetchedReportsInProgress)
+          .concat(fetchedReportsSuspended)
           .concat(fetchedReportsResolved);
         setReports(fetchedReports);
       } else {

@@ -134,7 +134,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     const repo = new UserRepository();
     const user = await repo.findUserById(5);
 
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { id: 5 } });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { id: 5 }, "relations": ["office",  "company",  "company.categories"], });
     expect(user).toEqual(fakeUser);
   });
 

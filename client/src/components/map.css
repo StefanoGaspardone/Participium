@@ -3,6 +3,7 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 .map-coords-top {
@@ -23,6 +24,130 @@
   cursor: crosshair;
   /* prevent scroll chaining so wheel on map won't scroll the page */
   overscroll-behavior: contain;
+}
+
+.map-legend {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  background: rgba(89, 126, 213, 0.696);
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.45);
+  padding: 10px;
+  width: 220px;
+  max-width: calc(100% - 32px);
+  font-size: 0.9rem;
+  z-index: 1100;
+}
+
+.map-legend-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  gap: 12px;
+  text-align: left;
+}
+
+.map-legend-toggle:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.5);
+  outline-offset: 4px;
+}
+
+.map-legend-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.map-legend-title {
+  font-size: 0.90rem;
+  font-weight: 500;
+  letter-spacing: 0.00em;
+}
+
+.map-legend-subtitle {
+  font-size: 0.78rem;
+  color: #cbd5f5;
+}
+
+.map-legend-caret {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: inherit;
+}
+
+.map-legend-body {
+  overflow: hidden;
+  margin-top: 14px;
+}
+
+.map-legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.map-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.map-legend-color {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.map-legend-labels {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.map-legend-status {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .map-legend {
+    width: auto;
+    padding: 14px;
+    right: 12px;
+    left: 12px;
+  }
+
+  .map-legend-row {
+    padding: 4px 5px;
+    gap: 5px;
+  }
+
+  .map-legend-color {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 /* Mini map pin */

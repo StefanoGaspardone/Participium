@@ -20,7 +20,7 @@ const OFFICES: string[] = [
     'General Services Division',
 ];
 
-const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number }> = [
+const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number; company?:number }> = [
     { username: 'admin', email: 'admin@gmail.com', firstName: 'Stefano', lastName: 'Lo Russo', password: 'admin', userType: UserType.ADMINISTRATOR },
     { username: 'user', email: 'user@gmail.com', firstName: 'Francesco', lastName: 'Totti', password: 'user', userType: UserType.CITIZEN },
     { username: 'giack.team5', email: 'giack@five.se', firstName: 'Giacomo', lastName: 'Pirlo', password: 'password', userType: UserType.CITIZEN},
@@ -31,8 +31,8 @@ const USERS: Array<{ username:string; email:string; password:string; firstName: 
     { username: 'tsm5', email: 'tsm5@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 5},
     { username: 'tsm6', email: 'tsm6@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 6},
     { username: 'munadm', email: 'munadm@part.se', firstName: 'Giorgio', lastName: 'Turio', password: 'password', userType: UserType.MUNICIPAL_ADMINISTRATOR},
-    { username: 'pro', email: 'pro@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.PUBLIC_RELATIONS_OFFICER}
-    ,{ username: 'testuser', email: 'testuser@example.test', firstName: 'Test', lastName: 'User', password: 'testpass', userType: UserType.CITIZEN }
+    { username: 'pro', email: 'pro@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.PUBLIC_RELATIONS_OFFICER},
+    { username: 'em1', email: 'em1@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.EXTERNAL_MAINTAINER, company: 1},
 ];
 
 const CATEGORIES: Array<{ name: string; office: string }> = [
@@ -47,10 +47,12 @@ const CATEGORIES: Array<{ name: string; office: string }> = [
     { name: 'Other', office: 'General Services Division' },
 ];
 
-async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number }>) {
+
+
+async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number; company?:number }>) {
     const repo = AppDataSource.getRepository('UserDAO');
 
-    for(const { username, email, password, firstName, lastName, userType, office } of users) {
+    for(const { username, email, password, firstName, lastName, userType, office, company } of users) {
         const trimmedUsername = username.trim();
         const trimmedEmail = email.trim();
         if (!trimmedUsername || !trimmedEmail) continue;
@@ -60,15 +62,31 @@ async function upsertUsers(users: Array<{ username:string; email:string; passwor
 
         let user = await repo.findOne({ where: { username: trimmedUsername } });
         if(!user) {
-            if(!office){
+            if(!office && !company) {
                 user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType });
                 user = await repo.save(user);
-            } else {
-                user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType, office });
+                logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
+            } else if(office && !company) {
+                const officeRepo = AppDataSource.getRepository(OfficeDAO);
+                const officeEntity = await officeRepo.findOne({ where: { id: office } });
+                if(!officeEntity) {
+                    logError(`[populate-db] Skipping user '${trimmedUsername}': office id='${office}' not found in OFFICES.`);
+                    continue;
+                }
+                user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType,  office: officeEntity });
                 user = await repo.save(user);
+                logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
+            } if(company && !office) {
+                const companyRepo = AppDataSource.getRepository('CompanyDAO');
+                const companyEntity = await companyRepo.findOne({ where: { id: company } });
+                if(!companyEntity) {
+                    logError(`[populate-db] Skipping user '${trimmedUsername}': company id='${company}' not found in COMPANIES.`);
+                    continue;
+                }
+                user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType,  company: companyEntity });
+                user = await repo.save(user);
+                logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
             }
-
-            logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
         } else {
             logInfo(`[populate-db] User already exists: ${trimmedUsername} (id=${user.id})`);
         }
@@ -291,47 +309,43 @@ async function upsertNotifications() {
     }
 }
 
+async function upsertCompanies() {
+    const repo = AppDataSource.getRepository('CompanyDAO');
+    const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+
+    const companies = [
+        { name: 'Iren', categoryNames: ['Water Supply - Drinking Water', 'Sewer System'] },
+        { name: 'Enel', categoryNames: ['Public Lighting', 'Road Signs and Traffic Lights'] },
+    ];
+
+    for (const { name, categoryNames } of companies) {
+        const trimmedName = name.trim();
+        if (!trimmedName) continue;
+
+        let company = await repo.findOne({ where: { name: trimmedName } });
+        if (!company) {
+            const categories: CategoryDAO[] = [];
+            for (const catName of categoryNames) {
+                const cat = await categoryRepo.findOne({ where: { name: catName } });
+                if (cat) categories.push(cat);
+            }
+
+            company = repo.create({ name: trimmedName, categories });
+            company = await repo.save(company);
+
+            logInfo(`[populate-db] Inserted company: ${trimmedName} (id=${company.id})`);
+        } else {
+            logInfo(`[populate-db] Company already exists: ${trimmedName} (id=${company.id})`);
+        }
+    }
+}
+
 async function deleteActualState() {
-    const tables = ['code_confirmations','users', 'reports', 'office_roles', 'categories', 'notifications'];
+    const tables = ['users', 'reports', 'office_roles', 'categories', 'notifications', 'messages', 'chats'];
     for (const t of tables) {
         const sql = "TRUNCATE TABLE " + t + " RESTART IDENTITY CASCADE";
         await AppDataSource.query(sql);
         console.log("Cleaned table *" + t +"*");
-    }
-}
-
-async function ensureTestUserConfirmation() {
-    const userRepo = AppDataSource.getRepository('UserDAO');
-    const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
-
-    const user = await userRepo.findOne({ where: { username: 'testuser' } });
-    if (!user) {
-        logError('[populate-db] testuser not found; skipping code confirmation creation');
-        return;
-    }
-
-    // make sure user is not active (so confirmation is required)
-    if (user.isActive) {
-        user.isActive = false;
-        await userRepo.save(user);
-        logInfo('[populate-db] Marked testuser as inactive');
-    }
-
-    const expiration = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
-
-    let existing = await codeRepo.findOne({ where: { user: { id: user.id } }, relations: ['user'] });
-    if (!existing) {
-        const cc = codeRepo.create({ code: '123456', expirationDate: expiration, user });
-        await codeRepo.save(cc);
-        logInfo('[populate-db] Created code confirmation for testuser (123456)');
-    } else {
-        existing.code = '123456';
-        existing.expirationDate = expiration;
-        const u = new UserDAO();
-        u.id = user.id;
-        existing.user = u as any;
-        await codeRepo.save(existing);
-        logInfo('[populate-db] Updated existing code confirmation for testuser to 123456');
     }
 }
 
@@ -343,11 +357,8 @@ async function main() {
 
         const rolesByName = await upsertOffices(OFFICES);
         await upsertCategories(CATEGORIES, rolesByName);
-
+        await upsertCompanies();
         await upsertUsers(USERS);
-
-        // ensure test user has a pending code confirmation with code 123456
-        await ensureTestUserConfirmation();
 
         await upsertReports();
         await upsertNotifications();

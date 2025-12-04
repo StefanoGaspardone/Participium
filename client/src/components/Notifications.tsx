@@ -4,7 +4,7 @@ import { BsBell, BsBellFill } from "react-icons/bs";
 import { getMyNotifications, markNotificationAsSeen, type Notification } from "../api/api";
 import { motion, AnimatePresence } from "framer-motion";
 import "./Notifications.css";
-import {REPORT_STATUS_COLORS} from "../constants/reportStatusColors.ts";
+import { REPORT_STATUS_COLORS } from "../constants/reportStatusColors.ts";
 
 export default function Notifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -106,7 +106,7 @@ export default function Notifications() {
     };
 
     return (
-        <div ref={containerRef} className="notifications-dropdown" style={{ position: 'relative' }}>
+        <div ref={containerRef} className="notifications-dropdown" style={{ position: 'relative', zIndex: 10000 }}>
             <motion.div
                 id="notifications-toggle"
                 role="button"
@@ -176,7 +176,8 @@ export default function Notifications() {
                             boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
                             border: '1px solid rgba(0,0,0,0.05)',
                             display: 'flex',
-                            flexDirection: 'column'
+                            flexDirection: 'column',
+                            zIndex: 9999
                         }}
                     >
                         <div className="notifications-header" style={{ padding: '0.6rem 1rem', borderBottom: '1px solid #e6e6e6', background: 'linear-gradient(135deg,#f3f5f9,#eceff3)' }}>

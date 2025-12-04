@@ -1,14 +1,16 @@
-import { randomInt } from 'crypto';
+import {randomInt} from 'crypto';
 import {userRepository, UserRepository} from "@repositories/UserRepository";
-import { CodeConfirmationDAO } from '@daos/CodeConfirmationDAO';
+import {CodeConfirmationDAO} from '@daos/CodeConfirmationDAO';
 import {MapUserDAOtoDTO, NewMunicipalityUserDTO, NewUserDTO, UserDTO} from "@dtos/UserDTO";
 import {UserDAO, UserType} from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import {officeRepository, OfficeRepository} from "@repositories/OfficeRepository";
 import {BadRequestError} from "@errors/BadRequestError";
 import {NotFoundError} from "@errors/NotFoundError";
-import { mailService, MailService } from "@services/MailService";
-import { CodeConfirmationService, codeService } from '@services/CodeConfirmationService';
+import {categoryRepository, CategoryRepository} from "@repositories/CategoryRepository";
+import {mailService, MailService} from "@services/MailService";
+import {CodeConfirmationService, codeService} from '@services/CodeConfirmationService';
+import {companyRepository, CompanyRepository} from "@repositories/CompanyRepository";
 
 export class UserService {
 
@@ -16,12 +18,16 @@ export class UserService {
     private officeRepo: OfficeRepository;
     private mailService: MailService;
     private codeService: CodeConfirmationService;
+    private categoryRepo: CategoryRepository
+    private companyRepository: CompanyRepository;
 
     constructor() {
         this.userRepo = userRepository;
         this.officeRepo = officeRepository;
+        this.categoryRepo = categoryRepository;
         this.mailService = mailService;
         this.codeService = codeService;
+        this.companyRepository = companyRepository;
     }
 
     findAllUsers = async (): Promise<UserDTO[]> => {
@@ -90,6 +96,12 @@ export class UserService {
                     throw new BadRequestError("Organization office not found.");
                 }
                 user.office = office;
+            }else if(payload.userType === UserType.EXTERNAL_MAINTAINER && payload.companyId){
+                const company = await this.companyRepository.findCompanyById(payload.companyId);
+                if(!company){
+                    throw new BadRequestError("Company not found.");
+                }
+                user.company = company;
             }
             user.image = payload.image;
 
@@ -116,6 +128,17 @@ export class UserService {
         const updatedUser = await this.userRepo.updateUser(user);
         return MapUserDAOtoDTO(updatedUser);
     }
+
+    findMaintainersByCategory = async (categoryId: number): Promise<UserDTO[]> =>{
+        const categoryDAO = await this.categoryRepo.findCategoryById(categoryId);
+        if(!categoryDAO){
+            throw new NotFoundError(`Category with id ${categoryId} not found`);
+        }
+        const maintainers = await this.userRepo.findMaintainersByCategory(categoryDAO);
+        return maintainers.map(MapUserDAOtoDTO);
+    }
+
+
 
     private createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
         const user = await this.userRepo.findUserById(userId);
