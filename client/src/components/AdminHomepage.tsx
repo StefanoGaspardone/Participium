@@ -1,20 +1,28 @@
 import { useEffect, useState } from "react";
 import { Container, Card, Form, Button, Alert, Row, Col } from "react-bootstrap";
 import { Loader2Icon } from "lucide-react";
-import { getOffices, createEmployee } from "../api/api";
+import { getOffices, createEmployee, getAllCompanies, createCompany, getCategories } from "../api/api";
 import CustomNavbar from "./CustomNavbar";
-import type { Office } from "../models/models";
+import type { Office, Company, Category } from "../models/models";
 import { useAppContext } from "../contexts/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
 import "./AuthForms.css";
 import { toast } from "react-hot-toast";
-import Select, { components, type MenuProps, type SingleValue, type OptionProps } from "react-select";
+import Select, { components, type MenuProps, type SingleValue, type MultiValue, type OptionProps } from "react-select";
 
 export default function AdminHomepage() {
   const { user } = useAppContext();
 
   const [offices, setOffices] = useState<Office[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loadingOffices, setLoadingOffices] = useState(true);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [showNewCompanyForm, setShowNewCompanyForm] = useState(false);
+  const [newCompanyName, setNewCompanyName] = useState("");
+  const [newCompanyCategories, setNewCompanyCategories] = useState<Category[]>([]);
+  const [isCreatingCompany, setIsCreatingCompany] = useState(false);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -24,6 +32,7 @@ export default function AdminHomepage() {
     password: "",
     userType: "",
     officeId: "",
+    companyId: "",
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -31,15 +40,19 @@ export default function AdminHomepage() {
     { value: "MUNICIPAL_ADMINISTRATOR", label: "Municipal Administrator" },
     { value: "PUBLIC_RELATIONS_OFFICER", label: "Municipal Public Relations Officer" },
     { value: "TECHNICAL_STAFF_MEMBER", label: "Technical Office Staff Member" },
+    { value: "EXTERNAL_MAINTAINER", label: "External Maintainer" },
   ];
 
   const roleIdByValue: Record<string, string> = {
     MUNICIPAL_ADMINISTRATOR: "municipal_administrator",
     PUBLIC_RELATIONS_OFFICER: "public_relations_officer",
     TECHNICAL_STAFF_MEMBER: "technical_staff_member",
+    EXTERNAL_MAINTAINER: "external_maintainer",
   };
 
   const officeOptions = offices.map((o) => ({ value: String(o.id), label: o.name }));
+  const companyOptions = companies.map((c) => ({ value: String(c.id), label: c.name }));
+  const categoryOptions = categories.map((cat) => ({ value: String(cat.id), label: cat.name }));
 
   const AnimatedMenu = (props: MenuProps<any, false>) => (
     <AnimatePresence>
@@ -76,6 +89,15 @@ export default function AdminHomepage() {
     );
   };
 
+  const CompanyOption = (props: OptionProps<any, false>) => {
+    const id = `select-company${String(props.data.value)}`;
+    return (
+      <div id={id}>
+        <components.Option {...props} />
+      </div>
+    );
+  };
+
   useEffect(() => {
     const fetchOffices = async () => {
       try {
@@ -88,7 +110,31 @@ export default function AdminHomepage() {
         setLoadingOffices(false);
       }
     };
+    const fetchCompanies = async () => {
+      try {
+        const res = await getAllCompanies();
+        setCompanies(res.companies || []);
+      } catch (e) {
+        console.error("Failed to load companies", e);
+        toast.error("Unable to load companies.");
+      } finally {
+        setLoadingCompanies(false);
+      }
+    };
+    const fetchCategories = async () => {
+      try {
+        const res = await getCategories();
+        setCategories(res);
+      } catch (e) {
+        console.error("Failed to load categories", e);
+        toast.error("Unable to load categories.");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
     fetchOffices();
+    fetchCompanies();
+    fetchCategories();
   }, []);
 
   const handleChange = (
@@ -98,6 +144,36 @@ export default function AdminHomepage() {
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateCompany = async () => {
+    if (!newCompanyName.trim()) {
+      toast.error("Company name cannot be empty.");
+      return;
+    }
+    if (newCompanyCategories.length === 0) {
+      toast.error("Please select at least one category.");
+      return;
+    }
+    setIsCreatingCompany(true);
+    try {
+      await createCompany({ id: 0, name: newCompanyName.trim(), categories: newCompanyCategories });
+      toast.success("Company created successfully!");
+      const res = await getAllCompanies();
+      setCompanies(res.companies || []);
+      const newCompany = res.companies.find((c: Company) => c.name === newCompanyName.trim());
+      if (newCompany) {
+        setForm((prev) => ({ ...prev, companyId: String(newCompany.id) }));
+      }
+      setNewCompanyName("");
+      setNewCompanyCategories([]);
+      setShowNewCompanyForm(false);
+    } catch (err) {
+      console.error("Failed to create company", err);
+      toast.error("Failed to create company.");
+    } finally {
+      setIsCreatingCompany(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,6 +190,9 @@ export default function AdminHomepage() {
         ...(form.userType === "TECHNICAL_STAFF_MEMBER" && {
           officeId: Number(form.officeId),
         }),
+        ...(form.userType === "EXTERNAL_MAINTAINER" && {
+          companyId: Number(form.companyId),
+        }),
       };
       await createEmployee(payload);
       toast.success("Employee account created successfully!");
@@ -125,6 +204,7 @@ export default function AdminHomepage() {
         password: "",
         userType: "",
         officeId: "",
+        companyId: "",
       });
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -147,7 +227,8 @@ export default function AdminHomepage() {
     form.email.trim() !== "" &&
     form.password.trim() !== "" &&
     form.userType !== "" &&
-    (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeId !== "");
+    (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeId !== "") &&
+    (form.userType !== "EXTERNAL_MAINTAINER" || form.companyId !== "");
 
   if (user?.userType !== "ADMINISTRATOR") {
     return (
@@ -299,6 +380,106 @@ export default function AdminHomepage() {
                             classNamePrefix="rs"
                           />
                         </Form.Group>
+                      </motion.div>
+                    )}
+
+                    {form.userType === "EXTERNAL_MAINTAINER" && (
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.4 }}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Company</Form.Label>
+                          <Select
+                            inputId="open-companies"
+                            instanceId="open-companies"
+                            options={companyOptions}
+                            value={companyOptions.find((c) => c.value === form.companyId) ?? null}
+                            onChange={(opt: SingleValue<{ value: string; label: string }>) =>
+                              setForm((prev) => ({ ...prev, companyId: opt?.value ?? "" }))
+                            }
+                            isDisabled={loadingCompanies || isSubmitting}
+                            placeholder="Select a company"
+                            components={{ Menu: AnimatedMenu, Option: CompanyOption }}
+                            classNamePrefix="rs"
+                          />
+                        </Form.Group>
+                        <div className="d-flex flex-column gap-2 mb-3">
+                          {!showNewCompanyForm ? (
+                            <Button
+                              id="add-new-company-button"
+                              variant="outline-secondary"
+                              size="sm"
+                              onClick={() => setShowNewCompanyForm(true)}
+                              disabled={isSubmitting}
+                            >
+                              + Add New Company
+                            </Button>
+                          ) : (
+                            <div className="border rounded p-3" style={{ backgroundColor: '#f8f9fa' }}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Company Name</Form.Label>
+                                <Form.Control
+                                  id="new-company-name"
+                                  type="text"
+                                  placeholder="Enter company name"
+                                  value={newCompanyName}
+                                  onChange={(e) => setNewCompanyName(e.target.value)}
+                                  disabled={isCreatingCompany}
+                                  className="auth-input"
+                                />
+                              </Form.Group>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Categories</Form.Label>
+                                <Select<{ value: string; label: string }, true>
+                                  inputId="new-company-categories"
+                                  instanceId="new-company-categories"
+                                  options={categoryOptions}
+                                  value={categoryOptions.filter((opt) => newCompanyCategories.some((cat) => String(cat.id) === opt.value))}
+                                  onChange = {(opts: MultiValue<{ value: string; label: string }>) => {
+                                    const selectedCategories = opts.map((opt) => {
+                                      const cat = categories.find((c) => String(c.id) === opt.value);
+                                      return cat!;
+                                    });
+                                    setNewCompanyCategories(selectedCategories);
+                                  }}
+                                  isMulti
+                                  isDisabled={loadingCategories || isCreatingCompany}
+                                  placeholder="Select categories"
+                                  classNamePrefix="rs"
+                                />
+                              </Form.Group>
+                              <div className="d-flex gap-2">
+                                <Button
+                                  id="create-company-button"
+                                  variant="success"
+                                  size="sm"
+                                  onClick={handleCreateCompany}
+                                  disabled={isCreatingCompany || !newCompanyName.trim() || newCompanyCategories.length === 0}
+                                >
+                                  {isCreatingCompany ? (
+                                    <>
+                                      <Loader2Icon size={14} className="spin" />
+                                      <span className="ms-1">Creating...</span>
+                                    </>
+                                  ) : (
+                                    "Create Company"
+                                  )}
+                                </Button>
+                                <Button
+                                  id="cancel-company-button"
+                                  variant="outline-secondary"
+                                  size="sm"
+                                  onClick={() => {
+                                    setShowNewCompanyForm(false);
+                                    setNewCompanyName("");
+                                    setNewCompanyCategories([]);
+                                  }}
+                                  disabled={isCreatingCompany}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </motion.div>
                     )}
 

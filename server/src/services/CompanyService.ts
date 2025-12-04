@@ -37,25 +37,21 @@ export class CompanyService {
             throw new ConflictError('A company with the selected name already exists');
         }
         const categories = (await this.categoryRepo.findAllCategories()).map((c) => createCategoryDTO(c));
-        var check = true;
-        createCompanyDTO.categories.forEach(category => {
-            if (categories.includes(category)) {
-            } else {
-                check = false;
-            }
-        });
-        if (!check) {
+        const existingCategoryIds = new Set(categories.map(c => c.id));
+        const allValid = createCompanyDTO.categories.every(cat => existingCategoryIds.has(cat.id));
+        if (!allValid) {
             throw new BadRequestError('A category inserted is not present on the list of existing categories');
         }
         const newComp = {} as CompanyDAO;
         const categoryDAOs = [] as CategoryDAO[];
-        for (const id of createCompanyDTO.categories) {
+        for (const cat of createCompanyDTO.categories) {
+            const id = cat.id;
             if (typeof id !== 'number' || Number.isNaN(id) || id < 0) {
                 throw new BadRequestError(`Invalid category id: ${id}`);
             }
-            const cat = await this.categoryRepo.findCategoryById(id);
-            if (!cat) throw new NotFoundError(`Category ${id} not found`);
-            categoryDAOs.push(cat);
+            const categoryDAO = await this.categoryRepo.findCategoryById(id);
+            if (!categoryDAO) throw new NotFoundError(`Category ${id} not found`);
+            categoryDAOs.push(categoryDAO);
         }
         newComp.categories = categoryDAOs;
         newComp.name = companyName;
@@ -67,10 +63,10 @@ export class CompanyService {
      * function to retrieve all the existing companies
      * @returns CompanyDTO[], array containing all the Companies (as CompanyDTO)
      */
-    getAllCompanies = async(): Promise<CompanyDTO[]> => {
+    getAllCompanies = async (): Promise<CompanyDTO[]> => {
         const companies = await this.companyRepo.findAllCompanies();
         return companies.map(c => mapCompanyDAOtoDTO(c));
     }
-}   
+}
 
 export const companyService = new CompanyService();

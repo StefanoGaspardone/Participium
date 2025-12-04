@@ -103,8 +103,8 @@ export default function LoginPage() {
                     <Link id="register-redirect" to="/register" className="auth-link-inline">Register</Link>
                   </motion.div>
                   <motion.div className="mt-1 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
-                    Still have to active your account?{" "}Click{" "}
-                    <span id="code-confirm-redirect" onClick = { () => navigate('/confirm-code', { state: { username: username.trim() } }) } className="auth-link-inline">here</span>
+                    Still have to active your account?{" "}
+                    <span id="code-confirm-redirect" onClick = { () => navigate('/confirm-code', { state: { username: username.trim() } }) } className="auth-link-inline">Click here</span>
                   </motion.div>
                 </Card.Body>
               </Card>
