@@ -375,7 +375,7 @@ describe('ReportController integration tests', () => {
     const req: any = {
       params: { id: 'invalid' },
       body: { status: ReportStatus.InProgress },
-      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
     };
     const res: any = { status: jest.fn(), json: jest.fn() };
     const next = jest.fn();
@@ -392,7 +392,7 @@ describe('ReportController integration tests', () => {
     const req: any = {
       params: { id: String(reportId) },
       body: { status: 'INVALID_STATUS' },
-      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
     };
     const res: any = { status: jest.fn(), json: jest.fn() };
     const next = jest.fn();
@@ -409,7 +409,7 @@ describe('ReportController integration tests', () => {
     const req: any = {
       params: { id: String(reportId) },
       body: {},
-      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
     };
     const res: any = { status: jest.fn(), json: jest.fn() };
     const next = jest.fn();

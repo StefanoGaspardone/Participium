@@ -226,7 +226,7 @@ describe('ReportRepository (mock)', () => {
         jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
 
         const repo = new ReportRepository();
-        const result = await repo.findReportsAssignedTo(456);
+        const result = await repo.findReportsCoAssignedTo(456);
 
         expect(fakeRepo.find).toHaveBeenCalledWith({
             where: { coAssignedTo: { id: 456 } },

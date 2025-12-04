@@ -70,6 +70,7 @@ describe('UserController integration tests', () => {
     const res: any = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
     };
 
     const next = jest.fn();
@@ -78,7 +79,7 @@ describe('UserController integration tests', () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ message: 'User created' });
+    expect(res.send).toHaveBeenCalled();
   });
 
   it('signUpUser => missing fields should call next with BadRequestError', async () => {
@@ -109,6 +110,7 @@ describe('UserController integration tests', () => {
     const res: any = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
     };
 
     const next = jest.fn();
@@ -117,7 +119,7 @@ describe('UserController integration tests', () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ message: 'User created' });
+    expect(res.send).toHaveBeenCalled();
 
     // Verify the value was actually saved correctly in the database
     const { AppDataSource } = await import('@database');

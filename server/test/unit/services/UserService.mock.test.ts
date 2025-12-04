@@ -11,6 +11,7 @@ describe("UserService (mock)", () => {
       .mockImplementation(async (u: any) => ({ ...u, id: 2 }));
     const findAllMock = jest.fn().mockResolvedValue([]);
     const loginMock = jest.fn().mockResolvedValue(null);
+    const findByIdMock = jest.fn().mockResolvedValue({ id: 2, isActive: false, save: jest.fn() });
 
     // inject fake repo
     // @ts-ignore
@@ -18,7 +19,12 @@ describe("UserService (mock)", () => {
       createNewUser : signUpMock,
       findAllUsers: findAllMock,
       login: loginMock,
+      findUserById: findByIdMock,
     };
+
+    // Mock the private createCodeConfirmationForUser method
+    // @ts-ignore
+    service["createCodeConfirmationForUser"] = jest.fn().mockResolvedValue({});
 
     const payload = {
       firstName: "Mock",
@@ -29,18 +35,17 @@ describe("UserService (mock)", () => {
       emailNotificationsEnabled: false,
     } as NewUserDTO;
 
-    const saved = await service.signUpUser(payload);
+    await service.signUpUser(payload);
     expect(signUpMock).toHaveBeenCalled();
     // the object passed to signUpMock should contain a passwordHash (not plain password)
     const passed = signUpMock.mock.calls[0][0] as UserDAO;
     expect(passed.passwordHash).toBeDefined();
     expect(passed.passwordHash).not.toBe("secretpw");
-    expect(saved.id).toBeDefined();
   });
 
   it("login should delegate to repo.login", async () => {
     const service = new UserService();
-    const fakeUser = { id: 3, email: "a@b" } as any;
+    const fakeUser = { id: 3, email: "a@b", isActive: true } as any;
     // @ts-ignore
     service["userRepo"] = {
       createNewUser: jest.fn(),

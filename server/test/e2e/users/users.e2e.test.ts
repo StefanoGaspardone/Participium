@@ -204,6 +204,16 @@ describe("Users e2e tests : Update User Profile", () => {
     };
     await request(app).post("/api/users/signup").send(newUser);
 
+    // Manually activate the user for testing (bypass email verification)
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(await import('@daos/UserDAO').then(m => m.UserDAO));
+    const user = await userRepo.findOne({ where: { username: 'updatetest' } });
+    if (user) {
+      user.isActive = true;
+      user.codeConfirmation = undefined as any;
+      await userRepo.save(user);
+    }
+
     // Login to get token
     const loginRes = await request(app).post('/api/users/login').send({
       username: 'updatetest',
@@ -221,6 +231,14 @@ describe("Users e2e tests : Update User Profile", () => {
       emailNotificationsEnabled: true,
     };
     await request(app).post("/api/users/signup").send(anotherUser);
+
+    // Activate the second user too
+    const anotherUserEntity = await userRepo.findOne({ where: { username: 'anotherupdate' } });
+    if (anotherUserEntity) {
+      anotherUserEntity.isActive = true;
+      anotherUserEntity.codeConfirmation = undefined as any;
+      await userRepo.save(anotherUserEntity);
+    }
   });
 
   afterAll(async () => {

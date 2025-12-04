@@ -3,6 +3,7 @@ import { UserDAO, UserType } from '@daos/UserDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { OfficeDAO } from '@daos/OfficeDAO';
+import { ChatDAO, ChatType } from '@daos/ChatsDAO';
 import * as bcrypt from 'bcryptjs';
 
 let messageController: any;
@@ -41,6 +42,7 @@ describe('MessageController integration tests', () => {
   let techStaffUser: any;
   let testReport: any;
   let testCategory: any;
+  let testChat: any;
 
   beforeAll(async () => {
     const AppDataSource = await initializeTestDatasource();
@@ -50,6 +52,7 @@ describe('MessageController integration tests', () => {
     const reportRepo = AppDataSource.getRepository(ReportDAO);
     const categoryRepo = AppDataSource.getRepository(CategoryDAO);
     const officeRepo = AppDataSource.getRepository(OfficeDAO);
+    const chatRepo = AppDataSource.getRepository(ChatDAO);
 
     // Create office first
     const office = officeRepo.create({ name: 'Test Office' });
@@ -63,6 +66,15 @@ describe('MessageController integration tests', () => {
     techStaffUser = await createUser(userRepo, 'techstaff', 'tech@test.com', UserType.TECHNICAL_STAFF_MEMBER);
     testReport = await createReport(reportRepo, citizenUser, testCategory);
 
+    // Create chat
+    testChat = chatRepo.create({
+      report: testReport,
+      tosm_user: techStaffUser,
+      second_user: citizenUser,
+      chatType: ChatType.CITIZEN_TOSM,
+    });
+    await chatRepo.save(testChat);
+
     messageController = (await import('@controllers/MessageController')).messageController;
   });
 
@@ -75,10 +87,10 @@ describe('MessageController integration tests', () => {
     it('should create message and respond 201', async () => {
       const req: any = {
         token: { user: { id: citizenUser.id } },
+        params: { chatId: String(testChat.id) },
         body: {
           text: 'Test message',
           receiverId: techStaffUser.id,
-          reportId: testReport.id,
         },
       };
 
@@ -96,14 +108,16 @@ describe('MessageController integration tests', () => {
       expect(res.json).toHaveBeenCalled();
       const message = res.json.mock.calls[0][0];
       expect(message.text).toBe('Test message');
-      expect(message.sender.id).toBe(citizenUser.id);
-      expect(message.receiver.id).toBe(techStaffUser.id);
+      expect(message.sender).toBe(citizenUser.id);
+      expect(message.receiver).toBe(techStaffUser.id);
+      expect(message.chat).toBe(testChat.id);
     });
 
     it('should call next with BadRequestError when token is invalid', async () => {
       const req: any = {
         token: null,
-        body: { text: 'Test', receiverId: 1, reportId: 1 },
+        params: { chatId: '1' },
+        body: { text: 'Test', receiverId: 1 },
       };
 
       const res: any = { status: jest.fn(), json: jest.fn() };
@@ -120,7 +134,8 @@ describe('MessageController integration tests', () => {
     it('should call next with BadRequestError when text is missing', async () => {
       const req: any = {
         token: { user: { id: citizenUser.id } },
-        body: { receiverId: techStaffUser.id, reportId: testReport.id },
+        params: { chatId: '1' },
+        body: { receiverId: techStaffUser.id },
       };
 
       const res: any = { status: jest.fn(), json: jest.fn() };
@@ -137,7 +152,8 @@ describe('MessageController integration tests', () => {
     it('should call next with BadRequestError when receiverId is missing', async () => {
       const req: any = {
         token: { user: { id: citizenUser.id } },
-        body: { text: 'Test', reportId: testReport.id },
+        params: { chatId: '1' },
+        body: { text: 'Test' },
       };
 
       const res: any = { status: jest.fn(), json: jest.fn() };
@@ -151,9 +167,10 @@ describe('MessageController integration tests', () => {
       expect(err.message).toMatch(/receiverId is required/);
     });
 
-    it('should call next with BadRequestError when reportId is missing', async () => {
+    it('should call next with BadRequestError when chatId is missing', async () => {
       const req: any = {
         token: { user: { id: citizenUser.id } },
+        params: {},
         body: { text: 'Test', receiverId: techStaffUser.id },
       };
 
@@ -165,71 +182,11 @@ describe('MessageController integration tests', () => {
       expect(next).toHaveBeenCalled();
       const err = next.mock.calls[0][0];
       expect(err.name).toBe('BadRequestError');
-      expect(err.message).toMatch(/reportId is required/);
+      expect(err.message).toMatch(/chatId/);
     });
   });
 
-  describe('getMessagesByReportId', () => {
-    it('should return messages for valid report ID', async () => {
-      const req: any = {
-        params: { id: String(testReport.id) },
-      };
-
-      const res: any = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn().mockReturnThis(),
-      };
-
-      const next = jest.fn();
-
-      await messageController.getMessagesByReportId(req, res, next);
-
-      expect(next).not.toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalled();
-      const response = res.json.mock.calls[0][0];
-      expect(response).toHaveProperty('messages');
-      expect(Array.isArray(response.messages)).toBe(true);
-    });
-
-    it('should call next with BadRequestError for invalid report ID', async () => {
-      const req: any = {
-        params: { id: 'invalid' },
-      };
-
-      const res: any = { status: jest.fn(), json: jest.fn() };
-      const next = jest.fn();
-
-      await messageController.getMessagesByReportId(req, res, next);
-
-      expect(next).toHaveBeenCalled();
-      const err = next.mock.calls[0][0];
-      expect(err.name).toBe('BadRequestError');
-      expect(err.message).toBe('Invalid report ID');
-    });
-  });
-
-  describe('getMessages', () => {
-    it('should return chats for authenticated user', async () => {
-      const req: any = {
-        token: { user: { id: citizenUser.id } },
-      };
-
-      const res: any = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn().mockReturnThis(),
-      };
-
-      const next = jest.fn();
-
-      await messageController.getMessages(req, res, next);
-
-      expect(next).not.toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalled();
-      const response = res.json.mock.calls[0][0];
-      expect(response).toHaveProperty('chats');
-      expect(Array.isArray(response.chats)).toBe(true);
-    });
-  });
+  // Note: getMessagesByReportId and getMessages methods were removed
+  // when the architecture changed to chat-based messaging.
+  // Tests for chat functionality should be in chatController tests.
 });

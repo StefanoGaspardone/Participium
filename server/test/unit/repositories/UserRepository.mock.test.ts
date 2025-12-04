@@ -168,8 +168,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     } as any;
 
     const fakeRepo: any = {
-      update: jest.fn().mockResolvedValue({ affected: 1 }),
-      findOneBy: jest.fn().mockResolvedValue(userToUpdate),
+      save: jest.fn().mockResolvedValue(userToUpdate),
     };
 
     const database = require("@database");
@@ -180,8 +179,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     const repo = new UserRepository();
     const result = await repo.updateUser(userToUpdate);
 
-    expect(fakeRepo.update).toHaveBeenCalledWith(userToUpdate.id, userToUpdate);
-    expect(fakeRepo.findOneBy).toHaveBeenCalledWith({ id: userToUpdate.id });
+    expect(fakeRepo.save).toHaveBeenCalledWith(userToUpdate);
     expect(result).toEqual(userToUpdate);
   });
 
@@ -198,8 +196,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     } as any;
 
     const fakeRepo: any = {
-      update: jest.fn().mockResolvedValue({ affected: 1 }),
-      findOneBy: jest.fn().mockResolvedValue(null),
+      save: jest.fn().mockResolvedValue(null),
     };
 
     const database = require("@database");
@@ -213,7 +210,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
       "User with id 999 not found"
     );
 
-    expect(fakeRepo.update).toHaveBeenCalledWith(userToUpdate.id, userToUpdate);
+    expect(fakeRepo.save).toHaveBeenCalledWith(userToUpdate);
   });
 });
 
