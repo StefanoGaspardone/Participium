@@ -173,7 +173,7 @@ export default function HomePage({ selected, setSelected }: Props) {
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 300, damping: 18 }}
                 >
-                  <Link to="/login" className="btn btn-warning btn-lg me-3">
+                  <Link id = "login-2" to="/login" className="btn btn-warning btn-lg me-3">
                     Log In
                   </Link>
                 </motion.div>
@@ -183,7 +183,7 @@ export default function HomePage({ selected, setSelected }: Props) {
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 300, damping: 18 }}
                 >
-                  <Link to="/register" className="btn btn-outline-primary btn-lg ">
+                  <Link id="register-redirect" to="/register" className="btn btn-outline-primary btn-lg ">
                     Register
                   </Link>
                 </motion.div>
