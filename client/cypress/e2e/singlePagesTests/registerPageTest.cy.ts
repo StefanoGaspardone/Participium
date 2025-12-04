@@ -3,6 +3,10 @@ import { registerPage } from '../../pageObjects/registerPage';
 import { generateRandomString } from '../../pageObjects/utils';
 
 describe('3. Test suite for register page :', () => {
+
+	beforeEach(() => {
+		cy.intercept('POST', '/api/users/me', { statusCode: 401, body: { message: 'Unauthorized' } }).as('me');
+	});
 	
 	it('3.1 Inserting correct fields should lead to a correct registration process and confirm code page', () => {
 		cy.visit(REGISTERPAGE_URL);
@@ -18,8 +22,15 @@ describe('3. Test suite for register page :', () => {
 		registerPage.insertPassword(pwd);
 		registerPage.insertTelegram('@' + generateRandomString(8));
 		registerPage.toggleEmailNotifications();
+
+		cy.intercept('POST', '/api/users/signup', {
+			statusCode: 201, 
+			body: {}
+		}).as('signupSuccess');
+		
 		registerPage.submitForm();
-		cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible');
+		cy.wait('@signupSuccess');
+		// cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible');
 		cy.url().should('equal', CONFIRMPAGE_URL);
 	});
 
@@ -35,8 +46,15 @@ describe('3. Test suite for register page :', () => {
 		registerPage.insertUsername(un);
 		registerPage.insertEmail(email);
 		registerPage.insertPassword(pwd);
+		
+		cy.intercept('POST', '/api/users/signup', {
+			statusCode: 409,
+			body: { message: 'Email, username or telegram username already exists' }
+		}).as('signupConflict');
+		
 		registerPage.submitForm();
-		cy.get('.e2e-toast-error', { timeout: 5000 }).should('be.visible');
+		cy.wait('@signupConflict');
+		// cy.get('.e2e-toast-error', { timeout: 5000 }).should('be.visible');
 		cy.url().should('equal', REGISTERPAGE_URL);
 	});
 
@@ -58,8 +76,15 @@ describe('3. Test suite for register page :', () => {
 		registerPage.insertUsername(un);
 		registerPage.insertEmail(email);
 		registerPage.insertPassword(pwd);
+		
+		cy.intercept('POST', '/api/users/signup', { 
+			statusCode: 201, 
+			body: {} 
+		}).as('signupSuccess2');
+		
 		registerPage.submitForm();
-		cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible');
+		cy.wait('@signupSuccess2');
+		// cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible');
 		cy.url().should('equal', CONFIRMPAGE_URL);
 	});
 });

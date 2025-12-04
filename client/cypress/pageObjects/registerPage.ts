@@ -37,7 +37,7 @@ const registerPage = {
 	},
 	
 	submitForm: () => {
-		cy.get('[id="submit-button"]').click();
+		cy.get('[id="submit-button"]').should('not.be.disabled').click();
 	},
 	
 	clickLogin: () => {
