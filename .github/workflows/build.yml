@@ -7,44 +7,25 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
-  sonarqube1:
-    name: SonarQubeWindows
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install server dependencies
-        working-directory: ./server
-        run: npm install
-      
-      - name: Start test database
-        working-directory: ./server
-        run: npm run db:test:start
-      
-      - name: Run server tests with coverage
-        working-directory: ./server
-        run: npm test -- --runInBand
-      
-      - name: Stop test database
-        working-directory: ./server
-        if: always()
-        run: npm run db:test:stop
-      
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+  test-and-sonar:
+    name: Test and SonarQube Analysis
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  
-  sonarqube2:
-    name: SonarQubeMac
-    runs-on: macos-latest
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: mysecretpassword
+          POSTGRES_DB: test_postgres
+        ports:
+          - 5445:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,18 +40,15 @@ jobs:
         working-directory: ./server
         run: npm install
       
-      - name: Start test database
-        working-directory: ./server
-        run: npm run db:test:start
-      
       - name: Run server tests with coverage
         working-directory: ./server
         run: npm test -- --runInBand
-      
-      - name: Stop test database
-        working-directory: ./server
-        if: always()
-        run: npm run db:test:stop
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5445
+          DB_NAME: test_postgres
+          DB_USERNAME: postgres
+          DB_PASSWORD: mysecretpassword
       
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
