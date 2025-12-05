@@ -122,6 +122,20 @@ export class ReportController {
                 status as ReportStatus,
                 rejectedDescription
             );
+
+            // IF the report is accepted and therefore assigned, the chat between the issuer citizen and the tosm is created
+            if (updated.assignedTo && updated.status === ReportStatus.Assigned) {
+                const chats = await chatService.findByReportId(updated.id);
+                if (chats.length === 0) {
+                    // if we enter here, no chats were created, then we have to create it (them later)
+                    const payload = {} as createChatDTO;
+                    payload.tosm_user_id = updated.assignedTo.id;
+                    payload.second_user_id = updated.createdBy.id;
+                    payload.report_id = updated.id;
+                    await chatService.createChat(payload);
+                }
+            }
+            // IF the report is rejected NO chat has to be created (rejection description does the job)
             res.status(200).json({ message: 'Report status updated', report: updated });
         } catch (error) {
             next(error);
@@ -184,7 +198,7 @@ export class ReportController {
             const idParam = Number(req.params.id);
             const userId = req.token?.user?.id;
             const userType = req.token?.user?.userType;
-            if(!userId || !userType){
+            if (!userId || !userType) {
                 throw new BadRequestError('Missing token');
             }
 
@@ -205,25 +219,12 @@ export class ReportController {
             }
 
             const updated = await this.reportService.updateReportStatus(idParam, status as ReportStatus, userId, userType);
-            // we create the chat if the report is assigned to a TOSM and it is now "In progress" 
-            if (updated.status === ReportStatus.InProgress && updated.assignedTo) {
-                const chats = await chatService.findByReportId(updated.id);
-                if (chats.length === 0) {
-                    // if we enter here, no chats were created, then we have to create it (them later)
-                    const payload = {} as createChatDTO;
-                    payload.tosm_user_id = updated.assignedTo.id;
-                    payload.second_user_id = updated.createdBy.id;
-                    payload.report_id = updated.id;
-                    await chatService.createChat(payload);
-                }
-            }
-            // IF it goes to another status, NO chat has to be created
             res.status(200).json({ message: 'Report status updated and chat citizen-tosm created', report: updated });
         } catch (error) {
             next(error);
         }
     }
-    assignExternalMaintainer = async (req: AuthRequest & { params: { id: string }}, res:Response, next: NextFunction) => {
+    assignExternalMaintainer = async (req: AuthRequest & { params: { id: string } }, res: Response, next: NextFunction) => {
         try {
             const reportId = Number(req.params.id);
             if (Number.isNaN(reportId) || reportId <= 0) {
@@ -233,13 +234,27 @@ export class ReportController {
             if (!tosm_id) {
                 throw new BadRequestError('Missing user id in token');
             }
-            if(!req.body.maintainerId || typeof req.body.maintainerId !== 'number' || req.body.maintainerId <=0){
+            if (!req.body.maintainerId || typeof req.body.maintainerId !== 'number' || req.body.maintainerId <= 0) {
                 throw new BadRequestError('maintainerId is missing or it is not a positive number');
             }
             const updatedReport = await this.reportService.assignExternalMaintainer(reportId, tosm_id, req.body.maintainerId);
+
+            // IF an external maintainer is assigned to a report, the chat between him and the tosm who assigned it is created
+
+            // we check if 1 exists, bc it's the one created when "acceptin + assigning" the report
+            if (updatedReport.assignedTo && updatedReport.coAssignedTo) {
+                const chats = await chatService.findByReportId(updatedReport.id);
+                if (chats.length === 1) {
+                    const payload = {} as createChatDTO;
+                    payload.tosm_user_id = updatedReport.assignedTo.id;
+                    payload.second_user_id = updatedReport.coAssignedTo.id;
+                    payload.report_id = updatedReport.id;
+                    await chatService.createChat(payload);
+                }
+            }
             return res.status(201).json(updatedReport);
 
-        }catch (error) {
+        } catch (error) {
             next(error);
         }
     }
