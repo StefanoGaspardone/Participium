@@ -14,10 +14,34 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install server dependencies
+        working-directory: ./server
+        run: npm install
+      
+      - name: Start test database
+        working-directory: ./server
+        run: npm run db:test:start
+      
+      - name: Run server tests with coverage
+        working-directory: ./server
+        run: npm test -- --runInBand
+      
+      - name: Stop test database
+        working-directory: ./server
+        if: always()
+        run: npm run db:test:stop
+      
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  
   sonarqube2:
     name: SonarQubeMac
     runs-on: macos-latest
@@ -25,6 +49,29 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install server dependencies
+        working-directory: ./server
+        run: npm install
+      
+      - name: Start test database
+        working-directory: ./server
+        run: npm run db:test:start
+      
+      - name: Run server tests with coverage
+        working-directory: ./server
+        run: npm test -- --runInBand
+      
+      - name: Stop test database
+        working-directory: ./server
+        if: always()
+        run: npm run db:test:stop
+      
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
