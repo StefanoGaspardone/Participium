@@ -54,12 +54,21 @@ jobs:
           DB_USERNAME: postgres
           DB_PASSWORD: mysecretpassword
       
+      - name: Populate test database with seed data
+        working-directory: ./server
+        run: npm run populate-db
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5445
+          DB_NAME: test_postgres
+          DB_USERNAME: postgres
+          DB_PASSWORD: mysecretpassword
+      
       - name: Start dev server in background
         working-directory: ./server
         run: |
           npm run dev:test &
           echo $! > server.pid
-          sleep 10
         env:
           DB_HOST: localhost
           DB_PORT: 5445
@@ -69,13 +78,21 @@ jobs:
       
       - name: Wait for server to be ready
         run: |
-          timeout 60 bash -c 'until curl -f http://localhost:3000/health || curl -f http://localhost:3000 2>/dev/null; do sleep 2; done' || echo "Server health check timeout - proceeding anyway"
+          echo "Waiting for server to start..."
+          sleep 15
+          curl http://localhost:3000 || echo "Server check complete"
       
       - name: Start client dev server
         working-directory: ./client
         run: |
           npm run dev &
           echo $! > client.pid
+        env:
+          VITE_API_URL: http://localhost:3000
+      
+      - name: Wait for client to be ready
+        run: |
+          echo "Waiting for client to start..."
           sleep 10
       
       - name: Run Cypress E2E tests with coverage
