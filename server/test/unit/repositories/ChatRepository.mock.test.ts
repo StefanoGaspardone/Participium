@@ -213,7 +213,7 @@ describe('ChatRepository (mock)', () => {
 
       expect(fakeRepo.findOne).toHaveBeenCalledWith({
         where: { id: 1 },
-        relations: ['tosm_user', 'second_user', 'report']
+        relations: ['tosm_user', 'second_user', 'report', 'report.category', 'report.createdBy', 'report.assignedTo', 'report.coAssignedTo']
       });
       expect(result).toEqual(chat);
     });
@@ -230,7 +230,7 @@ describe('ChatRepository (mock)', () => {
 
       expect(fakeRepo.findOne).toHaveBeenCalledWith({
         where: { id: 999 },
-        relations: ['tosm_user', 'second_user', 'report']
+        relations: ['tosm_user', 'second_user', 'report', 'report.category', 'report.createdBy', 'report.assignedTo', 'report.coAssignedTo']
       });
       expect(result).toBeNull();
     });

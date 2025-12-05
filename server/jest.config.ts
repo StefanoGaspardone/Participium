@@ -31,6 +31,7 @@ const config: Config = {
         "^.+\\.tsx?$": 'ts-jest',
     },
     maxWorkers: 1,
+    forceExit: true,
 }
 
 export default config;
