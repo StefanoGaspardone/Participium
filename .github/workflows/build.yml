@@ -95,11 +95,6 @@ jobs:
           echo "Waiting for client to start..."
           sleep 10
       
-      - name: Wait for client to be ready
-        run: |
-          echo "Waiting for client to start..."
-          sleep 10
-      
       - name: Stop servers
         if: always()
         run: |
