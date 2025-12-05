@@ -135,7 +135,32 @@ describe("Users e2e tests : Login and Registration", () => {
     expect(String(res.body.message).toLowerCase()).toMatch(/missing office id/);
   });
 
-  it('/login for municipality user => 200 and returns token', async () => {
+    it("/employees => 400 when EXTERNAL_MAINTAINER missing companyId (admin token)", async () => {
+        // login as admin
+        const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
+        expect(loginRes.status).toBe(200);
+        const token = loginRes.body.token as string;
+
+        const badPayload = {
+            email: 'e2e_test@example.com',
+            password: 'munipass',
+            firstName: 'E2E',
+            lastName: 'NoOffice',
+            username: 'e2emuni_no_office',
+            userType: 'EXTERNAL_MAINTAINER',
+        };
+
+        const res = await request(app)
+            .post('/api/users/employees')
+            .set('Authorization', `Bearer ${token}`)
+            .send(badPayload);
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('message');
+        expect(String(res.body.message).toLowerCase()).toMatch("missing company id");
+    });
+
+    it('/login for municipality user => 200 and returns token', async () => {
     const credentials = { username: 'e2emuni', password: 'munipass' };
     const res = await request(app).post('/api/users/login').send(credentials);
     expect(res.status).toBe(200);
@@ -367,3 +392,241 @@ describe("Users e2e tests : Update User Profile", () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe("Users e2e tests : User Validation and Code Resend", () => {
+  let testUsername: string;
+  let verificationCode: string;
+
+  beforeAll(async () => {
+    await f.default.beforeAll();
+  });
+
+  afterAll(async () => {
+    await f.default.afterAll();
+  });
+
+  beforeEach(async () => {
+    // Create a new user for each test (not activated)
+    testUsername = `testvalidation${Date.now()}`;
+    const newUser = {
+      email: `${testUsername}@test.e2e`,
+      password: "password",
+      firstName: "Test",
+      lastName: "Validation",
+      username: testUsername,
+      emailNotificationsEnabled: false,
+    };
+    await request(app).post("/api/users/signup").send(newUser);
+
+    // Get the verification code from the database
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(await import('@daos/UserDAO').then(m => m.UserDAO));
+    const user = await userRepo.findOne({
+      where: { username: testUsername },
+      relations: ['codeConfirmation']
+    });
+
+    if (user && user.codeConfirmation) {
+      verificationCode = String(user.codeConfirmation.code);
+    }
+  });
+
+  it("POST /validate-user => 204 (successfully validate user with correct code)", async () => {
+    const payload = {
+      payload: {
+        username: testUsername,
+        code: verificationCode,
+      }
+    };
+
+    const res = await request(app)
+      .post('/api/users/validate-user')
+      .send(payload);
+
+    expect(res.status).toBe(204);
+
+    // Verify user is now active
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(await import('@daos/UserDAO').then(m => m.UserDAO));
+    const user = await userRepo.findOne({ where: { username: testUsername } });
+    expect(user?.isActive).toBe(true);
+  });
+
+  it("POST /validate-user => 400 (missing payload)", async () => {
+    const res = await request(app)
+      .post('/api/users/validate-user')
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/payload is missing/i);
+  });
+
+  it("POST /validate-user => 400 (missing username in payload)", async () => {
+    const payload = {
+      payload: {
+        code: verificationCode,
+      }
+    };
+
+    const res = await request(app)
+      .post('/api/users/validate-user')
+      .send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/username.*missing or invalid/i);
+  });
+
+  it("POST /validate-user => 400 (missing code in payload)", async () => {
+    const payload = {
+      payload: {
+        username: testUsername,
+      }
+    };
+
+    const res = await request(app)
+      .post('/api/users/validate-user')
+      .send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/code.*missing or invalid/i);
+  });
+
+  it("POST /validate-user => 400 (invalid verification code)", async () => {
+    const payload = {
+      payload: {
+        username: testUsername,
+        code: "wrongcode123",
+      }
+    };
+
+    const res = await request(app)
+      .post('/api/users/validate-user')
+      .send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/invalid verification code/i);
+  });
+
+  it("POST /validate-user => 404 (user not found)", async () => {
+    const payload = {
+      payload: {
+        username: "nonexistentuser",
+        code: "123456",
+      }
+    };
+
+    const res = await request(app)
+      .post('/api/users/validate-user')
+      .send(payload);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/user.*not found/i);
+  });
+
+  it("POST /validate-user => 400 (user already active)", async () => {
+    // First activate the user
+    const payload = {
+      payload: {
+        username: testUsername,
+        code: verificationCode,
+      }
+    };
+
+    await request(app)
+      .post('/api/users/validate-user')
+      .send(payload);
+
+    // Try to validate again
+    const res = await request(app)
+      .post('/api/users/validate-user')
+      .send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/user is already active/i);
+  });
+
+  it("POST /resend-user => 201 (successfully resend verification code)", async () => {
+    const payload = {
+      username: testUsername,
+    };
+
+    const res = await request(app)
+      .post('/api/users/resend-user')
+      .send(payload);
+
+    expect(res.status).toBe(201);
+
+    // Verify a new code was generated
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(await import('@daos/UserDAO').then(m => m.UserDAO));
+    const user = await userRepo.findOne({
+      where: { username: testUsername },
+      relations: ['codeConfirmation']
+    });
+
+    expect(user?.codeConfirmation).toBeDefined();
+    expect(user?.codeConfirmation?.code).toBeDefined();
+  });
+
+  it("POST /resend-user => 400 (missing username)", async () => {
+    const res = await request(app)
+      .post('/api/users/resend-user')
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/username.*missing or invalid/i);
+  });
+
+  it("POST /resend-user => 400 (empty username)", async () => {
+    const payload = {
+      username: "",
+    };
+
+    const res = await request(app)
+      .post('/api/users/resend-user')
+      .send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/username.*missing or invalid/i);
+  });
+
+  it("POST /resend-user => 404 (user not found)", async () => {
+    const payload = {
+      username: "nonexistentuser",
+    };
+
+    const res = await request(app)
+      .post('/api/users/resend-user')
+      .send(payload);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toMatch(/user.*not found/i);
+  });
+
+  it("POST /resend-user => 400 (user already active)", async () => {
+    // First activate the user
+    const validatePayload = {
+      payload: {
+        username: testUsername,
+        code: verificationCode,
+      }
+    };
+
+    await request(app)
+      .post('/api/users/validate-user')
+      .send(validatePayload);
+
+    // Try to resend code for active user
+    const resendPayload = {
+      username: testUsername,
+    };
+
+    const res = await request(app)
+      .post('/api/users/resend-user')
+      .send(resendPayload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/user is already active/i);
+  });
+});
+
