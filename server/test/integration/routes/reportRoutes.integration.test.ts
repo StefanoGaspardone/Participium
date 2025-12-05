@@ -5,8 +5,13 @@ import { OfficeDAO } from '@daos/OfficeDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
-import { CONFIG } from '@config';
+import { ChatDAO } from '@daos/ChatsDAO';
 import * as bcrypt from 'bcryptjs';
+
+// Test constants
+const VALID_TURIN_LAT = 45.07;
+const VALID_TURIN_LONG = 7.65;
+const NON_EXISTENT_CATEGORY_ID = 999999;
 
 describe('Report routes integration tests', () => {
   let categoryId: number | undefined;
@@ -14,6 +19,43 @@ describe('Report routes integration tests', () => {
   let token: string;
   let proToken: string;
   let adminToken: string;
+  let createdEntities: { users: UserDAO[], reports: ReportDAO[], chats: ChatDAO[] } = { users: [], reports: [], chats: [] };
+
+  // Helper functions
+  const createTechUser = async (username: string, email: string, password: string, office: OfficeDAO) => {
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, salt);
+    const techUser = userRepo.create({
+      username,
+      email,
+      passwordHash: hash,
+      firstName: 'Tech',
+      lastName: 'User',
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      office
+    });
+    const saved = await userRepo.save(techUser);
+    createdEntities.users.push(saved);
+    return saved;
+  };
+
+  const createExternalMaintainer = async (username: string, email: string, password: string) => {
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, salt);
+    const extUser = userRepo.create({
+      username,
+      email,
+      passwordHash: hash,
+      firstName: 'External',
+      lastName: 'Maintainer',
+      userType: UserType.EXTERNAL_MAINTAINER
+    });
+    const saved = await userRepo.save(extUser);
+    createdEntities.users.push(saved);
+    return saved;
+  };
 
   beforeAll(async () => {
     AppDataSource = await initializeTestDatasource();
@@ -76,6 +118,33 @@ describe('Report routes integration tests', () => {
     adminToken = loginAdmin.body.token as string;
   });
 
+  afterEach(async () => {
+    // Clean up entities created during tests
+    // Order matters: chats first (references reports), then reports (references users), then users
+    const chatRepo = AppDataSource.getRepository(ChatDAO);
+    const reportRepo = AppDataSource.getRepository(ReportDAO);
+    const userRepo = AppDataSource.getRepository(UserDAO);
+
+    try {
+      if (createdEntities.chats.length > 0) {
+        await chatRepo.remove(createdEntities.chats);
+        createdEntities.chats = [];
+      }
+      if (createdEntities.reports.length > 0) {
+        await reportRepo.remove(createdEntities.reports);
+        createdEntities.reports = [];
+      }
+      if (createdEntities.users.length > 0) {
+        await userRepo.remove(createdEntities.users);
+        createdEntities.users = [];
+      }
+    } catch (err) {
+      // Ignore cleanup errors - they may occur if entities were already cleaned up
+      const error = err as Error;
+      console.log('Cleanup warning:', error.message);
+    }
+  });
+
   afterAll(async () => {
     await emptyTestData();
     await closeTestDataSource();
@@ -95,8 +164,8 @@ describe('Report routes integration tests', () => {
       description: 'Valid description',
       categoryId: categoryId,
       images: ['http://example.com/1.jpg'],
-      lat: 45.07,
-      long: 7.65,
+      lat: VALID_TURIN_LAT,
+      long: VALID_TURIN_LONG,
       anonymous: false,
     },
   });
@@ -110,7 +179,7 @@ describe('Report routes integration tests', () => {
   ];
 
   test.each(invalidCases)('POST /api/reports => 400 when %s', async (_name, patch, expectedField) => {
-    const body = { payload: { ...(getValidPayload().payload as any), ...(patch.payload || {}) } };
+    const body = { payload: { ...(getValidPayload().payload as any), ...(patch.payload) } };
     const res = await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(body);
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('errors');
@@ -138,18 +207,14 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 201 with 3 images (upper images boundary)', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
-    expect(login.status).toBe(200);
-    const token = login.body.token as string;
-
     const payload = {
       payload: {
         title: 'Many images',
         description: 'Testing three images allowed',
         categoryId: categoryId,
         images: ['http://example.com/1.jpg', 'http://example.com/2.jpg', 'http://example.com/3.jpg'],
-        lat: 45.07,
-        long: 7.65,
+        lat: VALID_TURIN_LAT,
+        long: VALID_TURIN_LONG,
         anonymous: false,
       },
     };
@@ -159,10 +224,6 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 201 with lat/long at allowed boundaries', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
-    expect(login.status).toBe(200);
-    const token = login.body.token as string;
-
     const payload = {
       payload: {
         title: 'Boundary coords',
@@ -180,18 +241,14 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 400 when coordinates are outside Turin', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
-    expect(login.status).toBe(200);
-    const token = login.body.token as string;
-
     const payload = {
       payload: {
         title: 'Bad location',
         description: 'Coordinates outside Turin',
         categoryId: categoryId,
         images: ['http://example.com/1.jpg'],
-        lat: 40.0,
-        long: 8.0,
+        lat: 40,
+        long: 8,
         anonymous: false,
       },
     };
@@ -203,10 +260,6 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 400 when coordinates are outside Turin (south)', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
-    expect(login.status).toBe(200);
-    const token = login.body.token as string;
-
     const payload = {
       payload: {
         title: 'Bad location south',
@@ -226,15 +279,11 @@ describe('Report routes integration tests', () => {
   });
 
   it('POST /api/reports => 404 when categoryId does not exist', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
-    expect(login.status).toBe(200);
-    const token = login.body.token as string;
-
     const payload = {
       payload: {
         title: 'Unknown category',
         description: 'Category id does not exist',
-        categoryId: 999999, // non existing
+        categoryId: NON_EXISTENT_CATEGORY_ID,
         images: ['http://example.com/1.jpg'],
         lat: 45.0703,
         long: 7.6869,
@@ -270,8 +319,8 @@ describe('Report routes integration tests', () => {
           description: 'Description',
           categoryId: categoryId,
           images: ['http://example.com/1.jpg'],
-          lat: 45.07,
-          long: 7.65,
+          lat: VALID_TURIN_LAT,
+          long: VALID_TURIN_LONG,
           anonymous: false,
         },
       };
@@ -303,7 +352,7 @@ describe('Report routes integration tests', () => {
           anonymous: false,
         },
       };
-      const res = await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
+      await request(app).post('/api/reports').set('Authorization', `Bearer ${token}`).send(payload);
       // We need to fetch the report to get ID, or assume it's the last one.
       // But createReport doesn't return ID in the response body based on previous test (it returns message).
       // So we query DB.
@@ -477,7 +526,7 @@ describe('Report routes integration tests', () => {
           description: 'Description',
           categoryId: categoryId,
           images: ['http://example.com/1.jpg'],
-          lat: 45.07,
+          lat: VALID_TURIN_LAT,
           long: 7.65,
           anonymous: false,
         },
@@ -534,8 +583,8 @@ describe('Report routes integration tests', () => {
             description: 'Description',
             categoryId: categoryId,
             images: ['http://example.com/1.jpg'],
-            lat: 45.07,
-            long: 7.65,
+            lat: VALID_TURIN_LAT,
+            long: VALID_TURIN_LONG,
             anonymous: false,
           },
         };
@@ -553,7 +602,151 @@ describe('Report routes integration tests', () => {
       const res = await request(app).get('/api/reports/assigned').set('Authorization', `Bearer ${techToken}`);
       expect(res.status).toBe(200);
       expect(res.body.reports.length).toBeGreaterThan(0);
-      expect(res.body.reports.every((r: any) => r.assignedTo && r.assignedTo.id === techUserId)).toBe(true);
+      expect(res.body.reports.every((r: any) => r.assignedTo?.id === techUserId)).toBe(true);
+    });
+  });
+
+  describe('Chat creation tests', () => {
+    describe('PUT /api/reports/:id/assign-external', () => {
+      it('should assign external maintainer and create chat', async () => {
+        const userRepo = AppDataSource.getRepository(UserDAO);
+        const reportRepo = AppDataSource.getRepository(ReportDAO);
+        const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+        const chatRepo = AppDataSource.getRepository(ChatDAO);
+
+        const category = await categoryRepo.findOne({ where: { id: categoryId } });
+        const office = await AppDataSource.getRepository(OfficeDAO).findOne({ where: {} });
+        
+        const techUser = await createTechUser(`tech_for_ext_${Date.now()}`, `tech_ext_${Date.now()}@test.com`, 'tech', office);
+        const extUser = await createExternalMaintainer(`ext_maintainer_${Date.now()}`, `ext_${Date.now()}@test.com`, 'ext');
+
+      const citizenUser = await userRepo.findOne({ where: { userType: UserType.CITIZEN } });
+
+        // Create assigned report
+        const report = reportRepo.create({
+          title: 'Report for External Assignment',
+          description: 'Test external maintainer',
+          category: category,
+          images: ['http://img/ext.jpg'],
+          lat: VALID_TURIN_LAT,
+          long: VALID_TURIN_LONG,
+          anonymous: false,
+          createdBy: citizenUser,
+          status: ReportStatus.Assigned,
+          assignedTo: techUser
+        });
+        const savedReport = await reportRepo.save(report);
+        createdEntities.reports.push(savedReport);
+
+        // Create initial citizen-TOSM chat
+        const initialChat = chatRepo.create({
+          tosm_user: techUser,
+          second_user: citizenUser,
+          report: savedReport,
+          chatType: 'CITIZEN_TOSM' as any
+        });
+        const savedChat = await chatRepo.save(initialChat);
+        createdEntities.chats.push(savedChat);
+
+        const techLogin = await request(app).post('/api/users/login').send({ 
+          username: techUser.username, 
+          password: 'tech' 
+        });
+        const techToken = techLogin.body.token;
+
+        const res = await request(app)
+          .put(`/api/reports/${savedReport.id}/assign-external`)
+          .set('Authorization', `Bearer ${techToken}`)
+          .send({ maintainerId: extUser.id });
+
+        expect(res.status).toBe(201);
+        expect(res.body.coAssignedTo).toBeDefined();
+        expect(res.body.coAssignedTo.id).toBe(extUser.id);
+
+        // Verify two chats exist
+        const chats = await chatRepo.find({ 
+          where: { report: { id: savedReport.id } },
+          relations: ['tosm_user', 'second_user']
+        });
+        
+        expect(chats.length).toBe(2);
+        const extChatExists = chats.some((c: ChatDAO) => c.second_user.id === extUser.id && c.tosm_user.id === techUser.id);
+        expect(extChatExists).toBe(true);
+        
+        // Track new chat for cleanup
+        const newChat = chats.find((c: ChatDAO) => c.second_user.id === extUser.id);
+        if (newChat) createdEntities.chats.push(newChat);
+      });
+
+    it('should return 401 without token', async () => {
+      const res = await request(app)
+        .put('/api/reports/1/assign-external')
+        .send({ maintainerId: 1 });
+
+      expect(res.status).toBe(401);
+    });
+
+      it('should return 400 with invalid maintainerId', async () => {
+        const office = await AppDataSource.getRepository(OfficeDAO).findOne({ where: {} });
+        const techUser = await createTechUser(`tech_invalid_${Date.now()}`, `tech_invalid_${Date.now()}@test.com`, 'tech2', office);
+
+        const techLogin = await request(app).post('/api/users/login').send({ 
+          username: techUser.username, 
+          password: 'tech2' 
+        });
+        const techToken = techLogin.body.token;
+
+        const res = await request(app)
+          .put('/api/reports/1/assign-external')
+          .set('Authorization', `Bearer ${techToken}`)
+          .send({ maintainerId: -1 });
+
+        expect(res.status).toBe(400);
+      });
+    });
+
+    describe('PUT /api/reports/:id/status/technical', () => {
+      it('should update status and create chat', async () => {
+        const reportRepo = AppDataSource.getRepository(ReportDAO);
+        const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+        const userRepo = AppDataSource.getRepository(UserDAO);
+
+        const category = await categoryRepo.findOne({ where: { id: categoryId } });
+        const office = await AppDataSource.getRepository(OfficeDAO).findOne({ where: {} });
+        
+        const techUser = await createTechUser(`tech_status_${Date.now()}`, `tech_status_${Date.now()}@test.com`, 'tech3', office);
+        const citizenUser = await userRepo.findOne({ where: { userType: UserType.CITIZEN } });
+
+        const report = reportRepo.create({
+          title: 'Status Update Test',
+          description: 'Test status update',
+          category: category,
+          images: ['http://img/status.jpg'],
+          lat: VALID_TURIN_LAT,
+          long: VALID_TURIN_LONG,
+          anonymous: false,
+          createdBy: citizenUser,
+          status: ReportStatus.Assigned,
+          assignedTo: techUser
+        });
+        const savedReport = await reportRepo.save(report);
+        createdEntities.reports.push(savedReport);
+
+        const techLogin = await request(app).post('/api/users/login').send({ 
+          username: techUser.username, 
+          password: 'tech3' 
+        });
+        const techToken = techLogin.body.token;
+
+        const res = await request(app)
+          .put(`/api/reports/${savedReport.id}/status/technical`)
+          .set('Authorization', `Bearer ${techToken}`)
+          .send({ status: ReportStatus.InProgress });
+
+        expect(res.status).toBe(200);
+        expect(res.body.message).toContain('chat');
+        expect(res.body.report.status).toBe(ReportStatus.InProgress);
+      });
     });
   });
 });
