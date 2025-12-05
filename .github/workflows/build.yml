@@ -40,6 +40,10 @@ jobs:
         working-directory: ./server
         run: npm install
       
+      - name: Install client dependencies
+        working-directory: ./client
+        run: npm install
+      
       - name: Run server tests with coverage
         working-directory: ./server
         run: npm test -- --runInBand
@@ -49,6 +53,40 @@ jobs:
           DB_NAME: test_postgres
           DB_USERNAME: postgres
           DB_PASSWORD: mysecretpassword
+      
+      - name: Start dev server in background
+        working-directory: ./server
+        run: |
+          npm run dev:test &
+          echo $! > server.pid
+          sleep 10
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5445
+          DB_NAME: test_postgres
+          DB_USERNAME: postgres
+          DB_PASSWORD: mysecretpassword
+      
+      - name: Wait for server to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/health || curl -f http://localhost:3000 2>/dev/null; do sleep 2; done' || echo "Server health check timeout - proceeding anyway"
+      
+      - name: Start client dev server
+        working-directory: ./client
+        run: |
+          npm run dev &
+          echo $! > client.pid
+          sleep 10
+      
+      - name: Run Cypress E2E tests with coverage
+        working-directory: ./client
+        run: npm run test:e2e
+      
+      - name: Stop servers
+        if: always()
+        run: |
+          [ -f server/server.pid ] && kill $(cat server/server.pid) || true
+          [ -f client/client.pid ] && kill $(cat client/client.pid) || true
       
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
