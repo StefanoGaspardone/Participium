@@ -59,8 +59,6 @@ export default function CustomNavbar() {
 
   return (
     <Navbar
-      bg="primary"
-      variant="dark"
       sticky="top"
       className="custom-navbar"
       style={{
@@ -85,8 +83,8 @@ export default function CustomNavbar() {
               alt="Logo"
               style={{ display: 'block' }}
               initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: logoHover ? 1.06 : 1 }}
-              transition={{ type: 'tween', duration: 0.25 }}
+              animate={{ opacity: 1, scale: logoHover ? 1.1 : 1 }}
+              transition={{ duration: 0.3 }}
             />
           </div>
 
@@ -94,14 +92,14 @@ export default function CustomNavbar() {
             onClick={handleBrandClick}
             role="button"
             tabIndex={0}
-            className="navbar-title-centered"
+            className="navbar-title-animated"
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.97 }}
             transition={{ duration: 0.3 }}
           >
-            Participium
+            PARTICIPIUM
           </motion.div>
 
           <div className="navbar-right-section">
@@ -127,16 +125,17 @@ export default function CustomNavbar() {
                     initial={false}
                     animate={{ scale: profileHover ? 1.06 : 1 }}
                     transition={{ duration: 0.18 }}
+                    whileTap={{ scale: 0.93 }}
                   >
                     {user?.username && (
                       <motion.span
                         style={{
-                          color: '#E1AD01',
+                          color: '#0067c6',
                           marginRight: '0.55rem',
                           fontWeight: 500,
                           fontSize: '0.95rem',
                           textDecoration: 'underline',
-                          textDecorationColor: '#E1AD01',
+                          textDecorationColor: '#0067c6',
                           textDecorationThickness: '2px',
                           textUnderlineOffset: '3px'
                         }}
@@ -247,6 +246,7 @@ export default function CustomNavbar() {
                   className="btn btn-warning ms-3"
                   style={{
                     transition: 'transform 0.2s',
+                    marginRight: '1rem'
                   }}
                   onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px) scale(1.06)')}
                   onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0) scale(1)')}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import CustomNavbar from './CustomNavbar';
-import { Accordion, Card, Container, Row, Col, Form, Button, Alert, Image } from 'react-bootstrap';
+import { Accordion, Badge, Card, Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 import ReportMiniMap from './ReportMiniMap';
 import { getReportsByStatus, getCategories, updateReportCategory, assignOrRejectReport } from '../api/api';
 import type { Report, Category } from '../models/models';
@@ -203,53 +203,92 @@ export default function PROHomepage() {
                   <Accordion.Header
                     onClick={() => handleToggle(r.id)}
                   >
-                    <div className="d-flex flex-column flex-md-row w-100">
-                      <strong id={"report-title-" + r.title} className="me-auto">{r.title}</strong>
-                      <small className="text-muted">
+                    <div className="d-flex w-100 align-items-center justify-content-between">
+                      <h4 id={"report-title-" + r.title} className="mb-0 fw-bold" style={{ color: '#00205B', fontSize: '1.5rem' }}>{r.title}</h4>
+                      <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem' }}>
                         {new Date(r.createdAt).toLocaleString()}
                       </small>
                     </div>
                   </Accordion.Header>
                   <Accordion.Body>
+                    {/* Top section: Images and Map side by side */}
+                    <Row className="mb-4">
+                      <Col md={6}>
+                        <div style={{
+                          border: '1px solid #ddd',
+                          borderRadius: '8px',
+                          padding: '1rem',
+                          height: '300px',
+                          overflow: 'hidden'
+                        }}>
+                          {r.images?.length ? (
+                            <div style={{
+                              display: 'flex',
+                              gap: '0.5rem',
+                              overflowX: 'auto',
+                              height: '100%',
+                              alignItems: 'center'
+                            }}>
+                              {r.images.map((img, idx) => (
+                                <button
+                                  key={idx}
+                                  id={"click-expand-" + r.title}
+                                  type="button"
+                                  className="p-0 border-0 bg-transparent"
+                                  onClick={() => openLightbox(r.images, idx)}
+                                  aria-label={`Open image ${idx + 1}`}
+                                  style={{ flexShrink: 0 }}
+                                >
+                                  <img
+                                    src={img}
+                                    alt={`Report image ${idx + 1}`}
+                                    style={{
+                                      minWidth: '250px',
+                                      maxWidth: '250px',
+                                      height: '270px',
+                                      objectFit: 'cover',
+                                      borderRadius: '6px'
+                                    }}
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="d-flex align-items-center justify-content-center h-100">
+                              <p className="text-muted fst-italic mb-0">No images available</p>
+                            </div>
+                          )}
+                        </div>
+                      </Col>
+                      <Col md={6}>
+                        <div style={{
+                          border: '1px solid #ddd',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          height: '300px'
+                        }}>
+                          <ReportMiniMap lat={Number(r.lat)} long={Number(r.long)} />
+                        </div>
+                      </Col>
+                    </Row>
+
+                    {/* Bottom section: Description, Category, Actions */}
                     <Row>
-                      <Col md={8}>
-                        <p>
-                          <strong>Description:</strong> {r.description}
-                        </p>
-                        {r.images.slice(0, 3).length > 0 && (
-                          <div className="d-flex flex-wrap gap-2 mb-3">
-                            {r.images.slice(0, 3).map((img, idx) => (
-                              <button
-                                key={idx}
-                                id={"click-expand-" + r.title}
-                                type="button"
-                                className="p-0 border-0 bg-transparent"
-                                onClick={() => openLightbox(r.images, idx)}
-                                aria-label={`Open image ${idx + 1}`}
-                              >
-                                <Image
-                                  src={img}
-                                  alt={`Report image ${idx + 1}`}
-                                  thumbnail
-                                  style={{
-                                    width: "100px",
-                                    height: "100px",
-                                    objectFit: "cover",
-                                  }}
-                                />
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {r.images.slice(0, 3).length === 0 && (
-                          <p className="text-muted fst-italic">No images</p>
-                        )}
-                        <p>
-                          <strong>Category:</strong> {r.category.name}
-                        </p>
+                      <Col md={12}>
+                        <div className="mb-3">
+                          <h5 style={{ color: '#00205B', fontWeight: 600 }}>Description</h5>
+                          <p className="mb-0">{r.description}</p>
+                        </div>
+
+                        <div className="mb-3">
+                          <h5 style={{ color: '#00205B', fontWeight: 600 }}>Category</h5>
+                          <Badge bg="secondary" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>
+                            {r.category.name}
+                          </Badge>
+                        </div>
 
                         <Form.Group className="mb-3">
-                          <Form.Label style={{ fontWeight: 500, color: '#00205B' }}>Change Category</Form.Label>
+                          <h5 style={{ color: '#00205B', fontWeight: 600 }}>Change Category</h5>
                           <Form.Select
                             id="select-category"
                             disabled={
@@ -301,7 +340,7 @@ export default function PROHomepage() {
                               transition={{ duration: 0.3 }}
                             >
                               <Form.Group className="mb-3">
-                                <Form.Label style={{ fontWeight: 500, color: '#00205B' }}>Rejection Reason</Form.Label>
+                                <h5 style={{ color: '#00205B', fontWeight: 600 }}>Rejection Reason</h5>
                                 <Form.Control
                                   id={"description-field" + r.title}
                                   as="textarea"
@@ -337,52 +376,51 @@ export default function PROHomepage() {
                           )}
                         </AnimatePresence>
 
-                        <div className="d-flex gap-2">
-                          <Button
-                            variant="success"
-                            id={"accept-button" + r.title}
-                            size="sm"
-                            disabled={statusUpdatingId === r.id}
-                            onClick={() => acceptReport(r)}
-                            className="auth-button-primary"
-                            style={{
-                              background: 'linear-gradient(90deg, #28a745, #34ce57)',
-                              border: 'none'
-                            }}
-                          >
-                            {statusUpdatingId === r.id ? (
-                              <>
-                                <Loader2Icon size={14} className="animate-spin me-1" />
-                                Processing…
-                              </>
-                            ) : "Accept"}
-                          </Button>
-                          <Button
-                            variant="danger"
-                            id={"reject-button" + r.title}
-                            size="sm"
-                            disabled={statusUpdatingId === r.id}
-                            onClick={() => handleRejectClick(r)}
-                            className="auth-button-primary"
-                            style={{
-                              background: 'linear-gradient(90deg, #dc3545, #e74c3c)',
-                              border: 'none'
-                            }}
-                          >
-                            {statusUpdatingId === r.id ? (
-                              <>
-                                <Loader2Icon size={14} className="animate-spin me-1" />
-                                Processing…
-                              </>
-                            ) : showRejectInput[r.id]
-                              ? "Confirm Reject"
-                              : "Reject"}
-                          </Button>
+                        <div>
+                          <h5 style={{ color: '#00205B', fontWeight: 600 }}>Actions</h5>
+                          <div className="d-flex gap-2 flex-wrap">
+                            <Button
+                              variant="success"
+                              id={"accept-button" + r.title}
+                              size="lg"
+                              disabled={statusUpdatingId === r.id}
+                              onClick={() => acceptReport(r)}
+                              className="auth-button-primary"
+                              style={{
+                                background: 'linear-gradient(90deg, #28a745, #34ce57)',
+                                border: 'none'
+                              }}
+                            >
+                              {statusUpdatingId === r.id ? (
+                                <>
+                                  <Loader2Icon size={16} className="animate-spin me-1" />
+                                  Processing…
+                                </>
+                              ) : "Accept"}
+                            </Button>
+                            <Button
+                              variant="danger"
+                              id={"reject-button" + r.title}
+                              size="lg"
+                              disabled={statusUpdatingId === r.id}
+                              onClick={() => handleRejectClick(r)}
+                              className="auth-button-primary"
+                              style={{
+                                background: 'linear-gradient(90deg, #dc3545, #e74c3c)',
+                                border: 'none'
+                              }}
+                            >
+                              {statusUpdatingId === r.id ? (
+                                <>
+                                  <Loader2Icon size={16} className="animate-spin me-1" />
+                                  Processing…
+                                </>
+                              ) : showRejectInput[r.id]
+                                ? "Confirm Reject"
+                                : "Reject"}
+                            </Button>
+                          </div>
                         </div>
-                      </Col>
-
-                      <Col md={4} className="mt-2">
-                        <ReportMiniMap lat={Number(r.lat)} long={Number(r.long)} />
                       </Col>
                     </Row>
                   </Accordion.Body>

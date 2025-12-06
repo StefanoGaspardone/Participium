@@ -28,7 +28,10 @@ function App() {
   return (
     <>
       <Toaster
-        position="bottom-right"
+        position="top-center"
+        containerStyle={{
+          zIndex: 99999
+        }}
         toastOptions={{
           style: { fontSize: '1.2rem', borderRadius: '11px' },
           success: { iconTheme: { primary: '#265ea8', secondary: '#fff' } },

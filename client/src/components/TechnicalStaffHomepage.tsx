@@ -128,42 +128,97 @@ export default function TechnicalStaffHomepage() {
                                 <Card className="mb-3 auth-card">
                                     <Accordion.Item eventKey={String(idx)}>
                                         <Accordion.Header>
-                                            <div id={"expand-report-" + r.title} className="d-flex flex-column flex-md-row w-100 align-items-start align-md-items-center">
-                                                <span id="report-title" className="fw-semibold me-md-3 mb-2 mb-md-0" style={{ color: '#00205B', wordBreak: 'break-word' }}>{r.title}</span>
-                                                <div className="d-flex align-items-center gap-2 flex-wrap ms-md-auto">
-                                                    <Badge bg="secondary" className="flex-shrink-0">{r.category?.name}</Badge>
-                                                    <Badge id={"current-status" + r.title} bg={r.status === 'Assigned' ? 'primary' :
-                                                        r.status === 'Resolved' ? 'success' : 'warning'} className="flex-shrink-0">
-                                                        {r.status}
-                                                    </Badge>
-                                                </div>
+                                            <div id={"expand-report-" + r.title} className="d-flex w-100 align-items-center justify-content-between">
+                                                <h4 id="report-title" className="mb-0 fw-bold" style={{ color: '#00205B', fontSize: '1.5rem' }}>{r.title}</h4>
+                                                <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem' }}>
+                                                    {new Date(r.createdAt).toLocaleString()}
+                                                </small>
                                             </div>
                                         </Accordion.Header>
                                         <Accordion.Body>
+                                            {/* Top section: Images and Map side by side */}
+                                            <div className="row mb-4">
+                                                <div className="col-md-6">
+                                                    <div style={{
+                                                        border: '1px solid #ddd',
+                                                        borderRadius: '8px',
+                                                        padding: '1rem',
+                                                        height: '400px',
+                                                        overflow: 'hidden'
+                                                    }}>
+                                                        {r.images?.length ? (
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                gap: '0.5rem',
+                                                                overflowX: 'auto',
+                                                                height: '100%',
+                                                                alignItems: 'center'
+                                                            }}>
+                                                                {r.images.map((img, i) => (
+                                                                    <img
+                                                                        key={i}
+                                                                        src={img}
+                                                                        alt={`report-${r.id}-img-${i}`}
+                                                                        style={{
+                                                                            minWidth: '250px',
+                                                                            height: '100%',
+                                                                            objectFit: 'cover',
+                                                                            borderRadius: '6px',
+                                                                            flexShrink: 0
+                                                                        }}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="d-flex align-items-center justify-content-center h-100">
+                                                                <p className="text-muted fst-italic mb-0">No images available</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <div style={{
+                                                        border: '1px solid #ddd',
+                                                        borderRadius: '8px',
+                                                        overflow: 'hidden',
+                                                        height: '300px'
+                                                    }}>
+                                                        <ReportMiniMap lat={Number(r.lat)} long={Number(r.long)} />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Bottom section: Description, Category, Status */}
                                             <div className="row">
-                                                <div className="col-md-8">
-                                                    <p className="mb-2"><strong>Description:</strong> {r.description}</p>
-                                                    {r.images?.length ? (
-                                                        <div className="d-flex flex-wrap gap-2 mb-3">
-                                                            {r.images.map((img, i) => (
-                                                                <img
-                                                                    key={i}
-                                                                    src={img}
-                                                                    alt={`report-${r.id}-img-${i}`}
-                                                                    style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-muted fst-italic">No images</p>
-                                                    )}
-                                                    <p className="mb-2"><strong>Created At:</strong> {new Date(r.createdAt).toLocaleString()}</p>
+                                                <div className="col-12">
+                                                    <div className="mb-3">
+                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>Description</h5>
+                                                        <p className="mb-0">{r.description}</p>
+                                                    </div>
+
+                                                    <div className="mb-3">
+                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>Category</h5>
+                                                        <Badge bg="secondary" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>
+                                                            {r.category?.name}
+                                                        </Badge>
+                                                    </div>
+
+                                                    <div className="mb-3">
+                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>Current Status</h5>
+                                                        <Badge
+                                                            id={"current-status" + r.title}
+                                                            bg={r.status === 'Assigned' ? 'primary' : r.status === 'Resolved' ? 'success' : 'warning'}
+                                                            style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}
+                                                        >
+                                                            {r.status}
+                                                        </Badge>
+                                                    </div>
 
                                                     {/* Status update actions */}
-                                                    <div className="mt-3">
-                                                        <p className="mb-2" style={{ fontWeight: 500, color: '#00205B' }}>Update Status:</p>
+                                                    <div className="mb-3">
+                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>Update Status</h5>
                                                         {getAvailableActions(r.status).length > 0 ? (
-                                                            <div className="d-flex gap-2">
+                                                            <div className="d-flex gap-2 flex-wrap">
                                                                 {getAvailableActions(r.status).map(action => (
                                                                     <Button
                                                                         id={"switch-report-status" + r.title}
@@ -173,7 +228,7 @@ export default function TechnicalStaffHomepage() {
                                                                                 action.value === 'InProgress' ? 'primary' :
                                                                                     'warning'
                                                                         }
-                                                                        size="sm"
+                                                                        size="lg"
                                                                         disabled={updatingReportId === r.id}
                                                                         onClick={() => handleStatusChange(r.id, action.value)}
                                                                         className="auth-button-primary"
@@ -189,7 +244,7 @@ export default function TechnicalStaffHomepage() {
                                                                         {updatingReportId === r.id ? (
                                                                             <>
                                                                                 <Loader2Icon
-                                                                                    size={14}
+                                                                                    size={16}
                                                                                     className="animate-spin me-1"
                                                                                 />
                                                                                 Updating...
@@ -212,11 +267,11 @@ export default function TechnicalStaffHomepage() {
                                                     </div>
 
                                                     {/* Send message button */}
-                                                    <div className="mt-3">
-                                                        <p className="mb-2" style={{ fontWeight: 500, color: '#00205B' }}>Communication:</p>
+                                                    <div>
+                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>Communication</h5>
                                                         <Button
                                                             variant="primary"
-                                                            size="sm"
+                                                            size="lg"
                                                             onClick={() => { setActiveReport(r); setShow(true); }}
                                                             className="auth-button-primary"
                                                             style={{
@@ -227,9 +282,6 @@ export default function TechnicalStaffHomepage() {
                                                             Send message
                                                         </Button>
                                                     </div>
-                                                </div>
-                                                <div className="col-md-4 mt-2">
-                                                    <ReportMiniMap lat={Number(r.lat)} long={Number(r.long)} />
                                                 </div>
                                             </div>
                                         </Accordion.Body>
