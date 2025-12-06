@@ -95,6 +95,9 @@ export class UserController {
         const userDto = MapUserDAOtoDTO(user);
         // include full user object inside token under `user` key
         const payload = { user: userDto } as any;
+        if(CONFIG.JWT_SECRET === undefined) {
+          throw new Error("CONFIG ERROR : JWT secret is not correctly set");
+        }
         const token = jwt.sign(payload, CONFIG.JWT_SECRET, { expiresIn: "1d" });
         res.status(200).json({ message: "Login successful", token });
       }
