@@ -5,6 +5,7 @@ import tsconfig from './tsconfig.json';
 const config: Config = {
     preset: 'ts-jest',
     testEnvironment: 'node',
+    setupFiles: ['dotenv/config'],
     collectCoverage: true,
     coverageReporters: ['text', 'lcov', 'html'],
     collectCoverageFrom: [
