@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import CustomNavbar from './CustomNavbar';
-import { Accordion, Badge, Card, Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
+import { Accordion, Badge, Card, Container, Row, Col, Form, Button, Alert, Modal } from 'react-bootstrap';
 import ReportMiniMap from './ReportMiniMap';
+import { fetchAddress } from './HomepageMap';
 import { getReportsByStatus, getCategories, updateReportCategory, assignOrRejectReport } from '../api/api';
 import type { Report, Category } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon, ChevronLeft, ChevronRight } from 'lucide-react';
 import './AuthForms.css';
 
 import Lightbox from "yet-another-react-lightbox";
@@ -22,10 +23,14 @@ export default function PROHomepage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
-  const [rejectReason, setRejectReason] = useState<Record<number, string>>({});
-  const [showRejectInput, setShowRejectInput] = useState<Record<number, boolean>>({});
-  const [rejectErrors, setRejectErrors] = useState<Record<number, string>>({});
+  // modal-based rejection UI
+  const [rejectModalReport, setRejectModalReport] = useState<PendingReport | null>(null);
+  const [rejectModalReason, setRejectModalReason] = useState('');
+  const [rejectModalError, setRejectModalError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [addressByReport, setAddressByReport] = useState<Record<number, string>>({});
+
+  const [imageIndexByReport, setImageIndexByReport] = useState<Record<number, number>>({});
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
@@ -52,7 +57,24 @@ export default function PROHomepage() {
   }, []);
 
   const handleToggle = (id: number) => {
-    setExpanded(prev => (prev === id ? null : id));
+    const next = (expanded === id ? null : id);
+    setExpanded(next);
+
+    // If we're opening the panel and don't have the address yet, fetch it
+    if (next !== null && !addressByReport[id]) {
+      const report = reports.find(r => r.id === id);
+      if (report) fetchAndSetAddress(report.id, Number(report.lat), Number(report.long));
+    }
+  };
+
+  const fetchAndSetAddress = async (reportId: number, lat: number, lng: number) => {
+    setAddressByReport(prev => ({ ...prev, [reportId]: 'Fetching address...' }));
+    try {
+      const addr = await fetchAddress(lat, lng);
+      setAddressByReport(prev => ({ ...prev, [reportId]: addr }));
+    } catch (e) {
+      setAddressByReport(prev => ({ ...prev, [reportId]: 'Not available' }));
+    }
   };
 
   const handleCategoryChange = async (report: PendingReport, categoryIdStr: string) => {
@@ -74,16 +96,7 @@ export default function PROHomepage() {
       setStatusUpdatingId(report.id);
       await assignOrRejectReport(report.id, 'Assigned');
       setReports(rs => rs.filter(r => r.id !== report.id));
-      // Clear any rejection reason and hide input for this report
-      setRejectReason(prev => {
-        const { [report.id]: _ignored, ...rest } = prev;
-        return rest;
-      });
-      setShowRejectInput(prev => ({ ...prev, [report.id]: false }));
-      setRejectErrors(prev => {
-        const { [report.id]: _e, ...rest } = prev;
-        return rest;
-      });
+      // nothing else to clear (rejection now handled via modal)
     } catch (e: any) {
       alert(e?.message || 'Accept failed');
     } finally {
@@ -91,22 +104,23 @@ export default function PROHomepage() {
     }
   };
 
-  const rejectReport = async (report: PendingReport) => {
-    const reason = rejectReason[report.id]?.trim();
+  // Confirm rejection from modal
+  const confirmReject = async () => {
+    if (!rejectModalReport) return;
+    const reason = rejectModalReason.trim();
     if (!reason) {
-      setRejectErrors(prev => ({ ...prev, [report.id]: 'Please insert a reason for rejection.' }));
+      setRejectModalError('Please insert a reason for rejection.');
       return;
     }
     try {
-      setStatusUpdatingId(report.id);
-      await assignOrRejectReport(report.id, 'Rejected', reason);
-      setReports(rs => rs.filter(r => r.id !== report.id));
-      setRejectErrors(prev => {
-        const { [report.id]: _removed, ...rest } = prev;
-        return rest;
-      });
+      setStatusUpdatingId(rejectModalReport.id);
+      await assignOrRejectReport(rejectModalReport.id, 'Rejected', reason);
+      setReports(rs => rs.filter(r => r.id !== rejectModalReport.id));
+      setRejectModalReport(null);
+      setRejectModalReason('');
+      setRejectModalError(null);
     } catch (e: any) {
-      setRejectErrors(prev => ({ ...prev, [report.id]: e?.message || 'Rifiuto non riuscito.' }));
+      setRejectModalError(e?.message || 'Rifiuto non riuscito.');
     } finally {
       setStatusUpdatingId(null);
     }
@@ -118,12 +132,33 @@ export default function PROHomepage() {
     setLightboxOpen(true);
   };
 
+  const getCurrentImageIndex = (reportId: number, imagesLength: number) => {
+    if (!imagesLength) return 0;
+    return imageIndexByReport[reportId] ?? 0;
+  };
+
+  const showPrevImage = (reportId: number, imagesLength: number) => {
+    if (!imagesLength) return;
+    setImageIndexByReport(prev => {
+      const cur = prev[reportId] ?? 0;
+      const next = (cur - 1 + imagesLength) % imagesLength;
+      return { ...prev, [reportId]: next };
+    });
+  };
+
+  const showNextImage = (reportId: number, imagesLength: number) => {
+    if (!imagesLength) return;
+    setImageIndexByReport(prev => {
+      const cur = prev[reportId] ?? 0;
+      const next = (cur + 1) % imagesLength;
+      return { ...prev, [reportId]: next };
+    });
+  };
+
   const handleRejectClick = (report: PendingReport) => {
-    if (!showRejectInput[report.id]) {
-      setShowRejectInput(prev => ({ ...prev, [report.id]: true }));
-      return;
-    }
-    rejectReport(report);
+    setRejectModalReport(report);
+    setRejectModalReason('');
+    setRejectModalError(null);
   };
 
   if (user?.userType !== "PUBLIC_RELATIONS_OFFICER") {
@@ -205,7 +240,7 @@ export default function PROHomepage() {
                   >
                     <div className="d-flex w-100 align-items-center justify-content-between">
                       <h4 id={"report-title-" + r.title} className="mb-0 fw-bold" style={{ color: '#00205B', fontSize: '1.5rem' }}>{r.title}</h4>
-                      <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem' }}>
+                      <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem', marginRight: '0.5rem' }}>
                         {new Date(r.createdAt).toLocaleString()}
                       </small>
                     </div>
@@ -222,36 +257,52 @@ export default function PROHomepage() {
                           overflow: 'hidden'
                         }}>
                           {r.images?.length ? (
-                            <div style={{
-                              display: 'flex',
-                              gap: '0.5rem',
-                              overflowX: 'auto',
-                              height: '100%',
-                              alignItems: 'center'
-                            }}>
-                              {r.images.map((img, idx) => (
-                                <button
-                                  key={idx}
-                                  id={"click-expand-" + r.title}
+                            <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {r.images.length > 1 && (
+                                <motion.button
                                   type="button"
-                                  className="p-0 border-0 bg-transparent"
-                                  onClick={() => openLightbox(r.images, idx)}
-                                  aria-label={`Open image ${idx + 1}`}
-                                  style={{ flexShrink: 0 }}
+                                  aria-label="Previous image"
+                                  onClick={(e) => { e.stopPropagation(); showPrevImage(r.id, r.images.length); }}
+                                  className="image-nav-btn left"
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
                                 >
-                                  <img
-                                    src={img}
-                                    alt={`Report image ${idx + 1}`}
-                                    style={{
-                                      minWidth: '250px',
-                                      maxWidth: '250px',
-                                      height: '270px',
-                                      objectFit: 'cover',
-                                      borderRadius: '6px'
-                                    }}
+                                  <ChevronLeft size={18} />
+                                </motion.button>
+                              )}
+
+                              <div onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer' }}>
+                                <AnimatePresence mode="wait">
+                                  <motion.img
+                                    key={getCurrentImageIndex(r.id, r.images.length)}
+                                    src={r.images[getCurrentImageIndex(r.id, r.images.length)]}
+                                    alt={`Report image ${getCurrentImageIndex(r.id, r.images.length) + 1}`}
+                                    initial={{ opacity: 0, x: 18 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -18 }}
+                                    transition={{ duration: 0.28 }}
+                                    style={{ width: '100%', maxWidth: '460px', height: '270px', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
+                                    onClick={() => openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length))}
                                   />
-                                </button>
-                              ))}
+                                </AnimatePresence>
+                              </div>
+
+                              {r.images.length > 1 && (
+                                <motion.button
+                                  type="button"
+                                  aria-label="Next image"
+                                  onClick={(e) => { e.stopPropagation(); showNextImage(r.id, r.images.length); }}
+                                  className="image-nav-btn right"
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  <ChevronRight size={18} />
+                                </motion.button>
+                              )}
+
+                              <div className="image-counter">
+                                {getCurrentImageIndex(r.id, r.images.length) + 1} / {r.images.length}
+                              </div>
                             </div>
                           ) : (
                             <div className="d-flex align-items-center justify-content-center h-100">
@@ -259,36 +310,39 @@ export default function PROHomepage() {
                             </div>
                           )}
                         </div>
+                        <div className="mt-2" style={{ marginLeft: '10px' }}>
+                          <h5 style={{ color: '#00205B', fontWeight: 400 }}>{r.description}</h5>
+                        </div>
                       </Col>
                       <Col md={6}>
                         <div style={{
-                          border: '1px solid #ddd',
-                          borderRadius: '8px',
                           overflow: 'hidden',
                           height: '300px'
                         }}>
                           <ReportMiniMap lat={Number(r.lat)} long={Number(r.long)} />
+                        </div>
+                        <div className="mt-2" style={{ fontSize: '1rem', color: '#333', textAlign: 'center' }}>
+                          <strong id={`report-address-${r.id}`}>
+                            {addressByReport[r.id] ?? 'Not fetched'}
+                          </strong>
                         </div>
                       </Col>
                     </Row>
 
                     {/* Bottom section: Description, Category, Actions */}
                     <Row>
-                      <Col md={12}>
-                        <div className="mb-3">
-                          <h5 style={{ color: '#00205B', fontWeight: 600 }}>Description</h5>
-                          <p className="mb-0">{r.description}</p>
-                        </div>
-
-                        <div className="mb-3">
-                          <h5 style={{ color: '#00205B', fontWeight: 600 }}>Category</h5>
+                      <Col md={6}>
+                        <div className="mb-3 d-flex" style={{ gap: '0.5rem', marginLeft: '10px', alignItems: 'center' }}>
+                          <h5 style={{ color: '#00205B', fontWeight: 600, margin: 0 }}>Current category</h5>
                           <Badge bg="secondary" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>
                             {r.category.name}
                           </Badge>
                         </div>
-
-                        <Form.Group className="mb-3">
-                          <h5 style={{ color: '#00205B', fontWeight: 600 }}>Change Category</h5>
+                        <Form.Group
+                          className="mb-3 d-flex"
+                          style={{ alignItems: 'center', gap: '0.5rem', marginLeft: '10px' }}
+                        >
+                          <h5 style={{ color: '#F97316', fontWeight: 600, margin: 0, whiteSpace: 'nowrap' }}>Change category</h5>
                           <Form.Select
                             id="select-category"
                             disabled={
@@ -303,7 +357,9 @@ export default function PROHomepage() {
                               borderRadius: '0.55rem',
                               border: '1px solid #ced4da',
                               fontSize: '0.95rem',
-                              transition: 'border-color 0.18s ease, box-shadow 0.25s ease'
+                              transition: 'border-color 0.18s ease, box-shadow 0.25s ease',
+                              minWidth: '180px',
+                              maxWidth: '400px'
                             }}
                           >
                             {categories.map((c) => (
@@ -330,55 +386,13 @@ export default function PROHomepage() {
                             </motion.div>
                           )}
                         </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        {/* rejection now handled via modal; inline reject form removed */}
 
-                        <AnimatePresence>
-                          {showRejectInput[r.id] && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              <Form.Group className="mb-3">
-                                <h5 style={{ color: '#00205B', fontWeight: 600 }}>Rejection Reason</h5>
-                                <Form.Control
-                                  id={"description-field" + r.title}
-                                  as="textarea"
-                                  rows={3}
-                                  placeholder="Enter reason to reject this report"
-                                  disabled={statusUpdatingId === r.id}
-                                  value={rejectReason[r.id] || ""}
-                                  isInvalid={!!rejectErrors[r.id]}
-                                  onChange={(e) =>
-                                    setRejectReason((prev) => ({
-                                      ...prev,
-                                      [r.id]: e.target.value,
-                                    }))
-                                  }
-                                  onInput={() =>
-                                    setRejectErrors(prev => {
-                                      const { [r.id]: _err, ...rest } = prev;
-                                      return rest;
-                                    })
-                                  }
-                                  style={{
-                                    borderRadius: '0.55rem',
-                                    fontSize: '0.95rem'
-                                  }}
-                                />
-                                {rejectErrors[r.id] && (
-                                  <Form.Control.Feedback type="invalid" className="d-block">
-                                    {rejectErrors[r.id]}
-                                  </Form.Control.Feedback>
-                                )}
-                              </Form.Group>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <div>
+                        <div style={{ textAlign: 'center' }}>
                           <h5 style={{ color: '#00205B', fontWeight: 600 }}>Actions</h5>
-                          <div className="d-flex gap-2 flex-wrap">
+                          <div className="d-flex gap-2 flex-wrap" style={{ justifyContent: 'center' }}>
                             <Button
                               variant="success"
                               id={"accept-button" + r.title}
@@ -415,9 +429,7 @@ export default function PROHomepage() {
                                   <Loader2Icon size={16} className="animate-spin me-1" />
                                   Processing…
                                 </>
-                              ) : showRejectInput[r.id]
-                                ? "Confirm Reject"
-                                : "Reject"}
+                              ) : "Reject"}
                             </Button>
                           </div>
                         </div>
@@ -438,6 +450,41 @@ export default function PROHomepage() {
         controller={{ closeOnBackdropClick: true }}
         on={{ index: (newIndex: number) => setLightboxIndex(newIndex) } as any}
       />
+      <Modal show={!!rejectModalReport} onHide={() => setRejectModalReport(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Reason for rejection</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Control
+              as="textarea"
+              rows={4}
+              placeholder="Enter reason to reject this report"
+              value={rejectModalReason}
+              onChange={(e) => { setRejectModalReason(e.target.value); setRejectModalError(null); }}
+              isInvalid={!!rejectModalError}
+            />
+            {rejectModalError && (
+              <Form.Control.Feedback type="invalid" className="d-block">
+                {rejectModalError}
+              </Form.Control.Feedback>
+            )}
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-secondary" onClick={() => setRejectModalReport(null)}>Cancel</Button>
+          <Button variant="danger" onClick={confirmReject} disabled={statusUpdatingId === rejectModalReport?.id}>
+            {statusUpdatingId === rejectModalReport?.id ? (
+              <>
+                <Loader2Icon size={14} className="animate-spin me-1" />
+                Processing…
+              </>
+            ) : (
+              'Confirm Reject'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
