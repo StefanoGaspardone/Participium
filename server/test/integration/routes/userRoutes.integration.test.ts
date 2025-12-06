@@ -270,4 +270,234 @@ describe('User routes integration tests', () => {
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/not a valid telegram username/);
   });
+
+  describe('POST /api/users/validate-user', () => {
+    it('=> 400 when payload is missing', async () => {
+      const res = await request(app).post('/api/users/validate-user').send({});
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/Payload is missing/);
+    });
+
+    it('=> 400 when username is missing', async () => {
+      const res = await request(app).post('/api/users/validate-user').send({
+        payload: { code: '123456' }
+      });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/username.*missing/i);
+    });
+
+    it('=> 400 when code is missing', async () => {
+      const res = await request(app).post('/api/users/validate-user').send({
+        payload: { username: 'testuser' }
+      });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/code.*missing/i);
+    });
+
+    it('=> 404 when user does not exist', async () => {
+      const res = await request(app).post('/api/users/validate-user').send({
+        payload: { username: 'nonexistent_user_xyz', code: '123456' }
+      });
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('=> 400 when user is already active', async () => {
+      // self_user is already active (created in beforeAll without verification)
+      const res = await request(app).post('/api/users/validate-user').send({
+        payload: { username: 'self_user', code: '123456' }
+      });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/already active/i);
+    });
+
+    it('=> 400 when verification code is invalid', async () => {
+      // Create a new user with verification code
+      const { AppDataSource } = await import('@database');
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const codeConfirmationRepo = AppDataSource.getRepository(await import('@daos/CodeConfirmationDAO').then(m => m.CodeConfirmationDAO));
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('testpass', salt);
+      const newUser = userRepo.create({
+        username: 'unverified_user',
+        email: 'unverified@test.com',
+        passwordHash: hash,
+        firstName: 'Unverified',
+        lastName: 'User',
+        userType: UserType.CITIZEN,
+        isActive: false,
+        emailNotificationsEnabled: false,
+      });
+      const savedUser = await userRepo.save(newUser);
+
+      // Create verification code
+      const expirationDate = new Date(Date.now() + 30 * 60 * 1000);
+      const codeConfirmation = codeConfirmationRepo.create({
+        code: '123456',
+        expirationDate,
+        user: savedUser,
+      });
+      await codeConfirmationRepo.save(codeConfirmation);
+
+      // Try with wrong code
+      const res = await request(app).post('/api/users/validate-user').send({
+        payload: { username: 'unverified_user', code: '999999' }
+      });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/Invalid verification code/i);
+    });
+
+    it('=> 400 when verification code has expired', async () => {
+      // Create a new user with expired verification code
+      const { AppDataSource } = await import('@database');
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const codeConfirmationRepo = AppDataSource.getRepository(await import('@daos/CodeConfirmationDAO').then(m => m.CodeConfirmationDAO));
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('testpass', salt);
+      const newUser = userRepo.create({
+        username: 'expired_code_user',
+        email: 'expired@test.com',
+        passwordHash: hash,
+        firstName: 'Expired',
+        lastName: 'User',
+        userType: UserType.CITIZEN,
+        isActive: false,
+        emailNotificationsEnabled: false,
+      });
+      const savedUser = await userRepo.save(newUser);
+
+      // Create expired verification code (expired 1 hour ago)
+      const expirationDate = new Date(Date.now() - 60 * 60 * 1000);
+      const codeConfirmation = codeConfirmationRepo.create({
+        code: '123456',
+        expirationDate,
+        user: savedUser,
+      });
+      await codeConfirmationRepo.save(codeConfirmation);
+
+      const res = await request(app).post('/api/users/validate-user').send({
+        payload: { username: 'expired_code_user', code: '123456' }
+      });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/expired/i);
+    });
+
+    it('=> 204 when verification is successful', async () => {
+      // Create a new user with valid verification code
+      const { AppDataSource } = await import('@database');
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const codeConfirmationRepo = AppDataSource.getRepository(await import('@daos/CodeConfirmationDAO').then(m => m.CodeConfirmationDAO));
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('testpass', salt);
+      const newUser = userRepo.create({
+        username: 'valid_code_user',
+        email: 'valid@test.com',
+        passwordHash: hash,
+        firstName: 'Valid',
+        lastName: 'User',
+        userType: UserType.CITIZEN,
+        isActive: false,
+        emailNotificationsEnabled: false,
+      });
+      const savedUser = await userRepo.save(newUser);
+
+      // Create valid verification code
+      const expirationDate = new Date(Date.now() + 30 * 60 * 1000);
+      const codeConfirmation = codeConfirmationRepo.create({
+        code: '654321',
+        expirationDate,
+        user: savedUser,
+      });
+      await codeConfirmationRepo.save(codeConfirmation);
+
+      const res = await request(app).post('/api/users/validate-user').send({
+        payload: { username: 'valid_code_user', code: '654321' }
+      });
+      expect(res.status).toBe(204);
+
+      // Verify user is now active
+      const updatedUser = await userRepo.findOne({ where: { username: 'valid_code_user' } });
+      expect(updatedUser?.isActive).toBe(true);
+    });
+  });
+
+  describe('POST /api/users/resend-user', () => {
+    it('=> 400 when username is missing', async () => {
+      const res = await request(app).post('/api/users/resend-user').send({});
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/username.*missing/i);
+    });
+
+    it('=> 400 when username is empty', async () => {
+      const res = await request(app).post('/api/users/resend-user').send({ username: '' });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/username.*missing/i);
+    });
+
+    it('=> 404 when user does not exist', async () => {
+      const res = await request(app).post('/api/users/resend-user').send({
+        username: 'nonexistent_user_resend'
+      });
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('=> 400 when user is already active', async () => {
+      // self_user is already active
+      const res = await request(app).post('/api/users/resend-user').send({
+        username: 'self_user'
+      });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/already active/i);
+    });
+
+    it('=> 201 when resend is successful', async () => {
+      // Create a new inactive user
+      const { AppDataSource } = await import('@database');
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('testpass', salt);
+      const newUser = userRepo.create({
+        username: 'resend_user',
+        email: 'resend@test.com',
+        passwordHash: hash,
+        firstName: 'Resend',
+        lastName: 'User',
+        userType: UserType.CITIZEN,
+        isActive: false,
+        emailNotificationsEnabled: false,
+      });
+      await userRepo.save(newUser);
+
+      const res = await request(app).post('/api/users/resend-user').send({
+        username: 'resend_user'
+      });
+      expect(res.status).toBe(201);
+
+      // Verify that a new code confirmation was created
+      const codeConfirmationRepo = AppDataSource.getRepository(await import('@daos/CodeConfirmationDAO').then(m => m.CodeConfirmationDAO));
+      const updatedUser = await userRepo.findOne({
+        where: { username: 'resend_user' },
+        relations: ['codeConfirmation']
+      });
+      expect(updatedUser?.codeConfirmation).toBeDefined();
+      expect(updatedUser?.codeConfirmation?.code).toBeDefined();
+    });
+  });
+
 });
