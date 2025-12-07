@@ -73,30 +73,8 @@ export default function TechnicalStaffHomepage() {
         try {
             setAssigningReportId(report.id);
             const res = await assignReportToExternalMaintainer(report.id, maintainerId);
-            const responseReport = res?.report;
-
-            // Fallback: if API doesn't return full report, synthesize coAssignedTo from selected maintainer
-            const selectedMaintainer = maintainersByReportId.find(m => m.id === maintainerId) || null;
-
-            setReports(prev => prev.map(r => {
-                if (r.id !== report.id) return r;
-
-                // If server returned an updated report, merge minimally to avoid dropping fields
-                if (responseReport && typeof responseReport === 'object') {
-                    return {
-                        ...r,
-                        // Preserve existing fields; override only those we expect
-                        status: responseReport.status ?? r.status,
-                        coAssignedTo: responseReport.coAssignedTo ?? selectedMaintainer ?? r.coAssignedTo,
-                    };
-                }
-
-                // No usable response; update only coAssignedTo locally
-                return {
-                    ...r,
-                    coAssignedTo: selectedMaintainer ?? r.coAssignedTo,
-                };
-            }));
+            
+            setReports(prev => prev.map(r => r.id === report.id ? res.report : r));
         } catch (e) {
             console.error('Failed to assign external maintainer', e);
         } finally {
