@@ -10,11 +10,14 @@ const homePage = {
     clickLogin2: () => {
         cy.get('[id="login-2"]').focus().click();
     },
+    clickRegister: () => {
+        cy.get('[id="register-redirect"]').focus().click();
+    },
     clickNewReport: () => {
         cy.get('[id="upload-new-report-button"]').click();
     },
     clickNotifications: () => {
-        cy.get('[id="notifications-toggle"]').click({force: true});
+        cy.get('[id="notifications-toggle"]').first().click({force: true});
         cy.get('[id="report-updates"]').should('be.visible');
     }, 
     clickOnMap: () => {

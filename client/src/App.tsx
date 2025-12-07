@@ -34,8 +34,15 @@ function App() {
         }}
         toastOptions={{
           style: { fontSize: '1.2rem', borderRadius: '11px' },
-          success: { iconTheme: { primary: '#265ea8', secondary: '#fff' } },
-          error: { iconTheme: { primary: '#c62828', secondary: '#fff' } }
+          className: 'e2e-toast',
+          success: {
+            iconTheme: { primary: '#265ea8', secondary: '#fff' },
+            className: 'e2e-toast e2e-toast-success'
+          },
+          error: {
+            iconTheme: { primary: '#c62828', secondary: '#fff' },
+            className: 'e2e-toast e2e-toast-error'
+          }
         }}
       />
       <Routes>
