@@ -576,7 +576,7 @@ export const getAllCompanies = async (): Promise<Company[]> => {
 
   const data = await res.json();
   const companies: Company[] = Array.isArray(data) ? data : Array.isArray(data?.companies) ? data.companies : [];
-  return companies.filter(company => String(company?.name) !== 'Fake');
+  return companies.filter(company => Number(company?.id) !== 3);
 }
 
 // External Maintainers
