@@ -1,9 +1,12 @@
 import { UserRepository } from "@repositories/UserRepository";
 import { UserDAO, UserType } from "@daos/UserDAO";
 
+// NOSONAR - Test credentials only, not used in production
+const TEST_PASSWORD = "testpass123"; // NOSONAR
+const TEST_PASSWORD_HASH = "$2a$10$hashedpassword123"; // NOSONAR
+
 describe("UserRepository (mock)", () => {
   it("signUpUser should call underlying repo.save and return value", async () => {
-    const saveMock = jest.fn().mockResolvedValue((u: any) => ({ ...u, id: 1 }));
     // Mock AppDataSource.getRepository to return an object that has save/find/findOneBy
     const fakeRepo: any = {
       save: jest.fn().mockImplementation(async (u: any) => ({ ...u, id: 1 })),
@@ -25,7 +28,7 @@ describe("UserRepository (mock)", () => {
     u.email = "mock@example.com";
     u.username = "mock";
     u.userType = UserType.CITIZEN;
-    u.passwordHash = "hashed";
+    u.passwordHash = TEST_PASSWORD_HASH;
     u.createdAt = new Date();
 
     const saved = await repo.createNewUser(u);
@@ -52,7 +55,7 @@ describe("UserRepository (mock)", () => {
 
   it("login should call findOneBy and compare password", async () => {
     const bcrypt = require("bcryptjs");
-    const hashed = await bcrypt.hash("pw", 10);
+    const hashed = await bcrypt.hash(TEST_PASSWORD, 10);
     const fakeRepo: any = {
       save: jest.fn(),
       find: jest.fn(),
@@ -66,14 +69,14 @@ describe("UserRepository (mock)", () => {
       .mockImplementation(() => fakeRepo);
 
     const repo = new UserRepository();
-    const ok = await repo.login("t@t", "pw");
+    const ok = await repo.login("t@t", TEST_PASSWORD);
     expect(fakeRepo.findOneBy).toHaveBeenCalled();
     expect(ok).not.toBeNull();
   });
 
   it("login should call findOneBy, compare (wrong) password and fail", async () => {
     const bcrypt = require("bcryptjs");
-    const hashed = await bcrypt.hash("pass", 10);
+    const hashed = await bcrypt.hash(TEST_PASSWORD, 10);
     const fakeRepo: any = {
       save: jest.fn(),
       find: jest.fn(),
@@ -87,7 +90,7 @@ describe("UserRepository (mock)", () => {
       .mockImplementation(() => fakeRepo);
 
     const repo = new UserRepository();
-    const ok = await repo.login("t@t", "pass");
+    const ok = await repo.login("t@t", TEST_PASSWORD);
     expect(fakeRepo.findOneBy).toHaveBeenCalled();
     expect(ok).toBeNull();
   });
@@ -106,7 +109,7 @@ describe("UserRepository (mock)", () => {
       .mockImplementation(() => fakeRepo);
 
     const repo = new UserRepository();
-    const ok = await repo.login("t@t", "pass");
+    const ok = await repo.login("t@t", TEST_PASSWORD);
     expect(fakeRepo.findOneBy).toHaveBeenCalled();
     expect(ok).toBeNull();
   });
@@ -134,7 +137,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     const repo = new UserRepository();
     const user = await repo.findUserById(5);
 
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { id: 5 } });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { id: 5 }, "relations": ["office",  "company",  "company.categories"], });
     expect(user).toEqual(fakeUser);
   });
 
@@ -162,14 +165,13 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
       email: "updated@test.com",
       username: "updateduser",
       userType: UserType.CITIZEN,
-      passwordHash: "hash",
+      passwordHash: TEST_PASSWORD_HASH,
       createdAt: new Date(),
       emailNotificationsEnabled: true,
     } as any;
 
     const fakeRepo: any = {
-      update: jest.fn().mockResolvedValue({ affected: 1 }),
-      findOneBy: jest.fn().mockResolvedValue(userToUpdate),
+      save: jest.fn().mockResolvedValue(userToUpdate),
     };
 
     const database = require("@database");
@@ -180,8 +182,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     const repo = new UserRepository();
     const result = await repo.updateUser(userToUpdate);
 
-    expect(fakeRepo.update).toHaveBeenCalledWith(userToUpdate.id, userToUpdate);
-    expect(fakeRepo.findOneBy).toHaveBeenCalledWith({ id: userToUpdate.id });
+    expect(fakeRepo.save).toHaveBeenCalledWith(userToUpdate);
     expect(result).toEqual(userToUpdate);
   });
 
@@ -193,13 +194,12 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
       email: "ghost@test.com",
       username: "ghostuser",
       userType: UserType.CITIZEN,
-      passwordHash: "hash",
+      passwordHash: TEST_PASSWORD_HASH,
       createdAt: new Date(),
     } as any;
 
     const fakeRepo: any = {
-      update: jest.fn().mockResolvedValue({ affected: 1 }),
-      findOneBy: jest.fn().mockResolvedValue(null),
+      save: jest.fn().mockResolvedValue(null),
     };
 
     const database = require("@database");
@@ -213,7 +213,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
       "User with id 999 not found"
     );
 
-    expect(fakeRepo.update).toHaveBeenCalledWith(userToUpdate.id, userToUpdate);
+    expect(fakeRepo.save).toHaveBeenCalledWith(userToUpdate);
   });
 });
 
@@ -303,5 +303,94 @@ describe("UserRepository.findLeastLoadedStaffForOffice (mock)", () => {
     const result = await repo.findLeastLoadedStaffForOffice(999);
 
     expect(result).toBeNull();
+  });
+});
+
+describe("UserRepository.findMaintainersByCategory (mock)", () => {
+  const createFakeQueryBuilder = (returnValue: any) => ({
+    innerJoin: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue(returnValue),
+  });
+
+  it("should return external maintainers for a valid category", async () => {
+    const { CategoryDAO } = require("@daos/CategoryDAO");
+    const category = new CategoryDAO();
+    category.id = 1;
+    category.name = "Water Supply";
+
+    const maintainer1 = new UserDAO();
+    maintainer1.id = 10;
+    maintainer1.firstName = "John";
+    maintainer1.lastName = "Doe";
+    maintainer1.userType = UserType.EXTERNAL_MAINTAINER;
+
+    const maintainer2 = new UserDAO();
+    maintainer2.id = 11;
+    maintainer2.firstName = "Jane";
+    maintainer2.lastName = "Smith";
+    maintainer2.userType = UserType.EXTERNAL_MAINTAINER;
+
+    const fakeQueryBuilder = createFakeQueryBuilder([maintainer1, maintainer2]);
+    const fakeRepo: any = {
+      createQueryBuilder: jest.fn().mockReturnValue(fakeQueryBuilder),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    const result = await repo.findMaintainersByCategory(category);
+
+    expect(fakeRepo.createQueryBuilder).toHaveBeenCalledWith('user');
+    expect(fakeQueryBuilder.innerJoin).toHaveBeenCalledWith('user.company', 'company');
+    expect(fakeQueryBuilder.innerJoin).toHaveBeenCalledWith('company.categories', 'c', 'c.id = :categoryId', { categoryId: 1 });
+    expect(fakeQueryBuilder.where).toHaveBeenCalledWith('user.userType = :type', { type: UserType.EXTERNAL_MAINTAINER });
+    expect(result).toEqual([maintainer1, maintainer2]);
+  });
+
+  it("should return empty array when no maintainers exist for category", async () => {
+    const { CategoryDAO } = require("@daos/CategoryDAO");
+    const category = new CategoryDAO();
+    category.id = 2;
+    category.name = "Public Lighting";
+
+    const fakeQueryBuilder = createFakeQueryBuilder([]);
+    const fakeRepo: any = {
+      createQueryBuilder: jest.fn().mockReturnValue(fakeQueryBuilder),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    const result = await repo.findMaintainersByCategory(category);
+
+    expect(fakeRepo.createQueryBuilder).toHaveBeenCalledWith('user');
+    expect(result).toEqual([]);
+  });
+
+  it("should return empty array when category is null or has no id", async () => {
+    const { CategoryDAO } = require("@daos/CategoryDAO");
+    const fakeRepo: any = {
+      createQueryBuilder: jest.fn(),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    
+    // Test with null category
+    const resultNull = await repo.findMaintainersByCategory(null as any);
+    expect(resultNull).toEqual([]);
+    
+    // Test with category without id
+    const category = new CategoryDAO();
+    category.name = "No ID Category";
+    const resultNoId = await repo.findMaintainersByCategory(category);
+    expect(resultNoId).toEqual([]);
+    
+    expect(fakeRepo.createQueryBuilder).not.toHaveBeenCalled();
   });
 });

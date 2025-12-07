@@ -53,7 +53,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.findOne).toHaveBeenCalledWith({
       where: { id: 1 },
-      relations: ["category", "category.office", "createdBy", "assignedTo"]
+      relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo"]
     });
     expect(result).toEqual(mockReport);
   });
@@ -71,7 +71,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.findOne).toHaveBeenCalledWith({
       where: { id: 999 },
-      relations: ["category", "category.office", "createdBy", "assignedTo"]
+      relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo"]
     });
     expect(result).toBeNull();
   });
@@ -109,7 +109,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { status: 'PendingApproval' },
-      relations: ['category', 'createdBy'],
+      relations: ['category', 'createdBy', 'assignedTo', 'coAssignedTo'],
     });
 
     expect(result).toHaveLength(2);
@@ -137,7 +137,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { assignedTo: { id: 123 } },
-      relations: ["category", "createdBy", "assignedTo"],
+      relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
       order: { createdAt: "DESC" }
     });
 
@@ -159,7 +159,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { assignedTo: { id: 456 } },
-      relations: ["category", "createdBy", "assignedTo"],
+      relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
       order: { createdAt: "DESC" }
     });
 
@@ -189,4 +189,75 @@ describe('ReportRepository (mock)', () => {
     expect(result[0].title).toBe('Newer Report');
     expect(result[1].title).toBe('Older Report');
   });
+
+  it('findReportsCoAssignedTo should return reports assigned to an external maintainer', async () => {
+      const mockReports = [
+            { id: 1, title: 'Report 1', assignedTo: { id: 123 }, status: 'Assigned' },
+            { id: 2, title: 'Report 2', assignedTo: { id: 123 }, status: 'InProgress' }
+      ];
+
+      const fakeRepo: any = {
+          find: jest.fn().mockResolvedValue(mockReports),
+      };
+
+      const database = require('@database');
+      jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+      const repo = new ReportRepository();
+      const result = await repo.findReportsCoAssignedTo(123);
+
+      expect(fakeRepo.find).toHaveBeenCalledWith({
+          where: { coAssignedTo: { id: 123 } },
+          relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
+          order: { createdAt: "DESC" }
+      });
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(expect.objectContaining({ title: 'Report 1' }));
+      expect(result[1]).toEqual(expect.objectContaining({ title: 'Report 2' }));
+    });
+
+    it('findReportsCoAssignedTo should return empty array if no reports assigned', async () => {
+        const fakeRepo: any = {
+            find: jest.fn().mockResolvedValue([]),
+        };
+
+        const database = require('@database');
+        jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+        const repo = new ReportRepository();
+        const result = await repo.findReportsCoAssignedTo(456);
+
+        expect(fakeRepo.find).toHaveBeenCalledWith({
+            where: { coAssignedTo: { id: 456 } },
+            relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
+            order: { createdAt: "DESC" }
+        });
+
+        expect(result).toHaveLength(0);
+    });
+
+    it('findReportsCoAssignedTo should order reports by createdAt DESC', async () => {
+        const mockReports = [
+            { id: 2, title: 'Newer Report', createdAt: new Date('2025-01-02'), assignedTo: { id: 123 } },
+            { id: 1, title: 'Older Report', createdAt: new Date('2025-01-01'), assignedTo: { id: 123 } }
+        ];
+
+        const fakeRepo: any = {
+            find: jest.fn().mockResolvedValue(mockReports),
+        };
+
+        const database = require('@database');
+        jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+        const repo = new ReportRepository();
+        const result = await repo.findReportsCoAssignedTo(123);
+
+        expect(fakeRepo.find).toHaveBeenCalledWith(expect.objectContaining({
+            order: { createdAt: "DESC" }
+        }));
+
+        expect(result[0].title).toBe('Newer Report');
+        expect(result[1].title).toBe('Older Report');
+    });
 });

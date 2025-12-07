@@ -3,6 +3,7 @@ import { Repository } from "typeorm";
 import { UserDAO, UserType } from "@daos/UserDAO";
 import { ReportStatus } from "@daos/ReportDAO";
 import * as bcrypt from "bcryptjs";
+import {CategoryDAO} from "@daos/CategoryDAO";
 
 export class UserRepository {
   private repo: Repository<UserDAO>;
@@ -12,15 +13,19 @@ export class UserRepository {
   }
 
   findAllUsers = async (): Promise<UserDAO[]> => {
-    return this.repo.find({ relations: ["office"] });
+    return this.repo.find({ relations: ["office", "company", "company.categories"] });
   };
 
   findUserById = async (id: number): Promise<UserDAO | null> => {
-    return this.repo.findOne({ where: { id } });
+    return this.repo.findOne({ where: { id }, relations: ["office", "company", "company.categories"] });
   }
 
   findUserByTelegramUsername = async (telegramUsername: string): Promise<UserDAO | null> => {
     return this.repo.findOne({ where: { telegramUsername } });
+  }
+
+  findUserByUsername = async (username: string): Promise<UserDAO | null> => {
+    return this.repo.findOne({ where: { username }, relations: ['codeConfirmation'] });
   }
 
   createNewUser = async (user: UserDAO): Promise<UserDAO> => {
@@ -58,14 +63,22 @@ export class UserRepository {
   };
 
   updateUser = async (user: UserDAO): Promise<UserDAO> => {
-    await this.repo.update(user.id, user);
-    const updatedUser = await this.repo.findOneBy({ id: user.id });
-    if (!updatedUser) {
+    // Use save to persist nested relations (e.g. codeConfirmation).
+    const saved = await this.repo.save(user);
+    if (!saved) {
       throw new Error(`User with id ${user.id} not found`);
     }
-    console.log(updatedUser);
-    return updatedUser;
+    return saved;
   };
+
+    findMaintainersByCategory = async (category: CategoryDAO): Promise<UserDAO[]> =>{
+        if (!category?.id) return [];
+        return this.repo.createQueryBuilder('user')
+            .innerJoin('user.company', 'company')
+            .innerJoin('company.categories', 'c', 'c.id = :categoryId', { categoryId: category.id })
+            .where('user.userType = :type', { type: UserType.EXTERNAL_MAINTAINER })
+            .getMany();
+        };
 }
 
 export const userRepository = new UserRepository();

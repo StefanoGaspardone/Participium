@@ -13,6 +13,8 @@ import { useAppContext } from "./contexts/AppContext";
 import ProfilePage from "./components/ProfilePage.tsx";
 import type { Coord } from "./models/models.ts";
 import { Toaster } from "react-hot-toast";
+import ConfirmCodePage from "./components/ConfirmCodePage.tsx";
+import ExternalPage from "./components/ExternalPage.tsx";
 
 function App() {
   const [selected, setSelected] = useState<Coord | null>(null);
@@ -27,6 +29,9 @@ function App() {
     <>
       <Toaster
         position="top-center"
+        containerStyle={{
+          zIndex: 99999
+        }}
         toastOptions={{
           style: { fontSize: '1.2rem', borderRadius: '11px' },
           success: { iconTheme: { primary: '#265ea8', secondary: '#fff' } },
@@ -43,8 +48,10 @@ function App() {
               <Navigate to="/admin" />
             ) : user?.userType === 'PUBLIC_RELATIONS_OFFICER' ? (
               <Navigate to="/pro" />
-            ) : user?.userType === 'TECHNICAL_STAFF_MEMBER' && (
+            ) : user?.userType === 'TECHNICAL_STAFF_MEMBER' ? (
               <Navigate to="/tech" />
+            ) : user?.userType === 'EXTERNAL_MAINTAINER' && (
+              <Navigate to="/external" />
             )
           }
         />
@@ -117,6 +124,16 @@ function App() {
             )
           }
         />
+        <Route path='/confirm-code' element={user ? <Navigate to='/' /> : <ConfirmCodePage />} />
+        <Route path="/external" element={
+          isLoggedIn ? (
+            user?.userType === 'EXTERNAL_MAINTAINER' && (
+              <ExternalPage />
+            )
+          ) : (
+            <Navigate to="/" />
+          )
+        }></Route>
       </Routes>
     </>
   );

@@ -70,6 +70,7 @@ describe('UserController integration tests', () => {
     const res: any = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
     };
 
     const next = jest.fn();
@@ -78,7 +79,7 @@ describe('UserController integration tests', () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ message: 'User created' });
+    expect(res.send).toHaveBeenCalled();
   });
 
   it('signUpUser => missing fields should call next with BadRequestError', async () => {
@@ -109,6 +110,7 @@ describe('UserController integration tests', () => {
     const res: any = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
     };
 
     const next = jest.fn();
@@ -117,7 +119,7 @@ describe('UserController integration tests', () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ message: 'User created' });
+    expect(res.send).toHaveBeenCalled();
 
     // Verify the value was actually saved correctly in the database
     const { AppDataSource } = await import('@database');
@@ -718,3 +720,552 @@ describe('UserController.updateUser integration tests', () => {
     expect(err.name).toBe('ConflictError');
   });
 });
+
+describe('UserController.validateUser integration tests', () => {
+  beforeAll(async () => {
+    const AppDataSource = await initializeTestDatasource();
+    await emptyTestData();
+
+    userController = (await import('@controllers/UserController')).userController;
+  });
+
+  afterAll(async () => {
+    await emptyTestData();
+    await closeTestDataSource();
+  });
+
+  it('validateUser => should return 400 when payload is missing', async () => {
+    const req: any = {
+      body: {},
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/Payload is missing/i);
+  });
+
+  it('validateUser => should return 400 when username is missing', async () => {
+    const req: any = {
+      body: {
+        payload: { code: '123456' },
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/username.*missing/i);
+  });
+
+  it('validateUser => should return 400 when code is missing', async () => {
+    const req: any = {
+      body: {
+        payload: { username: 'testuser' },
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/code.*missing/i);
+  });
+
+  it('validateUser => should return 404 when user does not exist', async () => {
+    const req: any = {
+      body: {
+        payload: { username: 'nonexistent_user', code: '123456' },
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('NotFoundError');
+  });
+
+  it('validateUser => should return 400 when user is already active', async () => {
+    // Create an active user
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password', salt);
+    const activeUser = userRepo.create({
+      username: 'active_user',
+      email: 'active@test.com',
+      passwordHash: hash,
+      firstName: 'Active',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      isActive: true,
+      emailNotificationsEnabled: false,
+    });
+    await userRepo.save(activeUser);
+
+    const req: any = {
+      body: {
+        payload: { username: 'active_user', code: '123456' },
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/already active/i);
+  });
+
+  it('validateUser => should return 400 when no verification code found for user', async () => {
+    // Create an inactive user without verification code
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password', salt);
+    const inactiveUser = userRepo.create({
+      username: 'no_code_user',
+      email: 'nocode@test.com',
+      passwordHash: hash,
+      firstName: 'NoCode',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      isActive: false,
+      emailNotificationsEnabled: false,
+    });
+    await userRepo.save(inactiveUser);
+
+    const req: any = {
+      body: {
+        payload: { username: 'no_code_user', code: '123456' },
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/No verification code found/i);
+  });
+
+  it('validateUser => should return 400 when verification code has expired', async () => {
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const { CodeConfirmationDAO } = await import('@daos/CodeConfirmationDAO');
+    const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password', salt);
+    const user = userRepo.create({
+      username: 'expired_user',
+      email: 'expired@test.com',
+      passwordHash: hash,
+      firstName: 'Expired',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      isActive: false,
+      emailNotificationsEnabled: false,
+    });
+    const savedUser = await userRepo.save(user);
+
+    // Create expired code (1 hour ago)
+    const expiredDate = new Date(Date.now() - 60 * 60 * 1000);
+    const code = codeRepo.create({
+      code: '123456',
+      expirationDate: expiredDate,
+      user: savedUser,
+    });
+    await codeRepo.save(code);
+
+    const req: any = {
+      body: {
+        payload: { username: 'expired_user', code: '123456' },
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/expired/i);
+  });
+
+  it('validateUser => should return 400 when verification code is invalid', async () => {
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const { CodeConfirmationDAO } = await import('@daos/CodeConfirmationDAO');
+    const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password', salt);
+    const user = userRepo.create({
+      username: 'invalid_code_user',
+      email: 'invalidcode@test.com',
+      passwordHash: hash,
+      firstName: 'Invalid',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      isActive: false,
+      emailNotificationsEnabled: false,
+    });
+    const savedUser = await userRepo.save(user);
+
+    // Create valid code
+    const futureDate = new Date(Date.now() + 30 * 60 * 1000);
+    const code = codeRepo.create({
+      code: '123456',
+      expirationDate: futureDate,
+      user: savedUser,
+    });
+    await codeRepo.save(code);
+
+    const req: any = {
+      body: {
+        payload: { username: 'invalid_code_user', code: '999999' }, // Wrong code
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/Invalid verification code/i);
+  });
+
+  it('validateUser => should successfully validate user and activate account', async () => {
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const { CodeConfirmationDAO } = await import('@daos/CodeConfirmationDAO');
+    const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password', salt);
+    const user = userRepo.create({
+      username: 'valid_user',
+      email: 'valid@test.com',
+      passwordHash: hash,
+      firstName: 'Valid',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      isActive: false,
+      emailNotificationsEnabled: false,
+    });
+    const savedUser = await userRepo.save(user);
+
+    // Create valid code
+    const futureDate = new Date(Date.now() + 30 * 60 * 1000);
+    const code = codeRepo.create({
+      code: '654321',
+      expirationDate: futureDate,
+      user: savedUser,
+    });
+    await codeRepo.save(code);
+
+    const req: any = {
+      body: {
+        payload: { username: 'valid_user', code: '654321' },
+      },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.validateUser(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(204);
+    expect(res.send).toHaveBeenCalled();
+
+    // Verify user is now active
+    const updatedUser = await userRepo.findOne({
+      where: { username: 'valid_user' },
+      relations: ['codeConfirmation']
+    });
+    expect(updatedUser?.isActive).toBe(true);
+    expect(updatedUser?.codeConfirmation).toBeNull();
+  });
+});
+
+describe('UserController.resendCode integration tests', () => {
+  beforeAll(async () => {
+    const AppDataSource = await initializeTestDatasource();
+    await emptyTestData();
+
+    userController = (await import('@controllers/UserController')).userController;
+  });
+
+  afterAll(async () => {
+    await emptyTestData();
+    await closeTestDataSource();
+  });
+
+  it('resendCode => should return 400 when username is missing', async () => {
+    const req: any = {
+      body: {},
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.resendCode(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/username.*missing/i);
+  });
+
+  it('resendCode => should return 400 when username is empty', async () => {
+    const req: any = {
+      body: { username: '' },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.resendCode(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/username.*missing/i);
+  });
+
+  it('resendCode => should return 404 when user does not exist', async () => {
+    const req: any = {
+      body: { username: 'nonexistent_resend_user' },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.resendCode(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('NotFoundError');
+  });
+
+  it('resendCode => should return 400 when user is already active', async () => {
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password', salt);
+    const activeUser = userRepo.create({
+      username: 'active_resend_user',
+      email: 'active_resend@test.com',
+      passwordHash: hash,
+      firstName: 'Active',
+      lastName: 'ResendUser',
+      userType: UserType.CITIZEN,
+      isActive: true,
+      emailNotificationsEnabled: false,
+    });
+    await userRepo.save(activeUser);
+
+    const req: any = {
+      body: { username: 'active_resend_user' },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.resendCode(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/already active/i);
+  });
+
+  it('resendCode => should successfully resend verification code', async () => {
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const { CodeConfirmationDAO } = await import('@daos/CodeConfirmationDAO');
+    const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password', salt);
+    const user = userRepo.create({
+      username: 'resend_user',
+      email: 'resend@test.com',
+      passwordHash: hash,
+      firstName: 'Resend',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      isActive: false,
+      emailNotificationsEnabled: false,
+    });
+    await userRepo.save(user);
+
+    const req: any = {
+      body: { username: 'resend_user' },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.resendCode(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.send).toHaveBeenCalled();
+
+    // Verify a new code was created
+    const updatedUser = await userRepo.findOne({
+      where: { username: 'resend_user' },
+      relations: ['codeConfirmation']
+    });
+    expect(updatedUser?.codeConfirmation).toBeDefined();
+    expect(updatedUser?.codeConfirmation?.code).toBeDefined();
+    expect(updatedUser?.codeConfirmation?.expirationDate).toBeDefined();
+  });
+
+  it('resendCode => should update old verification code with new one', async () => {
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const { CodeConfirmationDAO } = await import('@daos/CodeConfirmationDAO');
+    const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('password', salt);
+    const user = userRepo.create({
+      username: 'replace_code_user',
+      email: 'replacecode@test.com',
+      passwordHash: hash,
+      firstName: 'Replace',
+      lastName: 'User',
+      userType: UserType.CITIZEN,
+      isActive: false,
+      emailNotificationsEnabled: false,
+    });
+    const savedUser = await userRepo.save(user);
+
+    // Create initial code
+    const oldDate = new Date(Date.now() + 30 * 60 * 1000);
+    const oldCode = codeRepo.create({
+      code: '111111',
+      expirationDate: oldDate,
+      user: savedUser,
+    });
+    const savedOldCode = await codeRepo.save(oldCode);
+    const oldCodeId = savedOldCode.id;
+    const oldExpirationDate = savedOldCode.expirationDate.getTime();
+
+    const req: any = {
+      body: { username: 'replace_code_user' },
+    };
+
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await userController.resendCode(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(201);
+
+    // Verify code was updated (same ID but new code and expiration)
+    const updatedUser = await userRepo.findOne({
+      where: { username: 'replace_code_user' },
+      relations: ['codeConfirmation']
+    });
+    expect(updatedUser?.codeConfirmation).toBeDefined();
+    expect(updatedUser?.codeConfirmation?.id).toBe(oldCodeId); // Same ID - code was updated, not replaced
+    expect(updatedUser?.codeConfirmation?.code).not.toBe('111111'); // Code should be different
+    expect(updatedUser?.codeConfirmation?.expirationDate.getTime()).toBeGreaterThan(oldExpirationDate); // New expiration date
+  });
+});
+

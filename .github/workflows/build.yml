@@ -3,10 +3,13 @@ on:
   push:
     branches:
       - main
-      - branch-*
+      - '*'
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
+  sonarqube:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
   test-and-sonar:
     name: Test and SonarQube Analysis
     runs-on: ubuntu-latest

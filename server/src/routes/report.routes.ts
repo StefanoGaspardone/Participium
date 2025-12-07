@@ -18,16 +18,20 @@ router.put(
     authMiddleware([UserType.PUBLIC_RELATIONS_OFFICER]),
     reportController.assignOrRejectReport
 );
-
+router.put(
+    '/:id/assign-external',
+    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
+    reportController.assignExternalMaintainer
+)
 router.get(
     '/assigned',
-    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
+    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER, UserType.EXTERNAL_MAINTAINER]),
     reportController.getAssignedReports
 );
 
 router.put(
     '/:id/status/technical',
-    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER]),
+    authMiddleware([UserType.TECHNICAL_STAFF_MEMBER, UserType.EXTERNAL_MAINTAINER]),
     reportController.updateReportStatus
 );
 

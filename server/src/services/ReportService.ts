@@ -1,6 +1,6 @@
 import {ReportDAO, ReportStatus} from '@daos/ReportDAO';
 import {createReportDTO, CreateReportDTO, ReportDTO} from '@dtos/ReportDTO';
-import {UserDAO} from '@daos/UserDAO';
+import {UserDAO, UserType} from '@daos/UserDAO';
 import {NotFoundError} from '@errors/NotFoundError';
 import {BadRequestError} from '@errors/BadRequestError';
 import {categoryRepository, CategoryRepository} from '@repositories/CategoryRepository';
@@ -113,13 +113,24 @@ export class ReportService {
     }
 
     listAssignedReports = async (userId: number): Promise<ReportDTO[]> => {
-        const reports = await this.reportRepo.findReportsAssignedTo(userId);
-        return reports.map(createReportDTO);
+        const user = await this.userRepo.findUserById(userId);
+        if (!user) throw new NotFoundError(`User ${userId} not found`);
+        if (user.userType === UserType.TECHNICAL_STAFF_MEMBER) {
+            const reports = await this.reportRepo.findReportsAssignedTo(userId);
+            return reports.map(createReportDTO);
+        }else if (user.userType === UserType.EXTERNAL_MAINTAINER) {
+            const reports = await this.reportRepo.findReportsCoAssignedTo(userId);
+            return reports.map(createReportDTO);
+        }else{
+            throw new BadRequestError('Only technical staff members and external maintainers have assigned reports');
+        }
     }
 
     updateReportStatus = async (
         reportId: number,
-        newStatus: ReportStatus
+        newStatus: ReportStatus,
+        userId: number,
+        userType: string
     ): Promise<ReportDTO> => {
         const report = await this.reportRepo.findReportById(reportId);
         if (!report) throw new NotFoundError(`Report ${reportId} not found`);
@@ -139,6 +150,14 @@ export class ReportService {
             throw new BadRequestError('Invalid status transition. Suspended report can only move to InProgress');
         }
 
+        if(userType === UserType.TECHNICAL_STAFF_MEMBER && report.assignedTo.id !== userId){
+            throw new BadRequestError("You're not assigned to the report");
+        }else if(userType === UserType.EXTERNAL_MAINTAINER && !report.coAssignedTo){
+            throw new BadRequestError("There's no external maintainer assigned to the report");
+        }else if(userType === UserType.EXTERNAL_MAINTAINER && report.coAssignedTo.id !== userId){
+            throw new BadRequestError("You're not assigned to the report");
+        }
+
         const notifications:NewNotificationDTO = {
             userId: report.createdBy.id,
             reportId: report.id,
@@ -150,6 +169,36 @@ export class ReportService {
 
         await this.notificationService.createNotification(notifications);
 
+        return createReportDTO(updated);
+    }
+
+    assignExternalMaintainer = async (
+        reportId: number,
+        tosmId: number,
+        maintainerId: number
+    ): Promise<ReportDTO> => {
+        const report = await this.reportRepo.findReportById(reportId);
+        if (!report) throw new NotFoundError(`Report ${reportId} not found`);
+
+        if(report.assignedTo.id !== tosmId){
+            throw new BadRequestError("You're not assigned to the report");
+        }
+
+        const maintainer = await this.userRepo.findUserById(maintainerId);
+        if(!maintainer){
+            throw new NotFoundError(`Maintainer with id ${maintainerId} not found`);
+        }
+        if(maintainer.userType !== 'EXTERNAL_MAINTAINER'){
+            throw new BadRequestError(`User with id ${maintainerId} is not an external maintainer`);
+        }
+
+        /*
+        if(!maintainer.company.categories.includes(report.category)){
+            throw new BadRequestError(`Maintainer with id ${maintainerId} is not authorized to maintain reports of category ${report.category.id}`);
+        }*/
+
+        report.coAssignedTo = maintainer;
+        const updated = await this.reportRepo.save(report);
         return createReportDTO(updated);
     }
 }

@@ -1,103 +1,77 @@
 import {messageRepository, MessageRepository} from '@repositories/MessageRepository';
 import {userRepository, UserRepository} from '@repositories/UserRepository';
 import {reportRepository, ReportRepository} from '@repositories/ReportRepository';
-import {ChatDTO, CreateMessageDTO, messageDAOtoDTO, MessageDTO} from '@dtos/MessageDTO';
+import {CreateMessageDTO, messageDAOtoDTO, messageDAOtoDTOforChats, MessageDTO, MessageDTOforChats} from '@dtos/MessageDTO';
 import { MessageDAO } from '@daos/MessagesDAO';
 import {NotFoundError} from "@errors/NotFoundError";
 import { createReportDTO, ReportDTO } from '@dtos/ReportDTO';
 import { MapUserDAOtoDTO, UserDTO } from '@dtos/UserDTO';
 import { ReportDAO } from '@daos/ReportDAO';
 import { UserDAO } from '@daos/UserDAO';
+import { ChatRepository, chatRepository } from '@repositories/ChatRepository';
+import { BadRequestError } from '@errors/BadRequestError';
 
 export class MessageService {
     private messageRepository: MessageRepository;
     private userRepository: UserRepository;
     private reportRepository: ReportRepository;
+    private chatRepository: ChatRepository;
 
     constructor() {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.reportRepository = reportRepository;
+        this.chatRepository = chatRepository;
     }
 
-    async createMessage(createMessageDTO: CreateMessageDTO): Promise<MessageDTO> {
+    /**
+     * 
+     * @param createMessageDTO: CreateMessageDTO, contains the "basic" information to create/send
+     * a new message (text, senderId, receiverId, chatId)
+     * @returns the MessageDTO instance of the newly created/sent message
+     */
+    async createMessage(createMessageDTO: CreateMessageDTO): Promise<MessageDTOforChats> {
         const sender = await this.userRepository.findUserById(createMessageDTO.senderId);
         if (!sender) {
             throw new NotFoundError('Sender not found');
         }
-        const report = await this.reportRepository.findReportById(createMessageDTO.reportId);
-        if (!report) {
-            throw new NotFoundError('Report not found');
+        const chat = await this.chatRepository.findChatById(createMessageDTO.chatId);
+        if (!chat) {
+            throw new NotFoundError('Chat not found');
         }
-
         const receiver = await this.userRepository.findUserById(createMessageDTO.receiverId);
         if (!receiver) {
             throw new NotFoundError('Receiver not found');
+        }
+        if(chat.second_user.id !== sender.id && chat.tosm_user.id !== sender.id) {
+            throw new BadRequestError('The sender inserted is not part of the chat');
+        }
+        if(chat.second_user.id !== receiver.id && chat.tosm_user.id !== receiver.id) {
+            throw new BadRequestError('The receiver is not part of the chat');
         }
 
         const message = {} as MessageDAO;
         message.receiver = receiver;
         message.sender = sender;
-        message.report = report;
+        message.chat = chat;
         message.text = createMessageDTO.text;
 
         const savedMessage = await this.messageRepository.create(message);
-        return messageDAOtoDTO(savedMessage);
+        return messageDAOtoDTOforChats(savedMessage);
     }
 
-    async getMessagesByReportId(reportId: number): Promise<MessageDTO[]> {
-        const report = await this.reportRepository.findReportById(reportId);
-        if (!report) {
-            throw new Error('Report not found');
+    /**
+     * function to retrieve all the messages of a specified chat
+     * @param chatId: number, the identifier of the chat in the DB 
+     * @returns MessageDTO[] array containing the messages of the specified chat 
+     */
+    async getChatMessages (chatId: number): Promise<MessageDTOforChats[]> {
+        const chat = await chatRepository.findChatById(chatId);
+        if(!chat) {
+            throw new NotFoundError('Chat not found');
         }
-        const messages = await this.messageRepository.findByReportId(report);
-        return messages.map(messageDAOtoDTO);
-    }
-
-    getChats = async (userId: number): Promise<ChatDTO[]> => {
-        const messages = await this.messageRepository.findAllByUserId(userId);
-        const chatMap: Map<string, { report: ReportDAO | null, messages: MessageDAO[], otherUser: UserDAO }> = new Map();
-
-        for(const message of messages) {
-            const otherUser = message.sender.id === userId ? message.receiver : message.sender;
-            const otherUserId = otherUser.id;
-        
-            const chatKey = userId < otherUserId ? `${userId}_${otherUserId}` : `${otherUserId}_${userId}`;
-        
-            if(!chatMap.has(chatKey)) {
-                chatMap.set(chatKey, {
-                    report: null,
-                    messages: [],
-                    otherUser: otherUser
-                });
-            }
-        
-            const chatEntry = chatMap.get(chatKey)!;
-            chatEntry.messages.push(message);
-        
-            if(message.report) chatEntry.report = message.report;
-        }
-    
-        const chats: ChatDTO[] = Array.from(chatMap.values()).map(entry => {
-            entry.messages.sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
-
-            return {
-                report: createReportDTO(entry.report!),
-                users: [
-                    MapUserDAOtoDTO(messages.find(m => m.sender.id === userId || m.receiver.id === userId)!.sender), // Trova l'oggetto UserDTO dell'utente corrente
-                    MapUserDAOtoDTO(entry.otherUser)
-                ],
-                messages: entry.messages.map(messageDAOtoDTO)
-            };
-        });
-    
-        chats.sort((a, b) => {
-            const lastMsgA = a.messages[a.messages.length - 1].sentAt.getTime();
-            const lastMsgB = b.messages[b.messages.length - 1].sentAt.getTime();
-            return lastMsgB - lastMsgA;
-        });
-
-        return chats;
+        const messages = await messageRepository.findByChatId(chat.id);
+        return messages.map((m) => messageDAOtoDTOforChats(m));
     }
 }
 

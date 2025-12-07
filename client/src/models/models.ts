@@ -1,6 +1,6 @@
 export interface Category {
-  id: number;
-  name: string;
+  id: number,
+  name: string,
 }
 
 export interface Office {
@@ -9,8 +9,8 @@ export interface Office {
 }
 
 export interface User {
-	id: number;
-	firstName: string;
+  id: number;
+  firstName: string;
   lastName: string;
   email: string;
   username: string;
@@ -20,37 +20,48 @@ export interface User {
   emailNotificationsEnabled: boolean;
   office?: string | null;
   createdAt: Date;
+  isActive: boolean;
 }
 
 export interface Report {
-	id: number;
-	title: string;
-	description: string;
-	category: Category;
-	images: string[];
-	lat: number;
-	long: number;
-	status: string;
-	anonymous?: boolean;
-	rejectedDescription?: string | null;
-	createdBy?: Partial<User>;
-	createdAt: string | Date;
-	assignedTo?: Partial<User> | null;
+  id: number;
+  title: string;
+  description: string;
+  category: Category;
+  images: string[];
+  lat: number;
+  long: number;
+  status: string;
+  anonymous?: boolean;
+  rejectedDescription?: string | null;
+  createdBy?: Partial<User>;
+  createdAt: string | Date;
+  assignedTo?: Partial<User> | null;
 }
 
 export interface Message {
-    id: number;
-    text: string;
-    sentAt: Date;
-    sender: Partial<User>;
-    receiver: Partial<User>;
-    report: Report;
+  id: number;
+  text: string;
+  sentAt: Date;
+  sender: Partial<User>;
+  receiver: Partial<User>;
+  chat: Chat
 }
 
 export interface Chat {
-	report: Report;
-    users: Partial<User>[];
-    messages: Message[];
+  id: number,
+  chatType: string,
+  tosm_user: Partial<User>,
+  second_user: Partial<User>,
+  report: Report,
+  messages: Message[];
+}
+
+export interface Company {
+  id: number,
+  name: string, 
+  categories: Category[],
+  // maintainers: User[]
 }
 
 export interface Coord {

@@ -15,6 +15,7 @@ export interface ReportDTO {
     rejectedDescription?: string | null;
     createdBy: UserDTO;
     assignedTo?: UserDTO | null;
+    coAssignedTo?: UserDTO | null;
     createdAt: Date;
 }
 
@@ -53,6 +54,7 @@ export const createReportDTO = (report: ReportDAO): ReportDTO => {
         rejectedDescription: report.rejectedDescription || null,
         createdBy: MapUserDAOtoDTO(report.createdBy),
         assignedTo: report.assignedTo ? MapUserDAOtoDTO(report.assignedTo) : null,
+        coAssignedTo: report.coAssignedTo ? MapUserDAOtoDTO(report.coAssignedTo) : null,
         createdAt: new Date(report.createdAt),
     } as ReportDTO;
 }

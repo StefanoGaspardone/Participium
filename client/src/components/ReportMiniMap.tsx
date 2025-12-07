@@ -58,7 +58,7 @@ export default function ReportMiniMap({ lat, long }: ReportMiniMapProps) {
             ref={containerRef}
             style={{
                 width: '100%',
-                height: '250px',
+                height: '300px',
                 borderRadius: '8px',
                 overflow: 'hidden',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',

@@ -39,11 +39,15 @@ export default function HomePage({ selected, setSelected }: Props) {
         const fetchedReportsInProgress: Report[] = await getReportsByStatus(
           "InProgress"
         );
+        const fetchedReportsSuspended: Report[] = await getReportsByStatus(
+          "Suspended"
+        );
         const fetchedReportsResolved: Report[] = await getReportsByStatus(
           "Resolved"
         );
         const fetchedReports = fetchedReportsAssigned
           .concat(fetchedReportsInProgress)
+          .concat(fetchedReportsSuspended)
           .concat(fetchedReportsResolved);
         setReports(fetchedReports);
       } else {
@@ -100,8 +104,8 @@ export default function HomePage({ selected, setSelected }: Props) {
                 style={{ display: "inline-block" }}
               >
                 <motion.h1
-                  className="display-6 fw-bold mb-3"
-                  style={{ color: "#0d6efd" }}
+                  className="display-6 fw-bold"
+                  style={{ color: "#0067c6" }}
                   variants={{ rest: { scale: 1 }, hover: { scale: 1.02 } }}
                   transition={{ type: "spring", stiffness: 280, damping: 20 }}
                 >
@@ -118,7 +122,7 @@ export default function HomePage({ selected, setSelected }: Props) {
                   transition={{ type: "spring", stiffness: 300, damping: 22 }}
                 />
               </motion.div>
-              <p className="lead text-muted mb-4 px-2">
+              <p className="lead mb-4 px-2">
                 Participium is a web application for <strong>citizen participation</strong> in the
                 management of <strong>urban environments</strong>.<br />
                 It enables citizens to interact with the public administration by <strong>reporting </strong>

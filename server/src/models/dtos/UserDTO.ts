@@ -1,4 +1,5 @@
 import { UserDAO, UserType } from '@daos/UserDAO';
+import {mapCompanyDAOtoDTO} from "@dtos/CompanyDTO";
 
 export interface UserDTO {
     id: number;
@@ -11,6 +12,8 @@ export interface UserDTO {
     userType: string;
     emailNotificationsEnabled?: boolean;
     office?: string | null;
+    company?: string | null;
+    isActive: boolean;
     createdAt: Date;
 }
 
@@ -26,8 +29,10 @@ export const MapUserDAOtoDTO = (user: UserDAO): UserDTO => {
         userType: user.userType,
         emailNotificationsEnabled: user.emailNotificationsEnabled,
         office: user.office? user.office.name : null,
+        company: user.company? mapCompanyDAOtoDTO(user.company) : null,
         createdAt: new Date(user.createdAt),
-        passwordHash: user.passwordHash
+        passwordHash: user.passwordHash,
+        isActive: user.isActive,
     } as UserDTO;
 }
 
@@ -52,5 +57,11 @@ export interface NewMunicipalityUserDTO {
     password: string;
     userType: UserType;
     officeId?: number;
+    companyId?: number;
     image?: string;
+}
+
+export interface ValidateUserDTO {
+    username: string;
+    code: string;
 }
