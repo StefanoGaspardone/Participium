@@ -68,7 +68,7 @@ describe('CompanyService (mock)', () => {
 
 		const payload: CreateCompanyDTO = {
 			name: 'Existing Company',
-			categories: [],
+			categories: [{ id: 1, name: 'Test Category' }],
 		};
 
 		await expect(service.createCompany(payload)).rejects.toThrow('A company with the selected name already exists');
@@ -88,7 +88,7 @@ describe('CompanyService (mock)', () => {
 
 		// @ts-ignore
 		service['categoryRepo'] = {
-			findAllCategories: jest.fn().mockResolvedValue([cat1]),
+			findCategoryById: jest.fn().mockResolvedValue(null),
 		};
 
 		const payload: CreateCompanyDTO = {
@@ -99,7 +99,7 @@ describe('CompanyService (mock)', () => {
 		await expect(service.createCompany(payload)).rejects.toThrow('A category inserted is not present on the list of existing categories');
 	});
 
-	it('createCompany should throw NotFoundError if category id is not found during creation', async () => {
+	it('createCompany should throw BadRequestError if category id is not found during creation', async () => {
 		const service = new CompanyService();
 
 		const cat1 = new CategoryDAO();
@@ -113,7 +113,6 @@ describe('CompanyService (mock)', () => {
 
 		// @ts-ignore
 		service['categoryRepo'] = {
-			findAllCategories: jest.fn().mockResolvedValue([cat1]),
 			findCategoryById: jest.fn().mockResolvedValue(null),
 		};
 
@@ -122,7 +121,7 @@ describe('CompanyService (mock)', () => {
 			categories: [{ id: 1, name: 'Water Supply' }],
 		};
 
-		await expect(service.createCompany(payload)).rejects.toThrow('Category 1 not found');
+		await expect(service.createCompany(payload)).rejects.toThrow('A category inserted is not present on the list of existing categories');
 	});
 
 	it('createCompany should trim company name before checking existence', async () => {
@@ -141,12 +140,13 @@ describe('CompanyService (mock)', () => {
 
 		// @ts-ignore
 		service['categoryRepo'] = {
-			findAllCategories: jest.fn().mockResolvedValue([]),
+			findAllCategories: jest.fn().mockResolvedValue([{ id: 1, name: 'Test' }]),
+			findCategoryById: jest.fn().mockResolvedValue({ id: 1, name: 'Test' }),
 		};
 
 		const payload: CreateCompanyDTO = {
 			name: '  Test Company  ',
-			categories: [],
+			categories: [{ id: 1, name: 'Test' }],
 		};
 
 		await service.createCompany(payload);
