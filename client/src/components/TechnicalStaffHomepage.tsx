@@ -13,6 +13,7 @@ import Chats from './Chats';
 import { fetchAddress } from './HomepageMap';
 import { Lightbox } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
+import { REPORT_STATUS_COLORS } from '../constants/reportStatusColors';
 
 export default function TechnicalStaffHomepage() {
     const [reports, setReports] = useState<Report[]>([]);
@@ -137,7 +138,7 @@ export default function TechnicalStaffHomepage() {
         try {
             setAssigningReportId(report.id);
             const res = await assignReportToExternalMaintainer(report.id, maintainerId);
-            
+
             setReports(prev => prev.map(r => r.id === report.id ? res.report : r));
         } catch (e) {
             console.error('Failed to assign external maintainer', e);
@@ -240,13 +241,21 @@ export default function TechnicalStaffHomepage() {
                                                 <div onClick={() => handleFetchMaintainers(r)} className="d-flex w-100 align-items-center justify-content-between">
                                                     <h4 id="report-title" className="mb-0 fw-bold" style={{ color: '#00205B', fontSize: '1.5rem' }}>{r.title}</h4>
                                                     <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem', marginRight: '0.5rem' }}>
-                                                        <Badge
+                                                        <span
                                                             id={"current-status" + r.title}
-                                                            bg={r.status === 'Assigned' ? 'primary' : r.status === 'Resolved' ? 'success' : 'warning'}
-                                                            style={{ fontSize: '1rem', padding: '0.5rem 1rem', marginRight: '0.5rem' }}
+                                                            style={{
+                                                                fontSize: '1rem',
+                                                                padding: '0.5rem 1rem',
+                                                                marginRight: '0.5rem',
+                                                                backgroundColor: REPORT_STATUS_COLORS[r.status] || '#64748B',
+                                                                color: 'white',
+                                                                borderRadius: '0.375rem',
+                                                                fontWeight: 600,
+                                                                display: 'inline-block'
+                                                            }}
                                                         >
                                                             {r.status}
-                                                        </Badge>
+                                                        </span>
                                                         {new Date(r.createdAt).toLocaleString()}
                                                     </small>
                                                 </div>
@@ -316,8 +325,8 @@ export default function TechnicalStaffHomepage() {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <div className="mt-2" style={{ marginLeft: '10px' }}>
-                                                            <h5 style={{ color: '#00205B', fontWeight: 400 }}>{r.description}</h5>
+                                                        <div className="mt-2" style={{ marginLeft: '10px', justifyContent: 'center', display: 'flex' }}>
+                                                            <h5 style={{ color: '#00205B', fontWeight: 350 }}>{r.description}</h5>
                                                         </div>
                                                     </Col>
                                                     <Col md={6}>
@@ -335,32 +344,15 @@ export default function TechnicalStaffHomepage() {
                                                     </Col>
                                                 </Row>
 
-                                            {/* Bottom section: Description, Category, Status */}
-                                            <div className="row">
-                                                <div className="col-6">
-                                                    <div className="mb-3">
-                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>Description</h5>
-                                                        <p className="mb-0">{r.description}</p>
-                                                    </div>
-
+                                                {/* Bottom section: Description, Category, Status */}
+                                                <div className="row">
+                                                    <div className="col-6">
                                                         <div className="mb-3">
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Category</h5>
                                                             <Badge bg="secondary" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>
                                                                 {r.category?.name}
                                                             </Badge>
                                                         </div>
-
-                                                        <div className="mb-3">
-                                                            <h5 style={{ color: '#00205B', fontWeight: 600 }}>Current Status</h5>
-                                                            <Badge
-                                                                id={"current-status" + r.title}
-                                                                bg={r.status === 'Assigned' ? 'primary' : r.status === 'Resolved' ? 'success' : 'warning'}
-                                                                style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}
-                                                            >
-                                                                {r.status}
-                                                            </Badge>
-                                                        </div>
-                    
                                                         {/* Status update actions */}
                                                         <div className="mb-3">
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Update Status</h5>
@@ -415,59 +407,75 @@ export default function TechnicalStaffHomepage() {
 
                                                         {/* Send message button */}
                                                         <div>
-                                                            <h5 style={{ color: '#00205B', fontWeight: 600 }}>Communication</h5>
+                                                            <h5 style={{ color: '#00205B', fontWeight: 600 }}>Comunication</h5>
+
                                                             <Button
-                                                                variant="primary"
-                                                                size="lg"
+                                                                variant="link"
+                                                                className="me-2 p-0"
                                                                 onClick={() => { setActiveReport(r); setShow(true); }}
-                                                                className="auth-button-primary"
-                                                                style={{
-                                                                    background: 'linear-gradient(90deg, #007bff, #0056b3)',
-                                                                    border: 'none'
-                                                                }}
+                                                                aria-label={`open-chat-${r.id}`}
                                                             >
-                                                                Send message
+                                                                Click
                                                             </Button>
+                                                            <span className="me-2" style={{ marginRight: '0.5rem', color: '#6c757d' }}> to open chat with the report submitter</span>
                                                         </div>
                                                     </div>
-                                                    <div className = 'col-6'>
-                                                    <div className="mb-4">
-                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>External Maintainer</h5>
-                                                        { r?.coAssignedTo ? (
-                                                            r?.coAssignedTo.id === 13 ? (
-                                                                <p className = ''>Assigned to external maintainer out of Participium</p>
-                                                            ) : (
-                                                                <div className="d-flex align-items-center gap-2">
-                                                                    <FaUserCircle style={{ width: 40, height: 40, color: '#abcabc' }} />
-                                                                    <div>
-                                                                        <div style={{ fontWeight: 600 }}>{r.coAssignedTo.firstName} {r.coAssignedTo.lastName}</div>
-                                                                        <div style={{ fontWeight: 700 }}>{r.coAssignedTo.company?.name.toUpperCase() ?? 'COMPANY'}</div>
+                                                    <div className='col-6'>
+                                                        <div className="mb-4">
+                                                            <h5 style={{ color: '#00205B', fontWeight: 600 }}>Assign to an external maintainer</h5>
+                                                            {r?.coAssignedTo ? (
+                                                                r?.coAssignedTo.id === 13 ? (
+                                                                    <p className=''>Assigned to external maintainer out of Participium</p>
+                                                                ) : (
+                                                                    <div className="d-flex align-items-center gap-2">
+                                                                        <FaUserCircle style={{ width: 40, height: 40, color: '#abcabc' }} />
+                                                                        <div>
+                                                                            <div style={{ fontWeight: 600 }}>{r.coAssignedTo.firstName} {r.coAssignedTo.lastName}</div>
+                                                                            <div style={{ fontWeight: 700 }}>{r.coAssignedTo.company?.name.toUpperCase() ?? 'COMPANY'}</div>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            )
-                                                        ) : (
-                                                            <div>
-                                                                <div className="d-flex align-items-center gap-2 mb-2">
-                                                                    <select
-                                                                        id={`assign-maintainer-select-${r.id}`}
-                                                                        className="form-select"
-                                                                        value={selectedMaintainerByReportId[r.id] ?? ''}
-                                                                        onChange={e => setSelectedMaintainerByReportId(prev => ({ ...prev, [r.id]: Number(e.target.value) }))}
-                                                                        onFocus={() => handleFetchMaintainers(r)}
-                                                                        disabled={assigningReportId === r.id}
-                                                                        style={{ maxWidth: 280 }}
-                                                                    >
-                                                                        <option value="" disabled>Select maintainer</option>
-                                                                        {maintainersByReportId.filter(mnt => mnt.id !== 13).map(m => (
-                                                                            <option key={m.id} value={m.id}>{m.firstName} {m.lastName} {m.company ? `- ${m.company.name}` : ''}</option>
-                                                                        ))}
-                                                                    </select>
+                                                                )
+                                                            ) : (
+                                                                <div>
+                                                                    <div className="d-flex align-items-center gap-2 mb-2">
+                                                                        <select
+                                                                            id={`assign-maintainer-select-${r.id}`}
+                                                                            className="form-select"
+                                                                            value={selectedMaintainerByReportId[r.id] ?? ''}
+                                                                            onChange={e => setSelectedMaintainerByReportId(prev => ({ ...prev, [r.id]: Number(e.target.value) }))}
+                                                                            onFocus={() => handleFetchMaintainers(r)}
+                                                                            disabled={assigningReportId === r.id}
+                                                                            style={{ maxWidth: 280 }}
+                                                                        >
+                                                                            <option value="" disabled>Select maintainer</option>
+                                                                            {maintainersByReportId.filter(mnt => mnt.id !== 13).map(m => (
+                                                                                <option key={m.id} value={m.id}>{m.firstName} {m.lastName} {m.company ? `- ${m.company.name}` : ''}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                        <Button
+                                                                            id={`assign-maintainer-button-${r.id}`}
+                                                                            variant="primary"
+                                                                            onClick={() => handleAssignMaintainer(r)}
+                                                                            disabled={!selectedMaintainerByReportId[r.id] || assigningReportId === r.id}
+                                                                            className="auth-button-primary"
+                                                                        >
+                                                                            {assigningReportId === r.id ? (
+                                                                                <>
+                                                                                    <Loader2Icon size={16} className="animate-spin me-1" />
+                                                                                    Assigning...
+                                                                                </>
+                                                                            ) : (
+                                                                                'Assign'
+                                                                            )}
+                                                                        </Button>
+                                                                    </div>
+                                                                    <span className="ms-2 align-middle" style={{ marginRight: '0.5rem', color: '#6c757d' }}>or</span>
                                                                     <Button
-                                                                        id={`assign-maintainer-button-${r.id}`}
-                                                                        variant="primary"
-                                                                        onClick={() => handleAssignMaintainer(r)}
-                                                                        disabled={!selectedMaintainerByReportId[r.id] || assigningReportId === r.id}
-                                                                        className="auth-button-primary"
+                                                                        id={`assign-outside-button-${r.id}`}
+                                                                        variant="link"
+                                                                        className="p-0"
+                                                                        disabled={assigningReportId === r.id}
+                                                                        onClick={() => handleAssignMaintainer(r, 13)}
                                                                     >
                                                                         {assigningReportId === r.id ? (
                                                                             <>
@@ -475,31 +483,14 @@ export default function TechnicalStaffHomepage() {
                                                                                 Assigning...
                                                                             </>
                                                                         ) : (
-                                                                            'Assign'
+                                                                            'assign to maintainer out of Participium'
                                                                         )}
                                                                     </Button>
                                                                 </div>
-                                                                <Button
-                                                                    id={`assign-outside-button-${r.id}`}
-                                                                    variant="link"
-                                                                    className="ms-2 p-0"
-                                                                    disabled={assigningReportId === r.id}
-                                                                    onClick={() => handleAssignMaintainer(r, 13)}
-                                                                >
-                                                                    {assigningReportId === r.id ? (
-                                                                        <>
-                                                                            <Loader2Icon size={16} className="animate-spin me-1" />
-                                                                            Assigning...
-                                                                        </>
-                                                                    ) : (
-                                                                        'or assign to maintainer out of Participium'
-                                                                    )}
-                                                                </Button>
-                                                            </div>
-                                                        )}
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
                                             </Accordion.Body>
                                         </Accordion.Item>
                                     </Card>
