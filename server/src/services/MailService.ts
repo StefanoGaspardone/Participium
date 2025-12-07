@@ -65,7 +65,9 @@ export class MailService {
         try {
             const info = await this.transporter.sendMail(mailDetails);
             return info;
-        } catch(error) {}
+        } catch {
+            // swallow catch
+        }
     }
 }
 

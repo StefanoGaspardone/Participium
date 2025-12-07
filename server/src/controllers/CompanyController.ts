@@ -64,8 +64,8 @@ export class CompanyController {
             if (!req.token?.user) {
                 throw new BadRequestError("Invalid token");
             }
-            const companies = this.companyService.getAllCompanies();
-            return res.status(200).json(companies);
+            const companies = await this.companyService.getAllCompanies();
+            return res.status(200).json({ companies });
         } catch (error) {
             next(error)
         }

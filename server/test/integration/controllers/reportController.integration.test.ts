@@ -3,6 +3,7 @@ import { OfficeDAO } from '@daos/OfficeDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
+import { ChatDAO } from '@daos/ChatsDAO';
 import * as bcrypt from 'bcryptjs';
 
 let reportController: any;
@@ -11,6 +12,7 @@ describe('ReportController integration tests', () => {
   let categoryId: number | undefined;
   let userId: number | undefined;
   let staffId: number | undefined;
+  let externalMaintainerId: number | undefined;
   let reportId: number | undefined;
 
   beforeAll(async () => {
@@ -53,6 +55,17 @@ describe('ReportController integration tests', () => {
     });
     await userRepo.save(staff);
     staffId = staff.id;
+
+    const externalMaintainer = userRepo.create({
+      username: 'controller_ext_maint',
+      email: 'controller_ext@gmail.com',
+      passwordHash: userHash,
+      firstName: 'External',
+      lastName: 'Maintainer',
+      userType: UserType.EXTERNAL_MAINTAINER,
+    });
+    await userRepo.save(externalMaintainer);
+    externalMaintainerId = externalMaintainer.id;
 
     const report = reportRepo.create({
       title: 'Initial Report',
@@ -375,7 +388,7 @@ describe('ReportController integration tests', () => {
     const req: any = {
       params: { id: 'invalid' },
       body: { status: ReportStatus.InProgress },
-      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
     };
     const res: any = { status: jest.fn(), json: jest.fn() };
     const next = jest.fn();
@@ -392,7 +405,7 @@ describe('ReportController integration tests', () => {
     const req: any = {
       params: { id: String(reportId) },
       body: { status: 'INVALID_STATUS' },
-      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
     };
     const res: any = { status: jest.fn(), json: jest.fn() };
     const next = jest.fn();
@@ -409,7 +422,7 @@ describe('ReportController integration tests', () => {
     const req: any = {
       params: { id: String(reportId) },
       body: {},
-      token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
     };
     const res: any = { status: jest.fn(), json: jest.fn() };
     const next = jest.fn();
@@ -420,5 +433,315 @@ describe('ReportController integration tests', () => {
     const err = next.mock.calls[0][0];
     expect(err.name).toBe('BadRequestError');
     expect(err.errors).toHaveProperty('status');
+  });
+
+  it('updateReportStatus => missing token calls next with BadRequestError', async () => {
+    const req: any = {
+      params: { id: String(reportId) },
+      body: { status: ReportStatus.InProgress },
+      token: {}
+    };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
+
+    await reportController.updateReportStatus(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toContain('Missing token');
+  });
+
+  describe('assignOrRejectReport with chat creation', () => {
+    it('should create chat between citizen and TOSM when report is assigned', async () => {
+      const AppDataSource = await import('@database').then(m => m.AppDataSource);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const chatRepo = AppDataSource.getRepository(ChatDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      const category = await categoryRepo.findOne({ where: { id: categoryId } });
+      const staff = await userRepo.findOne({ where: { id: staffId } });
+      const citizen = await userRepo.findOne({ where: { id: userId } });
+
+      if (!category || !staff || !citizen) {
+        throw new Error('Setup failed: required entities not found');
+      }
+
+      // Create a new pending report
+      const newReport = reportRepo.create({
+        title: 'Chat Test Report',
+        description: 'Testing chat creation',
+        category: category,
+        images: ['http://img/test.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: citizen,
+        status: ReportStatus.PendingApproval
+      });
+      await reportRepo.save(newReport);
+
+      const req: any = {
+        params: { id: String(newReport.id) },
+        body: { status: ReportStatus.Assigned },
+        token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      const next = jest.fn();
+
+      await reportController.assignOrRejectReport(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+
+      // Check that chat was created
+      const chats = await chatRepo.find({ 
+        where: { report: { id: newReport.id } },
+        relations: ['tosm_user', 'second_user', 'report']
+      });
+
+      expect(chats.length).toBe(1);
+      expect(chats[0].tosm_user.id).toBe(staffId);
+      expect(chats[0].second_user.id).toBe(userId);
+      expect(chats[0].report.id).toBe(newReport.id);
+
+      // Cleanup - remove chats first to avoid FK constraints
+      await chatRepo.remove(chats);
+    });
+
+    it('should not create duplicate chat if one already exists', async () => {
+      const AppDataSource = await import('@database').then(m => m.AppDataSource);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const chatRepo = AppDataSource.getRepository(ChatDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      const category = await categoryRepo.findOne({ where: { id: categoryId } });
+      const staff = await userRepo.findOne({ where: { id: staffId } });
+      const citizen = await userRepo.findOne({ where: { id: userId } });
+
+      if (!category || !staff || !citizen) {
+        throw new Error('Setup failed: required entities not found');
+      }
+
+      const newReport = reportRepo.create({
+        title: 'No Duplicate Chat Test',
+        description: 'Testing no duplicate chat',
+        category: category,
+        images: ['http://img/test2.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: citizen,
+        status: ReportStatus.PendingApproval
+      });
+      await reportRepo.save(newReport);
+
+      // First assignment - creates chat
+      const req1: any = {
+        params: { id: String(newReport.id) },
+        body: { status: ReportStatus.Assigned },
+        token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      };
+      const res1: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      const next1 = jest.fn();
+
+      await reportController.assignOrRejectReport(req1, res1, next1);
+
+      const chatsAfterFirst = await chatRepo.find({ 
+        where: { report: { id: newReport.id } }
+      });
+      expect(chatsAfterFirst.length).toBe(1);
+
+      // Second assignment - should not create duplicate
+      const req2: any = {
+        params: { id: String(newReport.id) },
+        body: { status: ReportStatus.Assigned },
+        token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      };
+      const res2: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      const next2 = jest.fn();
+
+      await reportController.assignOrRejectReport(req2, res2, next2);
+
+      const chatsAfterSecond = await chatRepo.find({ 
+        where: { report: { id: newReport.id } }
+      });
+      expect(chatsAfterSecond.length).toBe(1); // Still only 1 chat
+
+      // Cleanup - remove chats first to avoid FK constraints
+      await chatRepo.remove(chatsAfterSecond);
+    });
+
+    it('should not create chat when report is rejected', async () => {
+      const AppDataSource = await import('@database').then(m => m.AppDataSource);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const chatRepo = AppDataSource.getRepository(ChatDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      const category = await categoryRepo.findOne({ where: { id: categoryId } });
+      const citizen = await userRepo.findOne({ where: { id: userId } });
+
+      if (!category || !citizen) {
+        throw new Error('Setup failed: required entities not found');
+      }
+
+      const newReport = reportRepo.create({
+        title: 'Rejected Report Test',
+        description: 'Testing no chat on rejection',
+        category: category,
+        images: ['http://img/test3.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: citizen,
+        status: ReportStatus.PendingApproval
+      });
+      await reportRepo.save(newReport);
+
+      const req: any = {
+        params: { id: String(newReport.id) },
+        body: { status: ReportStatus.Rejected, rejectedDescription: 'Not valid' },
+        token: { user: { id: staffId, role: UserType.TECHNICAL_STAFF_MEMBER } }
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      const next = jest.fn();
+
+      await reportController.assignOrRejectReport(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+
+      // Check that no chat was created
+      const chats = await chatRepo.find({ 
+        where: { report: { id: newReport.id } }
+      });
+      expect(chats.length).toBe(0);
+    });
+  });
+
+  describe('assignExternalMaintainer', () => {
+    it('should assign external maintainer and create chat with TOSM', async () => {
+      const AppDataSource = await import('@database').then(m => m.AppDataSource);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const chatRepo = AppDataSource.getRepository(ChatDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      const category = await categoryRepo.findOne({ where: { id: categoryId } });
+      const staff = await userRepo.findOne({ where: { id: staffId } });
+      const citizen = await userRepo.findOne({ where: { id: userId } });
+      const extMaintainer = await userRepo.findOne({ where: { id: externalMaintainerId } });
+
+      if (!category || !staff || !citizen || !extMaintainer) {
+        throw new Error('Setup failed: required entities not found');
+      }
+
+      // Create assigned report with existing citizen-TOSM chat
+      const newReport = reportRepo.create({
+        title: 'External Maintainer Test',
+        description: 'Testing external maintainer assignment',
+        category: category,
+        images: ['http://img/ext.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: citizen,
+        status: ReportStatus.Assigned,
+        assignedTo: staff
+      });
+      await reportRepo.save(newReport);
+
+      // Create initial citizen-TOSM chat
+      const initialChat = chatRepo.create({
+        tosm_user: staff,
+        second_user: citizen,
+        report: newReport,
+        chatType: 'CITIZEN_TOSM' as any
+      });
+      await chatRepo.save(initialChat);
+
+      const req: any = {
+        params: { id: String(newReport.id) },
+        body: { maintainerId: externalMaintainerId },
+        token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      const next = jest.fn();
+
+      await reportController.assignExternalMaintainer(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+
+      // Check that second chat was created (TOSM-External)
+      const chats = await chatRepo.find({ 
+        where: { report: { id: newReport.id } },
+        relations: ['tosm_user', 'second_user', 'report']
+      });
+
+      expect(chats.length).toBe(2);
+      
+      const extChat = chats.find(c => c.second_user.id === externalMaintainerId);
+      expect(extChat).toBeDefined();
+      expect(extChat?.tosm_user.id).toBe(staffId);
+
+      // Cleanup
+      await chatRepo.remove(chats);
+      await reportRepo.remove(newReport);
+    });
+
+    it('should fail with invalid report id', async () => {
+      const req: any = {
+        params: { id: 'invalid' },
+        body: { maintainerId: externalMaintainerId },
+        token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
+      };
+      const res: any = { status: jest.fn(), json: jest.fn() };
+      const next = jest.fn();
+
+      await reportController.assignExternalMaintainer(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const err = next.mock.calls[0][0];
+      expect(err.name).toBe('BadRequestError');
+      expect(err.message).toContain('Report id must be a positive number');
+    });
+
+    it('should fail with missing user id in token', async () => {
+      const req: any = {
+        params: { id: String(reportId) },
+        body: { maintainerId: externalMaintainerId },
+        token: { user: {} }
+      };
+      const res: any = { status: jest.fn(), json: jest.fn() };
+      const next = jest.fn();
+
+      await reportController.assignExternalMaintainer(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const err = next.mock.calls[0][0];
+      expect(err.name).toBe('BadRequestError');
+      expect(err.message).toContain('Missing user id in token');
+    });
+
+    it('should fail with invalid maintainer id', async () => {
+      const req: any = {
+        params: { id: String(reportId) },
+        body: { maintainerId: -5 },
+        token: { user: { id: staffId, userType: UserType.TECHNICAL_STAFF_MEMBER } }
+      };
+      const res: any = { status: jest.fn(), json: jest.fn() };
+      const next = jest.fn();
+
+      await reportController.assignExternalMaintainer(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const err = next.mock.calls[0][0];
+      expect(err.name).toBe('BadRequestError');
+      expect(err.message).toContain('maintainerId is missing or it is not a positive number');
+    });
   });
 });

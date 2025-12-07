@@ -1,17 +1,77 @@
 import path from "path";
+import fs from "fs";
+
+const SECRET_BASE_PATH = "/run/secrets";
+
+/**
+ * This function reads the content of a secret of Docker Swarm mounted as a file.
+ * @param secretName is the secret's name (it corresponds to the filename in 'production' environment
+ * OR to the environment variable name in 'development')
+ * @returns the content of the secret file OR of the environment variables 
+ */
+const getSecret = (secretName: string): string => {
+  if (process.env.NODE_ENV !== "production") {
+    // this is what is returned in development :
+    if (process.env[secretName]) {
+      return process.env[secretName];
+    } else {
+      throw new Error(`Unable to retrieve secret: ${secretName}.`);
+    }
+  }
+
+  const secretPath = path.join(SECRET_BASE_PATH, secretName);
+
+  try {
+    // we arrive here ONLY in production :
+    // we get the value from the secret file
+    const secretValue = fs.readFileSync(secretPath, 'utf-8').trim();
+    return secretValue;
+  } catch (error) {
+    console.error(`Unable to retrieve secret: ${secretName} from ${secretPath}.`);
+    throw new Error(`Unable to retrieve secret: ${secretName} from ${secretPath}.`)
+  }
+}
+
+/**
+ * This function reads the content of a secret of Docker Swarm mounted as a file.
+ * (same as getSecret, BUT it works for numeric values ONLY, such as ports)
+ * @param secretName is the secret's name (it corresponds to the filename in 'production' environment
+ * OR to the environment variable name in 'development')
+ * @returns the content of the secret file OR of the environment variables
+ */
+const getSecretNumber = (secretName: string): number => {
+  if (process.env.NODE_ENV !== "production") {
+    // this is what is returned in development :
+    if (process.env[secretName])
+      return parseInt(process.env[secretName]);
+    else {
+      throw new Error(`Unable to retrieve secret: ${secretName}.`);
+    }
+  }
+  const secretPath = path.join(SECRET_BASE_PATH, secretName);
+  try {
+    // we arrive here ONLY in production :
+    // we get the value from the secret file
+    const secretValue = fs.readFileSync(secretPath, 'utf-8').trim();
+    return parseInt(secretValue);
+  } catch (error) {
+    console.error(`Unable to retrieve secret: ${secretName} from ${secretPath}.`);
+    throw new Error(`Unable to retrieve secret: ${secretName} from ${secretPath}.`);
+  }
+}
 
 const BASE_URL = "/api";
 
 export const CONFIG = {
-  APP_PORT: parseInt(process.env.APP_PORT || "3000"),
-  NODE_ENV: process.env.NODE_ENV || "development",
+  APP_PORT: getSecretNumber("APP_PORT"),
+  NODE_ENV: process.env.NODE_ENV,
   DATABASE: {
-    TYPE: process.env.DB_TYPE || "postgres",
-    HOST: process.env.DB_HOST || "localhost",
-    PORT: parseInt(process.env.DB_PORT ?? "5439"),
-    USERNAME: process.env.DB_USERNAME || "postgres",
-    PASSWORD: process.env.DB_PASSWORD || "mysecretpassword",
-    NAME: process.env.DB_NAME || "postgres",
+    TYPE: getSecret("DB_TYPE"),
+    HOST: getSecret("DB_HOST"),
+    PORT: getSecretNumber("DB_PORT"),
+    USERNAME: getSecret("DB_USERNAME"),
+    PASSWORD: getSecret("DB_PASSWORD"),
+    NAME: getSecret("DB_NAME"),
     ENTITIES: [__dirname + "/../models/daos/*.{ts,js}"],
   },
   SWAGGER_FILE_PATH: path.join(__dirname, "../../docs/swagger.yaml"),
@@ -28,32 +88,32 @@ export const CONFIG = {
     COMPANIES: `${BASE_URL}/companies`
   },
   LOG: {
-    LEVEL: process.env.LOG_LEVEL || "info",
-    PATH: process.env.LOG_PATH || "logs",
-    ERROR_FILE: process.env.ERROR_LOG_FILE || "error.log",
-    COMBINED_FILE: process.env.COMBINED_LOG_FILE || "combined.log",
+    LEVEL: getSecret("LOG_LEVEL"),
+    PATH: getSecret("LOG_PATH"),
+    ERROR_FILE: getSecret("ERROR_LOG_FILE"),
+    COMBINED_FILE: getSecret("COMBINED_LOG_FILE"),
   },
   CLOUDINARY: {
-    CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || "dhzr4djkx",
-    API_KEY: process.env.CLOUDINARY_API_KEY || "345159419611275",
-    API_SECRET: process.env.CLOUDINARY_API_SECRET || "Ni4c_gMnqrAUhoYj0GFtuRpCAm4",
-    DEFAULT_FOLDER: process.env.CLOUDINARY_DEFAULT_FOLDER || "participium",
-    UPLOAD_PRESET: process.env.CLOUDINARY_UPLOAD_PRESET || "participium_preset",
+    CLOUD_NAME: getSecret("CLOUDINARY_CLOUD_NAME"),
+    API_KEY: getSecret("CLOUDINARY_API_KEY"),
+    API_SECRET: getSecret("CLOUDINARY_API_SECRET"),
+    DEFAULT_FOLDER: getSecret("CLOUDINARY_DEFAULT_FOLDER"),
+    UPLOAD_PRESET: getSecret("CLOUDINARY_UPLOAD_PRESET"),
   },
   TURIN: {
     GEO_JSON_FILE_PATH: path.join(__dirname, '../../data/turin_geo.json'),
   },
-  JWT_SECRET: process.env.JWT_SECRET || 'powerPuffGirls',
+  JWT_SECRET: getSecret("JWT_SECRET"),
   TELEGRAM: {
-    BOT_API_TOKEN: process.env.TELEGRAM_BOT_API_TOKEN || '7714201933:AAHzlmE5AWN3o1WirpDuc4H318NUb7WHFM4',
+    BOT_API_TOKEN: getSecret("TELEGRAM_BOT_API_TOKEN"),
     SESSION_JSON_PATH: path.join(__dirname, '../telegram/session_db.json'),
   },
   MAIL: {
-    SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
-    SMTP_PORT: parseInt(process.env.SMTP_PORT ?? '587'),
-    SMTP_USER: process.env.SMTP_USER || 'pparticipium@gmail.com',
-    SMTP_PASS: process.env.SMTP_PASS || '',
-    MAIL_FROM_ADDRESS: process.env.MAIL_FROM_ADDRESS || 'pparticipium@gmail.com',
-    MAIL_FROM_NAME: process.env.MAIL_FROM_NAME || 'Participium Support',
+    SMTP_HOST: getSecret("SMTP_HOST"),
+    SMTP_PORT: getSecretNumber("SMTP_PORT"),
+    SMTP_USER: getSecret("SMTP_USER"),
+    SMTP_PASS: getSecret("SMTP_PASS"),
+    MAIL_FROM_ADDRESS: getSecret("MAIL_FROM_ADDRESS"),
+    MAIL_FROM_NAME: getSecret("MAIL_FROM_NAME"),
   }
 };

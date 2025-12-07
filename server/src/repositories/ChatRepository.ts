@@ -62,7 +62,15 @@ export class ChatRepository {
   findChatById = async (chatId: number): Promise<ChatDAO | null> => {
     return await this.repository.findOne({
       where: { id: chatId }, 
-      relations: ["tosm_user", "second_user", "report"],
+      relations: [
+        "tosm_user", 
+        "second_user", 
+        "report",
+        "report.category",
+        "report.createdBy",
+        "report.assignedTo",
+        "report.coAssignedTo"
+      ],
     });
   }
 }

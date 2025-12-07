@@ -5,6 +5,7 @@ import tsconfig from './tsconfig.json';
 const config: Config = {
     preset: 'ts-jest',
     testEnvironment: 'node',
+    setupFiles: ['dotenv/config'],
     collectCoverage: true,
     coverageReporters: ['text', 'lcov', 'html'],
     collectCoverageFrom: [
@@ -31,6 +32,7 @@ const config: Config = {
         "^.+\\.tsx?$": 'ts-jest',
     },
     maxWorkers: 1,
+    forceExit: true,
 }
 
 export default config;

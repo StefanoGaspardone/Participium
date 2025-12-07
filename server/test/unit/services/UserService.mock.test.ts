@@ -1,6 +1,10 @@
 import { UserService } from "@services/UserService";
-import { UserDAO } from "@daos/UserDAO";
+import { UserDAO, UserType } from "@daos/UserDAO";
 import { NewUserDTO } from "@dtos/UserDTO";
+
+// NOSONAR - Test credentials only, not used in production
+const TEST_PASSWORD = "testpass123"; // NOSONAR
+const TEST_PASSWORD_HASH = "$2a$10$hashedpassword123"; // NOSONAR
 
 describe("UserService (mock)", () => {
   it("signUpUser should hash password and call repo.signUpUser", async () => {
@@ -11,6 +15,7 @@ describe("UserService (mock)", () => {
       .mockImplementation(async (u: any) => ({ ...u, id: 2 }));
     const findAllMock = jest.fn().mockResolvedValue([]);
     const loginMock = jest.fn().mockResolvedValue(null);
+    const findByIdMock = jest.fn().mockResolvedValue({ id: 2, isActive: false, save: jest.fn() });
 
     // inject fake repo
     // @ts-ignore
@@ -18,29 +23,33 @@ describe("UserService (mock)", () => {
       createNewUser : signUpMock,
       findAllUsers: findAllMock,
       login: loginMock,
+      findUserById: findByIdMock,
     };
+
+    // Mock the private createCodeConfirmationForUser method
+    // @ts-ignore
+    service["createCodeConfirmationForUser"] = jest.fn().mockResolvedValue({});
 
     const payload = {
       firstName: "Mock",
       lastName: "Svc",
       email: "svc@mock",
       username: "svc",
-      password: "secretpw",
+      password: TEST_PASSWORD,
       emailNotificationsEnabled: false,
     } as NewUserDTO;
 
-    const saved = await service.signUpUser(payload);
+    await service.signUpUser(payload);
     expect(signUpMock).toHaveBeenCalled();
     // the object passed to signUpMock should contain a passwordHash (not plain password)
     const passed = signUpMock.mock.calls[0][0] as UserDAO;
     expect(passed.passwordHash).toBeDefined();
-    expect(passed.passwordHash).not.toBe("secretpw");
-    expect(saved.id).toBeDefined();
+    expect(passed.passwordHash).not.toBe(TEST_PASSWORD);
   });
 
   it("login should delegate to repo.login", async () => {
     const service = new UserService();
-    const fakeUser = { id: 3, email: "a@b" } as any;
+    const fakeUser = { id: 3, email: "a@b", isActive: true } as any;
     // @ts-ignore
     service["userRepo"] = {
       createNewUser: jest.fn(),
@@ -48,7 +57,7 @@ describe("UserService (mock)", () => {
       login: jest.fn().mockResolvedValue(fakeUser),
     };
 
-    const out = await service.login("a@b", "pw");
+    const out = await service.login("a@b", TEST_PASSWORD);
     expect(out).toEqual(fakeUser);
   });
 
@@ -65,7 +74,7 @@ describe("UserService (mock)", () => {
       userType: "CITIZEN",
       municipalityRole: null,
       createdAt: new Date().toISOString(),
-      passwordHash: "h",
+      passwordHash: TEST_PASSWORD_HASH,
     } as any;
 
     // @ts-ignore
@@ -89,7 +98,7 @@ describe("UserService (mock)", () => {
       login: jest.fn().mockRejectedValue(new Error("repo failure")),
     };
 
-    await expect(service.login("a@b", "pw")).rejects.toThrow("repo failure");
+    await expect(service.login("a@b", TEST_PASSWORD)).rejects.toThrow("repo failure");
   });
 
   it("signUp throws error if repo.signUp throws error", async () => {
@@ -112,7 +121,7 @@ describe("UserService (mock)", () => {
       lastName: "Svc",
       email: "svc@mock",
       username: "svc",
-      password: "secretpw",
+      password: TEST_PASSWORD,
       emailNotificationsEnabled: true,
     } as NewUserDTO;
 
@@ -147,7 +156,7 @@ describe("UserService.createMunicipalityUser (mock)", () => {
       lastName: "User",
       email: "mun@local",
       username: "mun",
-      password: "s3cret",
+      password: TEST_PASSWORD,
       userType: (await import("@daos/UserDAO")).UserType.TECHNICAL_STAFF_MEMBER,
       officeId: 2,
     } as any;
@@ -158,7 +167,7 @@ describe("UserService.createMunicipalityUser (mock)", () => {
     const passed = createMock.mock.calls[0][0] as any;
     // password should be hashed
     expect(passed.passwordHash).toBeDefined();
-    expect(passed.passwordHash).not.toBe("s3cret");
+    expect(passed.passwordHash).not.toBe(TEST_PASSWORD);
     // office should be assigned
     expect(passed.office).toBeDefined();
     expect(passed.office).toEqual(fakeOffice);
@@ -188,7 +197,7 @@ describe("UserService.createMunicipalityUser (mock)", () => {
       lastName: "NoOffice",
       email: "mun2@local",
       username: "mun2",
-      password: "s3cret",
+      password: TEST_PASSWORD,
       userType: (await import("@daos/UserDAO")).UserType.TECHNICAL_STAFF_MEMBER,
       officeId: 999,
     } as any;
@@ -223,7 +232,7 @@ describe("UserService.createMunicipalityUser (mock)", () => {
       lastName: "Municipal",
       email: "normal@local",
       username: "normal",
-      password: "pass",
+      password: TEST_PASSWORD,
       userType: (await import("@daos/UserDAO")).UserType.CITIZEN, // not TECHNICAL_STAFF_MEMBER
       officeId: 1,
     } as any;
@@ -454,7 +463,7 @@ describe("UserService.createMunicipalityUser - Additional Cases (mock)", () => {
       lastName: "Admin",
       email: "munadmin@local",
       username: "munadmin",
-      password: "pass",
+      password: TEST_PASSWORD,
       userType: UserType.MUNICIPAL_ADMINISTRATOR,
     } as any);
 
@@ -469,7 +478,7 @@ describe("UserService.createMunicipalityUser - Additional Cases (mock)", () => {
       lastName: "Officer",
       email: "pro@local",
       username: "pro",
-      password: "pass",
+      password: TEST_PASSWORD,
       userType: UserType.PUBLIC_RELATIONS_OFFICER,
     } as any);
 
@@ -495,7 +504,7 @@ describe("UserService.createMunicipalityUser - Additional Cases (mock)", () => {
         lastName: "Admin",
         email: "munadmin@local",
         username: "munadmin",
-        password: "pass",
+        password: TEST_PASSWORD,
         userType: UserType.MUNICIPAL_ADMINISTRATOR,
       } as any)
     ).rejects.toThrow("Organization office not found.");
@@ -507,11 +516,160 @@ describe("UserService.createMunicipalityUser - Additional Cases (mock)", () => {
         lastName: "Officer",
         email: "pro@local",
         username: "pro",
-        password: "pass",
+        password: TEST_PASSWORD,
         userType: UserType.PUBLIC_RELATIONS_OFFICER,
       } as any)
     ).rejects.toThrow("Organization office not found.");
 
+    expect(createMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("UserService.findMaintainersByCategory (mock)", () => {
+  it("should return maintainers mapped to DTOs for valid category", async () => {
+    const service = new UserService();
+
+    const { CategoryDAO } = require("@daos/CategoryDAO");
+    const category = new CategoryDAO();
+    category.id = 1;
+    category.name = "Water Supply";
+
+    const maintainer1 = {
+      id: 10,
+      firstName: "John",
+      lastName: "Doe",
+      email: "john@external.com",
+      username: "johndoe",
+      userType: UserType.EXTERNAL_MAINTAINER,
+      company: { id: 1, name: "Company A", categories: [] },
+    } as any;
+
+    const maintainer2 = {
+      id: 11,
+      firstName: "Jane",
+      lastName: "Smith",
+      email: "jane@external.com",
+      username: "janesmith",
+      userType: UserType.EXTERNAL_MAINTAINER,
+      company: { id: 1, name: "Company A", categories: [] },
+    } as any;
+
+    // @ts-ignore
+    service['categoryRepo'] = {
+      findCategoryById: jest.fn().mockResolvedValue(category),
+    };
+
+    // @ts-ignore
+    service['userRepo'] = {
+      findMaintainersByCategory: jest.fn().mockResolvedValue([maintainer1, maintainer2]),
+    };
+
+    const result = await service.findMaintainersByCategory(1);
+
+    expect((service as any).categoryRepo.findCategoryById).toHaveBeenCalledWith(1);
+    expect((service as any).userRepo.findMaintainersByCategory).toHaveBeenCalledWith(category);
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe(10);
+    expect(result[1].id).toBe(11);
+  });
+
+  it("should throw NotFoundError when category does not exist", async () => {
+    const service = new UserService();
+
+    // @ts-ignore
+    service['categoryRepo'] = {
+      findCategoryById: jest.fn().mockResolvedValue(null),
+    };
+
+    await expect(service.findMaintainersByCategory(999)).rejects.toThrow('Category with id 999 not found');
+  });
+
+  it("should return empty array when no maintainers exist for category", async () => {
+    const service = new UserService();
+
+    const { CategoryDAO } = require("@daos/CategoryDAO");
+    const category = new CategoryDAO();
+    category.id = 2;
+    category.name = "Public Lighting";
+
+    // @ts-ignore
+    service['categoryRepo'] = {
+      findCategoryById: jest.fn().mockResolvedValue(category),
+    };
+
+    // @ts-ignore
+    service['userRepo'] = {
+      findMaintainersByCategory: jest.fn().mockResolvedValue([]),
+    };
+
+    const result = await service.findMaintainersByCategory(2);
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe("UserService.createMunicipalityUser - External Maintainer (mock)", () => {
+  it("should create external maintainer with valid companyId", async () => {
+    const service = new UserService();
+
+    const fakeCompany = { id: 1, name: "External Company A" } as any;
+    const createMock = jest.fn().mockImplementation(async (u: any) => ({ ...u, id: 20 }));
+
+    // @ts-ignore
+    service['userRepo'] = {
+      createNewUser: createMock,
+    };
+
+    // @ts-ignore
+    service['companyRepository'] = {
+      findCompanyById: jest.fn().mockResolvedValue(fakeCompany),
+    };
+
+    const payload = {
+      firstName: "External",
+      lastName: "Maintainer",
+      email: "external@company.com",
+      username: "extmaint",
+      password: TEST_PASSWORD,
+      userType: UserType.EXTERNAL_MAINTAINER,
+      companyId: 1,
+    } as any;
+
+    const saved = await service.createMunicipalityUser(payload);
+
+    expect((service as any).companyRepository.findCompanyById).toHaveBeenCalledWith(1);
+    expect(createMock).toHaveBeenCalled();
+    const createdUser = createMock.mock.calls[0][0];
+    expect(createdUser.company).toEqual(fakeCompany);
+    expect(saved.id).toBe(20);
+  });
+
+  it("should throw BadRequestError when company does not exist", async () => {
+    const service = new UserService();
+
+    const createMock = jest.fn();
+
+    // @ts-ignore
+    service['userRepo'] = {
+      createNewUser: createMock,
+    };
+
+    // @ts-ignore
+    service['companyRepository'] = {
+      findCompanyById: jest.fn().mockResolvedValue(null),
+    };
+
+    const payload = {
+      firstName: "External",
+      lastName: "Maintainer",
+      email: "external@company.com",
+      username: "extmaint",
+      password: TEST_PASSWORD,
+      userType: UserType.EXTERNAL_MAINTAINER,
+      companyId: 999,
+    } as any;
+
+    await expect(service.createMunicipalityUser(payload)).rejects.toThrow("Company not found.");
     expect(createMock).not.toHaveBeenCalled();
   });
 });

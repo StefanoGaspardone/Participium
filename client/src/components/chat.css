@@ -13,15 +13,18 @@
     border: none;
     padding: 0.75rem 0.75rem;
     font-size: 500;
-    transition: transform 160ms ease, background-color 160ms ease;
+    transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
     position: absolute;
     right: 0;
     bottom: 0;
     z-index: 20002;
+    box-shadow: 0 4px 12px rgba(2,6,23,0.1), 0 2px 4px rgba(2,6,23,0.06);
 }
 
 .chat-toggle:hover {
     background-color: #01467e;
+    box-shadow: 0 6px 16px rgba(2,6,23,0.12), 0 4px 8px rgba(2,6,23,0.08);
+    transform: scale(1.05);
 }
 
 .chat-toggle:active {

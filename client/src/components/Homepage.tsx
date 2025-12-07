@@ -104,8 +104,8 @@ export default function HomePage({ selected, setSelected }: Props) {
                 style={{ display: "inline-block" }}
               >
                 <motion.h1
-                  className="display-6 fw-bold mb-3"
-                  style={{ color: "#0d6efd" }}
+                  className="display-6 fw-bold"
+                  style={{ color: "#0067c6" }}
                   variants={{ rest: { scale: 1 }, hover: { scale: 1.02 } }}
                   transition={{ type: "spring", stiffness: 280, damping: 20 }}
                 >

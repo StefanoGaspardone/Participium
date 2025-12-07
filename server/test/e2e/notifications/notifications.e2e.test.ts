@@ -347,15 +347,22 @@ describe("Notifications e2e tests", () => {
       });
       expect(newUserRes.status).toBe(201);
 
-      const newUserLoginRes = await request(app)
-        .post("/api/users/login")
-        .send({ username: "notiftest", password: "password123" });
-      const newUserToken = newUserLoginRes.body.token;
-
       const userRepo = AppDataSource.getRepository(UserDAO);
       const newUser = await userRepo.findOne({
         where: { username: "notiftest" },
       });
+
+      // Activate the new user for testing
+      if (newUser) {
+        newUser.isActive = true;
+        newUser.codeConfirmation = undefined as any;
+        await userRepo.save(newUser);
+      }
+
+      const newUserLoginRes = await request(app)
+        .post("/api/users/login")
+        .send({ username: "notiftest", password: "password123" });
+      const newUserToken = newUserLoginRes.body.token;
 
       await request(app)
         .post("/api/notifications")

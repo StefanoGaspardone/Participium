@@ -83,7 +83,7 @@ type Props = {
 	reports?: Report[] | null;
 };
 
-const fetchAddress = async (lat: number, lng: number): Promise<string> => {
+export const fetchAddress = async (lat: number, lng: number): Promise<string> => {
 	try {
 		const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`);
 
