@@ -8,7 +8,7 @@ import { UserType } from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import { NotificationDAO } from '@daos/NotificationsDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
-import { UserDAO } from '@daos/UserDAO';
+
 
 const OFFICES: string[] = [
     'Organization',
@@ -32,6 +32,7 @@ const USERS: Array<{ username:string; email:string; password:string; firstName: 
     { username: 'munadm', email: 'munadm@part.se', firstName: 'Giorgio', lastName: 'Turio', password: 'password', userType: UserType.MUNICIPAL_ADMINISTRATOR},
     { username: 'pro', email: 'pro@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.PUBLIC_RELATIONS_OFFICER},
     { username: 'em1', email: 'em1@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.EXTERNAL_MAINTAINER, company: 1},
+    { username: 'fake1', email: 'fake@part.se', firstName: 'Fake1', lastName: 'Fake1', password: 'password', userType: UserType.EXTERNAL_MAINTAINER, company: 3},
 ];
 
 const CATEGORIES: Array<{ name: string; office: string }> = [
@@ -46,8 +47,6 @@ const CATEGORIES: Array<{ name: string; office: string }> = [
     { name: 'Other', office: 'General Services Division' },
 ];
 
-
-
 async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number; company?:number }>) {
     const repo = AppDataSource.getRepository('UserDAO');
 
@@ -60,34 +59,32 @@ async function upsertUsers(users: Array<{ username:string; email:string; passwor
         const passwordHash = await bcrypt.hash(password, salt);
 
         let user = await repo.findOne({ where: { username: trimmedUsername } });
-        if(!user) {
-            if(!office && !company) {
-                user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType });
-                user = await repo.save(user);
-                logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
-            } else if(office && !company) {
-                const officeRepo = AppDataSource.getRepository(OfficeDAO);
-                const officeEntity = await officeRepo.findOne({ where: { id: office } });
-                if(!officeEntity) {
-                    logError(`[populate-db] Skipping user '${trimmedUsername}': office id='${office}' not found in OFFICES.`);
-                    continue;
-                }
-                user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType,  office: officeEntity });
-                user = await repo.save(user);
-                logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
-            } if(company && !office) {
-                const companyRepo = AppDataSource.getRepository('CompanyDAO');
-                const companyEntity = await companyRepo.findOne({ where: { id: company } });
-                if(!companyEntity) {
-                    logError(`[populate-db] Skipping user '${trimmedUsername}': company id='${company}' not found in COMPANIES.`);
-                    continue;
-                }
-                user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType,  company: companyEntity });
-                user = await repo.save(user);
-                logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
-            }
-        } else {
+        if(user) {
             logInfo(`[populate-db] User already exists: ${trimmedUsername} (id=${user.id})`);
+        } else if(!office && !company) {
+            user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType });
+            user = await repo.save(user);
+            logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
+        } else if(office && !company) {
+            const officeRepo = AppDataSource.getRepository(OfficeDAO);
+            const officeEntity = await officeRepo.findOne({ where: { id: office } });
+            if(!officeEntity) {
+                logError(`[populate-db] Skipping user '${trimmedUsername}': office id='${office}' not found in OFFICES.`);
+                continue;
+            }
+            user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType,  office: officeEntity });
+            user = await repo.save(user);
+            logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
+        } else if(company && !office) {
+            const companyRepo = AppDataSource.getRepository('CompanyDAO');
+            const companyEntity = await companyRepo.findOne({ where: { id: company } });
+            if(!companyEntity) {
+                logError(`[populate-db] Skipping user '${trimmedUsername}': company id='${company}' not found in COMPANIES.`);
+                continue;
+            }
+            user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType,  company: companyEntity });
+            user = await repo.save(user);
+            logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
         }
     }
 }
@@ -101,13 +98,13 @@ async function upsertOffices(offices: string[]) {
         if (!trimmed) continue;
 
         let office = await repo.findOne({ where: { name: trimmed } });
-        if (!office) {
+        if (office) {
+            logInfo(`[populate-db] Office already exists: ${trimmed} (id=${office.id})`);
+        } else {
             office = repo.create({ name: trimmed });
             office = await repo.save(office);
 
             logInfo(`[populate-db] Inserted office: ${trimmed} (id=${office.id})`);
-        } else {
-            logInfo(`[populate-db] Office already exists: ${trimmed} (id=${office.id})`);
         }
         map.set(trimmed, office);
     }
@@ -130,12 +127,7 @@ async function upsertCategories(items: Array<{ name: string; office: string }>, 
         }
 
         let cat = await repo.findOne({ where: { name: trimmedName } });
-        if (!cat) {
-            cat = repo.create({ name: trimmedName, office: role });
-            cat = await repo.save(cat);
-
-            logInfo(`[populate-db] Inserted category: ${trimmedName} (id=${cat.id}) -> office=${role.name}`);
-        } else {
+        if (cat) {
             if (!cat.office || cat.office.id !== role.id) {
                 cat.office = role;
                 await repo.save(cat);
@@ -144,6 +136,11 @@ async function upsertCategories(items: Array<{ name: string; office: string }>, 
             } else {
                 logInfo(`[populate-db] Category already exists: ${trimmedName} (id=${cat.id})`);
             }
+        } else {
+            cat = repo.create({ name: trimmedName, office: role });
+            cat = await repo.save(cat);
+
+            logInfo(`[populate-db] Inserted category: ${trimmedName} (id=${cat.id}) -> office=${role.name}`);
         }
     }
 }
@@ -268,7 +265,9 @@ async function upsertNotifications() {
     // First notification
     try {
         const exists1 = await notifRepo.findOne({ where: { user: { id: user1.id }, report: { id: reports[0].id }, previousStatus: ReportStatus.PendingApproval, newStatus: ReportStatus.Assigned }, relations: ['user', 'report'] });
-        if (!exists1) {
+        if (exists1) {
+            logInfo(`[populate-db] Notification already exists for user=${user1.username} reportId=${reports[0].id}`);
+        } else {
             const notif1 = notifRepo.create({
                 user: user1,
                 report: reports[0],
@@ -278,8 +277,6 @@ async function upsertNotifications() {
             });
             await notifRepo.save(notif1);
             logInfo(`[populate-db] Inserted notification id=${notif1.id} for user=${user1.username} reportId=${reports[0].id}`);
-        } else {
-            logInfo(`[populate-db] Notification already exists for user=${user1.username} reportId=${reports[0].id}`);
         }
     } catch (err) {
         logError('[populate-db] Error inserting first notification:', err);
@@ -290,7 +287,9 @@ async function upsertNotifications() {
         const targetUser = user2 || user1;
         const secondReport = reports[1] || reports[0];
         const exists2 = await notifRepo.findOne({ where: { user: { id: targetUser.id }, report: { id: secondReport.id }, previousStatus: ReportStatus.Assigned, newStatus: ReportStatus.Resolved }, relations: ['user', 'report'] });
-        if (!exists2) {
+        if (exists2) {
+            logInfo(`[populate-db] Notification already exists for user=${targetUser.username} reportId=${secondReport.id}`);
+        } else {
             const notif2 = notifRepo.create({
                 user: targetUser,
                 report: secondReport,
@@ -300,8 +299,6 @@ async function upsertNotifications() {
             });
             await notifRepo.save(notif2);
             logInfo(`[populate-db] Inserted notification id=${notif2.id} for user=${targetUser.username} reportId=${secondReport.id}`);
-        } else {
-            logInfo(`[populate-db] Notification already exists for user=${targetUser.username} reportId=${secondReport.id}`);
         }
     } catch (err) {
         logError('[populate-db] Error inserting second notification:', err);
@@ -315,6 +312,7 @@ async function upsertCompanies() {
     const companies = [
         { name: 'Iren', categoryNames: ['Water Supply - Drinking Water', 'Sewer System'] },
         { name: 'Enel', categoryNames: ['Public Lighting', 'Road Signs and Traffic Lights'] },
+        { name: 'Fake', categoryNames: ['Water Supply - Drinking Water', 'Architectural Barriers', 'Sewer System', 'Public Lighting', 'Waste', 'Road Signs and Traffic Lights', 'Roads and Urban Furnishings', 'Public Green Areas and Playgrounds', 'Other'] }
     ];
 
     for (const { name, categoryNames } of companies) {
@@ -322,7 +320,9 @@ async function upsertCompanies() {
         if (!trimmedName) continue;
 
         let company = await repo.findOne({ where: { name: trimmedName } });
-        if (!company) {
+        if (company) {
+            logInfo(`[populate-db] Company already exists: ${trimmedName} (id=${company.id})`);
+        } else {
             const categories: CategoryDAO[] = [];
             for (const catName of categoryNames) {
                 const cat = await categoryRepo.findOne({ where: { name: catName } });
@@ -333,8 +333,6 @@ async function upsertCompanies() {
             company = await repo.save(company);
 
             logInfo(`[populate-db] Inserted company: ${trimmedName} (id=${company.id})`);
-        } else {
-            logInfo(`[populate-db] Company already exists: ${trimmedName} (id=${company.id})`);
         }
     }
 }
