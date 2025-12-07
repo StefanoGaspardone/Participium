@@ -337,7 +337,6 @@ async function upsertCompanies() {
     }
 }
 
-
 async function deleteActualState() {
     const tables = ['users', 'reports', 'office_roles', 'categories', 'notifications', 'messages', 'chats'];
     for (const t of tables) {
