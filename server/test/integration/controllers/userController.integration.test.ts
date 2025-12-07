@@ -3,6 +3,15 @@ import { OfficeDAO } from '@daos/OfficeDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import * as bcrypt from 'bcryptjs';
 
+// Test password constants
+const TEST_PASSWORD_ADMIN = 'admin'; //NOSONAR
+const TEST_PASSWORD_USER = 'user'; //NOSONAR
+const TEST_PASSWORD_GENERIC = 'password'; //NOSONAR
+const TEST_PASSWORD_ME = 'metest'; //NOSONAR
+const TEST_PASSWORD_TEST_USER = 'testuser'; //NOSONAR
+const TEST_PASSWORD_PASS = 'pass'; //NOSONAR
+const TEST_PASSWORD_EXT = 'extpass'; //NOSONAR
+
 let userController: any;
 
 describe('UserController integration tests', () => {
@@ -19,7 +28,7 @@ describe('UserController integration tests', () => {
     await roleRepo.save(role);
 
     const salt1 = await bcrypt.genSalt(10);
-    const adminHash = await bcrypt.hash('admin', salt1);
+    const adminHash = await bcrypt.hash(TEST_PASSWORD_ADMIN, salt1);
     const adminUser = userRepo.create({
       username: 'admin',
       email: 'admin@gmail.com',
@@ -32,7 +41,7 @@ describe('UserController integration tests', () => {
     await userRepo.save(adminUser);
 
     const salt2 = await bcrypt.genSalt(10);
-    const userHash = await bcrypt.hash('user', salt2);
+    const userHash = await bcrypt.hash(TEST_PASSWORD_USER, salt2);
     const normalUser = userRepo.create({
       username: 'user',
       email: 'user@gmail.com',
@@ -57,7 +66,7 @@ describe('UserController integration tests', () => {
     const req: any = {
       body: {
         email: 'test1@example.com',
-        password: 'password',
+        password: 'password', //NOSONAR
         firstName: 'test1',
         lastName: 'Test',
         username: 'test1',
@@ -99,7 +108,7 @@ describe('UserController integration tests', () => {
     const req: any = {
       body: {
         email: 'falsetest@example.com',
-        password: 'password',
+        password: 'password', //NOSONAR
         firstName: 'False',
         lastName: 'Test',
         username: 'falsetest',
@@ -134,7 +143,7 @@ describe('UserController integration tests', () => {
     const req: any = {
       body: {
         email: 'missing@example.com',
-        password: 'password',
+        password: 'password', //NOSONAR
         firstName: 'Missing',
         lastName: 'Field',
         username: 'missingfield',
@@ -158,7 +167,7 @@ describe('UserController integration tests', () => {
     const req: any = {
       body: {
         email: 'user@gmail.com', // created in beforeAll
-        password: 'password',
+        password: 'password', //NOSONAR
         firstName: 'Dup',
         lastName: 'User',
         username: 'dupuser',
@@ -219,7 +228,7 @@ describe('UserController integration tests', () => {
     const req: any = {
       body: {
         email: 'self_muni2@example.com',
-        password: 'password',
+        password: 'password', //NOSONAR
         firstName: 'Muni',
         lastName: 'Two',
         username: 'selfmuni2',
@@ -269,7 +278,7 @@ describe('UserController integration tests', () => {
     const req: any = {
       body: {
         email: 'user@gmail.com',
-        password: 'password',
+        password: 'password', //NOSONAR
         firstName: 'Muni',
         lastName: 'Two',
         username: 'selfmuni2',
@@ -298,7 +307,7 @@ describe('UserController integration tests', () => {
     const req: any = {
       body: {
         email: 'self_muni2@example.com',
-        password: 'password',
+        password: 'password', //NOSONAR
         firstName: 'Muni',
         lastName: 'Two',
         username: 'selfmuni2',
@@ -326,7 +335,7 @@ describe('UserController integration tests', () => {
     const req: any = {
       body: {
         email: 'self_muni2@example.com',
-        password: 'password',
+        password: 'password', //NOSONAR
         firstName: 'Muni',
         lastName: 'Two',
         username: 'selfmuni2',
@@ -365,7 +374,7 @@ describe('UserController integration tests', () => {
     const { AppDataSource } = await import('@database');
     const userRepo = AppDataSource.getRepository(UserDAO);
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('pass', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_PASS, salt);
     const telegramUser = userRepo.create({
       username: 'tguser',
       email: 'tg@gmail.com',
@@ -439,7 +448,7 @@ describe('UserController.me integration tests', () => {
     const userRepo = AppDataSource.getRepository(UserDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const userHash = await bcrypt.hash('metest', salt);
+    const userHash = await bcrypt.hash(TEST_PASSWORD_ME, salt);
     const testUser = userRepo.create({
       username: 'metest',
       email: 'me@test.com',
@@ -546,7 +555,7 @@ describe('UserController.updateUser integration tests', () => {
     const userRepo = AppDataSource.getRepository(UserDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const userHash = await bcrypt.hash('testuser', salt);
+    const userHash = await bcrypt.hash(TEST_PASSWORD_TEST_USER, salt);
     const testUser = userRepo.create({
       username: 'testuser',
       email: 'test@gmail.com',
@@ -685,7 +694,7 @@ describe('UserController.updateUser integration tests', () => {
     const { AppDataSource } = await import('@database');
     const userRepo = AppDataSource.getRepository(UserDAO);
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('pass', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_PASS, salt);
     const anotherUser = userRepo.create({
       username: 'another',
       email: 'another@gmail.com',
@@ -825,7 +834,7 @@ describe('UserController.validateUser integration tests', () => {
     const userRepo = AppDataSource.getRepository(UserDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
     const activeUser = userRepo.create({
       username: 'active_user',
       email: 'active@test.com',
@@ -865,7 +874,7 @@ describe('UserController.validateUser integration tests', () => {
     const userRepo = AppDataSource.getRepository(UserDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
     const inactiveUser = userRepo.create({
       username: 'no_code_user',
       email: 'nocode@test.com',
@@ -906,7 +915,7 @@ describe('UserController.validateUser integration tests', () => {
     const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
     const user = userRepo.create({
       username: 'expired_user',
       email: 'expired@test.com',
@@ -956,7 +965,7 @@ describe('UserController.validateUser integration tests', () => {
     const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
     const user = userRepo.create({
       username: 'invalid_code_user',
       email: 'invalidcode@test.com',
@@ -1006,7 +1015,7 @@ describe('UserController.validateUser integration tests', () => {
     const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
     const user = userRepo.create({
       username: 'valid_user',
       email: 'valid@test.com',
@@ -1133,7 +1142,7 @@ describe('UserController.resendCode integration tests', () => {
     const userRepo = AppDataSource.getRepository(UserDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
     const activeUser = userRepo.create({
       username: 'active_resend_user',
       email: 'active_resend@test.com',
@@ -1172,7 +1181,7 @@ describe('UserController.resendCode integration tests', () => {
     const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
     const user = userRepo.create({
       username: 'resend_user',
       email: 'resend@test.com',
@@ -1218,7 +1227,7 @@ describe('UserController.resendCode integration tests', () => {
     const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
     const user = userRepo.create({
       username: 'replace_code_user',
       email: 'replacecode@test.com',
@@ -1266,6 +1275,283 @@ describe('UserController.resendCode integration tests', () => {
     expect(updatedUser?.codeConfirmation?.id).toBe(oldCodeId); // Same ID - code was updated, not replaced
     expect(updatedUser?.codeConfirmation?.code).not.toBe('111111'); // Code should be different
     expect(updatedUser?.codeConfirmation?.expirationDate.getTime()).toBeGreaterThan(oldExpirationDate); // New expiration date
+  });
+
+  describe('findMaintainersByCategory', () => {
+    let testCategoryId: number;
+    let testCategoryId2: number;
+    let extMaintainerId: number;
+    let extMaintainerId2: number;
+
+    beforeAll(async () => {
+      const { AppDataSource } = await import('@database');
+      const categoryRepo = AppDataSource.getRepository(await import('@daos/CategoryDAO').then(m => m.CategoryDAO));
+      const companyRepo = AppDataSource.getRepository(await import('@daos/CompanyDAO').then(m => m.CompanyDAO));
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+
+      // Create office
+      const office = officeRepo.create({ name: 'Maintainers Controller Test Office' });
+      await officeRepo.save(office);
+
+      // Create two test categories
+      const category1 = categoryRepo.create({
+        name: 'Controller Test Category 1',
+        office
+      });
+      const category2 = categoryRepo.create({
+        name: 'Controller Test Category 2',
+        office
+      });
+      await categoryRepo.save(category1);
+      await categoryRepo.save(category2);
+      testCategoryId = category1.id;
+      testCategoryId2 = category2.id;
+
+      // Create company with category1
+      const company1 = companyRepo.create({
+        name: `Controller Test Company 1 ${Date.now()}`,
+        categories: [category1]
+      });
+      const savedCompany1 = await companyRepo.save(company1);
+
+      // Create company with category2
+      const company2 = companyRepo.create({
+        name: `Controller Test Company 2 ${Date.now()}`,
+        categories: [category2]
+      });
+      const savedCompany2 = await companyRepo.save(company2);
+
+      // Create external maintainer for company1
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(TEST_PASSWORD_EXT, salt);
+      const extMaintainer1 = userRepo.create({
+        username: 'ext_ctrl_maint_1',
+        email: 'extctrl1@test.com',
+        passwordHash: hash,
+        firstName: 'External',
+        lastName: 'Controller1',
+        userType: UserType.EXTERNAL_MAINTAINER,
+        company: savedCompany1
+      });
+      const saved1 = await userRepo.save(extMaintainer1);
+      extMaintainerId = saved1.id;
+
+      // Create external maintainer for company2
+      const extMaintainer2 = userRepo.create({
+        username: 'ext_ctrl_maint_2',
+        email: 'extctrl2@test.com',
+        passwordHash: hash,
+        firstName: 'External',
+        lastName: 'Controller2',
+        userType: UserType.EXTERNAL_MAINTAINER,
+        company: savedCompany2
+      });
+      const saved2 = await userRepo.save(extMaintainer2);
+      extMaintainerId2 = saved2.id;
+    });
+
+    it('should return maintainers for valid category', async () => {
+      const req: any = {
+        query: { categoryId: testCategoryId.toString() }
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findMaintainersByCategory(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+      const body = res.json.mock.calls[0][0];
+      expect(Array.isArray(body)).toBe(true);
+      expect(body.length).toBeGreaterThan(0);
+      
+      const maintainer = body.find((m: any) => m.id === extMaintainerId);
+      expect(maintainer).toBeDefined();
+      expect(maintainer.username).toBe('ext_ctrl_maint_1');
+      expect(maintainer.userType).toBe(UserType.EXTERNAL_MAINTAINER);
+    });
+
+    it('should return empty array when no maintainers for category', async () => {
+      const { AppDataSource } = await import('@database');
+      const categoryRepo = AppDataSource.getRepository(await import('@daos/CategoryDAO').then(m => m.CategoryDAO));
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+
+      let office = await officeRepo.findOne({ where: {} });
+      if (!office) {
+        office = officeRepo.create({ name: 'Empty Category Office' });
+        await officeRepo.save(office);
+      }
+      
+      const emptyCategory = categoryRepo.create({
+        name: 'Empty Category Controller Test',
+        office
+      });
+      await categoryRepo.save(emptyCategory);
+
+      const req: any = {
+        query: { categoryId: emptyCategory.id.toString() }
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findMaintainersByCategory(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+      const body = res.json.mock.calls[0][0];
+      expect(Array.isArray(body)).toBe(true);
+      expect(body.length).toBe(0);
+    });
+
+    it('should call next with BadRequestError when categoryId is missing', async () => {
+      const req: any = {
+        query: {}
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findMaintainersByCategory(req, res, next);
+
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('BadRequestError');
+      expect(error.message).toMatch(/categoryId.*required/i);
+    });
+
+    it('should call next with BadRequestError when categoryId is not a number', async () => {
+      const req: any = {
+        query: { categoryId: 'abc' }
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findMaintainersByCategory(req, res, next);
+
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('BadRequestError');
+      expect(error.message).toMatch(/valid number/i);
+    });
+
+    it('should call next with NotFoundError when category does not exist', async () => {
+      const req: any = {
+        query: { categoryId: '99999' }
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findMaintainersByCategory(req, res, next);
+
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('NotFoundError');
+    });
+
+    it('should not return maintainers from different categories', async () => {
+      const req: any = {
+        query: { categoryId: testCategoryId.toString() }
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findMaintainersByCategory(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+      const body = res.json.mock.calls[0][0];
+      expect(Array.isArray(body)).toBe(true);
+      
+      // Should find maintainer 1 but not maintainer 2
+      const maintainer1 = body.find((m: any) => m.id === extMaintainerId);
+      const maintainer2 = body.find((m: any) => m.id === extMaintainerId2);
+      expect(maintainer1).toBeDefined();
+      expect(maintainer2).toBeUndefined();
+    });
+
+    it('should return maintainers without passwordHash', async () => {
+      const req: any = {
+        query: { categoryId: testCategoryId.toString() }
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findMaintainersByCategory(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+      const body = res.json.mock.calls[0][0];
+      expect(Array.isArray(body)).toBe(true);
+      
+      if (body.length > 0) {
+        const maintainer = body[0];
+        expect(maintainer).toHaveProperty('id');
+        expect(maintainer).toHaveProperty('username');
+        expect(maintainer).toHaveProperty('email');
+        expect(maintainer).toHaveProperty('firstName');
+        expect(maintainer).toHaveProperty('lastName');
+        expect(maintainer).toHaveProperty('userType');
+        expect(maintainer).not.toHaveProperty('passwordHash');
+      }
+    });
+
+    it('should call next on service error', async () => {
+      const originalService = userController.userService;
+      userController.userService = { 
+        findMaintainersByCategory: jest.fn().mockRejectedValue(new Error('Database error')) 
+      } as any;
+
+      const req: any = {
+        query: { categoryId: testCategoryId.toString() }
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findMaintainersByCategory(req, res, next);
+
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('Database error');
+
+      userController.userService = originalService;
+    });
   });
 });
 

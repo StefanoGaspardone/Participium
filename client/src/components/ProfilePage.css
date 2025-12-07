@@ -1,6 +1,6 @@
 .profile-page {
     min-height: calc(100vh - 80px);
-    //background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%, #2f3da3 100%);
     padding: 40px 20px;
     display: flex;
     justify-content: center;

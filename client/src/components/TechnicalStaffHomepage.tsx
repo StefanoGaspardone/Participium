@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import CustomNavbar from './CustomNavbar';
-import { getAssignedReports, updateReportStatus } from '../api/api';
-import type { Report } from '../models/models';
+import { getAssignedReports, updateReportStatus, getExternalMaintainers, assignReportToExternalMaintainer } from '../api/api';
+import type { Report, User } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
 import { ChevronLeft, ChevronRight, Loader2Icon } from 'lucide-react';
 import { Accordion, Badge, Alert, Button, Card, Row, Col } from 'react-bootstrap';
 import ReportMiniMap from './ReportMiniMap';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FaUserCircle } from "react-icons/fa";
 import './AuthForms.css';
 import Chats from './Chats';
 import { fetchAddress } from './HomepageMap';
@@ -18,6 +19,9 @@ export default function TechnicalStaffHomepage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [updatingReportId, setUpdatingReportId] = useState<number | null>(null);
+    const [assigningReportId, setAssigningReportId] = useState<number | null>(null);
+    const [maintainersByReportId, setMaintainersByReportId] = useState<User[]>([]);
+    const [selectedMaintainerByReportId, setSelectedMaintainerByReportId] = useState<Record<number, number | null>>({});
 
     const [show, setShow] = useState<boolean>(false);
     const [expanded, setExpanded] = useState<number | null>(null);
@@ -115,6 +119,33 @@ export default function TechnicalStaffHomepage() {
         }
     };
 
+    const handleFetchMaintainers = async (report: Report) => {
+        try {
+            const categoryId = Number(report?.category?.id);
+            if (!categoryId || isNaN(categoryId)) return;
+            const maintainers = await getExternalMaintainers(categoryId);
+            setMaintainersByReportId(maintainers);
+        } catch (e) {
+            // Do not block UI; optionally surface a lightweight message
+            console.error('Failed to fetch external maintainers', e);
+        }
+    };
+
+    const handleAssignMaintainer = async (report: Report, overrideMaintainerId?: number) => {
+        const maintainerId = overrideMaintainerId ?? selectedMaintainerByReportId[report.id];
+        if (!maintainerId) return;
+        try {
+            setAssigningReportId(report.id);
+            const res = await assignReportToExternalMaintainer(report.id, maintainerId);
+            
+            setReports(prev => prev.map(r => r.id === report.id ? res.report : r));
+        } catch (e) {
+            console.error('Failed to assign external maintainer', e);
+        } finally {
+            setAssigningReportId(null);
+        }
+    };
+
     const getAvailableActions = (status: string) => {
         switch (status) {
             case 'Assigned':
@@ -206,7 +237,7 @@ export default function TechnicalStaffHomepage() {
                                             <Accordion.Header
                                                 onClick={() => handleRToggle(r.id)}
                                             >
-                                                <div id={"expand-report-" + r.title} className="d-flex w-100 align-items-center justify-content-between">
+                                                <div onClick={() => handleFetchMaintainers(r)} className="d-flex w-100 align-items-center justify-content-between">
                                                     <h4 id="report-title" className="mb-0 fw-bold" style={{ color: '#00205B', fontSize: '1.5rem' }}>{r.title}</h4>
                                                     <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem', marginRight: '0.5rem' }}>
                                                         <Badge
@@ -304,9 +335,13 @@ export default function TechnicalStaffHomepage() {
                                                     </Col>
                                                 </Row>
 
-                                                {/* Bottom section: Description, Category, Status */}
-                                                <div className="row">
-                                                    <div className="col-12">
+                                            {/* Bottom section: Description, Category, Status */}
+                                            <div className="row">
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>Description</h5>
+                                                        <p className="mb-0">{r.description}</p>
+                                                    </div>
 
                                                         <div className="mb-3">
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Category</h5>
@@ -325,7 +360,7 @@ export default function TechnicalStaffHomepage() {
                                                                 {r.status}
                                                             </Badge>
                                                         </div>
-
+                    
                                                         {/* Status update actions */}
                                                         <div className="mb-3">
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Update Status</h5>
@@ -395,7 +430,76 @@ export default function TechnicalStaffHomepage() {
                                                             </Button>
                                                         </div>
                                                     </div>
+                                                    <div className = 'col-6'>
+                                                    <div className="mb-4">
+                                                        <h5 style={{ color: '#00205B', fontWeight: 600 }}>External Maintainer</h5>
+                                                        { r?.coAssignedTo ? (
+                                                            r?.coAssignedTo.id === 13 ? (
+                                                                <p className = ''>Assigned to external maintainer out of Participium</p>
+                                                            ) : (
+                                                                <div className="d-flex align-items-center gap-2">
+                                                                    <FaUserCircle style={{ width: 40, height: 40, color: '#abcabc' }} />
+                                                                    <div>
+                                                                        <div style={{ fontWeight: 600 }}>{r.coAssignedTo.firstName} {r.coAssignedTo.lastName}</div>
+                                                                        <div style={{ fontWeight: 700 }}>{r.coAssignedTo.company?.name.toUpperCase() ?? 'COMPANY'}</div>
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        ) : (
+                                                            <div>
+                                                                <div className="d-flex align-items-center gap-2 mb-2">
+                                                                    <select
+                                                                        id={`assign-maintainer-select-${r.id}`}
+                                                                        className="form-select"
+                                                                        value={selectedMaintainerByReportId[r.id] ?? ''}
+                                                                        onChange={e => setSelectedMaintainerByReportId(prev => ({ ...prev, [r.id]: Number(e.target.value) }))}
+                                                                        onFocus={() => handleFetchMaintainers(r)}
+                                                                        disabled={assigningReportId === r.id}
+                                                                        style={{ maxWidth: 280 }}
+                                                                    >
+                                                                        <option value="" disabled>Select maintainer</option>
+                                                                        {maintainersByReportId.filter(mnt => mnt.id !== 13).map(m => (
+                                                                            <option key={m.id} value={m.id}>{m.firstName} {m.lastName} {m.company ? `- ${m.company.name}` : ''}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                    <Button
+                                                                        id={`assign-maintainer-button-${r.id}`}
+                                                                        variant="primary"
+                                                                        onClick={() => handleAssignMaintainer(r)}
+                                                                        disabled={!selectedMaintainerByReportId[r.id] || assigningReportId === r.id}
+                                                                        className="auth-button-primary"
+                                                                    >
+                                                                        {assigningReportId === r.id ? (
+                                                                            <>
+                                                                                <Loader2Icon size={16} className="animate-spin me-1" />
+                                                                                Assigning...
+                                                                            </>
+                                                                        ) : (
+                                                                            'Assign'
+                                                                        )}
+                                                                    </Button>
+                                                                </div>
+                                                                <Button
+                                                                    id={`assign-outside-button-${r.id}`}
+                                                                    variant="link"
+                                                                    className="ms-2 p-0"
+                                                                    disabled={assigningReportId === r.id}
+                                                                    onClick={() => handleAssignMaintainer(r, 13)}
+                                                                >
+                                                                    {assigningReportId === r.id ? (
+                                                                        <>
+                                                                            <Loader2Icon size={16} className="animate-spin me-1" />
+                                                                            Assigning...
+                                                                        </>
+                                                                    ) : (
+                                                                        'or assign to maintainer out of Participium'
+                                                                    )}
+                                                                </Button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
+                                            </div>
                                             </Accordion.Body>
                                         </Accordion.Item>
                                     </Card>

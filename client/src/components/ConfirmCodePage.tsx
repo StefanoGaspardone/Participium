@@ -164,9 +164,9 @@ const ConfirmCodePage = () => {
                                         <motion.div initial = {{ opacity: 0, y: 10 }} animate = {{ opacity: 1, y: 0 }} transition = {{ delay: 0.27, duration: 0.4 }}>
                                             <Form.Group className = 'mb-3' controlId = 'formCode'>
                                                 <Form.Label>Code</Form.Label>
-                                                <div className = 'd-flex justify-content-center' onPaste = { handlePaste }>
+                                                <div id='otp-container' className = 'd-flex justify-content-center' onPaste = { handlePaste }>
                                                     {Array.from({ length: 6 }).map((_, i) => (
-                                                        <input key = { i } ref = { el => { inputsRef.current[i] = el } } className='text-center otp-input' inputMode = 'numeric' pattern = '[0-9]*' maxLength = { 1 } value = { codeDigits[i] } onChange = { e => handleDigitChange(i, e.target.value) } onKeyDown = { e => handleKeyDown(e, i) } aria-label = { `Digit ${i + 1}` }/>
+                                                        <input id={`otp-digit-${i}`} key = { i } ref = { el => { inputsRef.current[i] = el } } className='text-center otp-input' inputMode = 'numeric' pattern = '[0-9]*' maxLength = { 1 } value = { codeDigits[i] } onChange = { e => handleDigitChange(i, e.target.value) } onKeyDown = { e => handleKeyDown(e, i) } aria-label = { `Digit ${i + 1}` }/>
                                                     ))}
                                                 </div>
                                             </Form.Group>
@@ -177,7 +177,7 @@ const ConfirmCodePage = () => {
                                             </Button>
                                         </motion.div>
                                     </Form>
-                                    <motion.div className = 'mt-3 text-center' initial = {{ opacity: 0 }} animate = {{ opacity: 1 }} transition = {{ delay: 0.65, duration: 0.45 }}>
+                                    <motion.div id='cooldown-text' className = 'mt-3 text-center' initial = {{ opacity: 0 }} animate = {{ opacity: 1 }} transition = {{ delay: 0.65, duration: 0.45 }}>
                                         {cooldown > 0 ? `Resend available in ${cooldown}s` : (
                                             <div>
                                                 Click <span id = 'resend-code' onClick = { handleResend } className = 'auth-link-inline'>here</span> to resend the code

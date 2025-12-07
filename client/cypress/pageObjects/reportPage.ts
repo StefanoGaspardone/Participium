@@ -22,13 +22,15 @@ const reportPage = {
     if (cat < 0 || cat > 8) {
       return;
     }
-    cy.get('[id="select-category"]').select(cat);
+    // react-select: focus input, open menu, then click option by generated id
+    cy.get('[id="select-category"]').click();
+    cy.get(`[id="category-${cat}"]`, { timeout: 5000 }).click();
   },
   clickOnMap: () => {
-    cy.get('[id="map-container"]').click();
+    cy.get('#map-container .leaflet-interactive', { timeout: 8000 }).first().click({ force: true });
   },
   clickRandomOnMap: () => {
-    cy.get('[class="leaflet-interactive"]').click(331, 765, {force: true});
+    cy.get('#map-container .leaflet-interactive', { timeout: 8000 }).first().click(331, 200, { force: true });
   },
   /**
    * 

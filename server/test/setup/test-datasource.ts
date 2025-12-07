@@ -37,6 +37,7 @@ export async function closeTestDataSource() {
 import { OfficeDAO } from "@daos/OfficeDAO";
 import { CategoryDAO } from "@daos/CategoryDAO";
 import { UserType, UserDAO } from "@daos/UserDAO";
+import { CompanyDAO } from "@daos/CompanyDAO";
 
 // Canonical offices and categories used for tests. Defining them here keeps
 // the test datasource self-contained and avoids requiring the external
@@ -94,6 +95,14 @@ const USERS: Array<{
     password: "techstaff",
     userType: UserType.TECHNICAL_STAFF_MEMBER,
   },
+  {
+    username: "pro",
+    email: "pro@gmail.com",
+    firstName: "Public",
+    lastName: "Relations",
+    password: "password",
+    userType: UserType.PUBLIC_RELATIONS_OFFICER,
+  },
 ];
 
 export async function populateTestData() {
@@ -105,6 +114,7 @@ export async function populateTestData() {
   const roleRepo = AppDataSource.getRepository(OfficeDAO);
   const userRepo = AppDataSource.getRepository(UserDAO);
   const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+  const companyRepo = AppDataSource.getRepository(CompanyDAO);
 
   // ensure canonical offices exist (from scripts/populate-db.ts)
   const roleMap = new Map<string, any>();
@@ -173,6 +183,6 @@ export async function emptyTestData() {
     await initializeTestDatasource();
   }
   await AppDataSource.query(
-    'TRUNCATE TABLE "reports", "users", "categories", "office_roles" RESTART IDENTITY CASCADE;'
+    'TRUNCATE TABLE "reports", "users", "categories", "office_roles", "companies", "company_categories" RESTART IDENTITY CASCADE;'
   );
 }

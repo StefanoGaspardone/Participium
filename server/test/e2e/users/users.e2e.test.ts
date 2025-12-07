@@ -3,8 +3,6 @@ import { app } from "@app";
 import request from "supertest";
 
 describe("Users e2e tests : Login and Registration", () => {
-  let token: string;
-
   beforeAll(async () => {
     await f.default.beforeAll();
   });
@@ -68,7 +66,7 @@ describe("Users e2e tests : Login and Registration", () => {
     expect(res.body.token.length).toBeGreaterThan(0);
   });
 
-  it("/login test ", async () => {
+  it("/login test => status 401 (invalid credentials)", async () => {
     const credentials = {
       username: "wronguser",
       password: "notexistent",
@@ -135,32 +133,81 @@ describe("Users e2e tests : Login and Registration", () => {
     expect(String(res.body.message).toLowerCase()).toMatch(/missing office id/);
   });
 
-    it("/employees => 400 when EXTERNAL_MAINTAINER missing companyId (admin token)", async () => {
-        // login as admin
-        const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
-        expect(loginRes.status).toBe(200);
-        const token = loginRes.body.token as string;
+  it("/employees (create external maintainer) => 201 with admin token and valid companyId", async () => {
+    // login as admin
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
+    expect(loginRes.status).toBe(200);
+    const token = loginRes.body.token as string;
 
-        const badPayload = {
-            email: 'e2e_test@example.com',
-            password: 'munipass',
-            firstName: 'E2E',
-            lastName: 'NoOffice',
-            username: 'e2emuni_no_office',
-            userType: 'EXTERNAL_MAINTAINER',
-        };
+    // Get or create a company
+    const companiesRes = await request(app)
+      .get('/api/companies')
+      .set('Authorization', `Bearer ${token}`);
+    
+    let companyId: number;
+    
+    if (companiesRes.status === 200 && companiesRes.body.length > 0) {
+      companyId = companiesRes.body[0].id;
+    } else {
+      // Create a company if none exists
+      const categoriesRes = await request(app).get('/api/categories');
+      const category = categoriesRes.body.categories[0];
+      
+      const createCompanyRes = await request(app)
+        .post('/api/companies')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          name: 'E2E Test Company',
+          categories: [{ id: category.id, name: category.name }]
+        });
+      
+      companyId = createCompanyRes.body.id;
+    }
 
-        const res = await request(app)
-            .post('/api/users/employees')
-            .set('Authorization', `Bearer ${token}`)
-            .send(badPayload);
+    const newExtMaintainer = {
+      email: 'e2e_ext_maint@example.com',
+      password: 'extmaintpass',
+      firstName: 'E2E',
+      lastName: 'ExtMaintainer',
+      username: 'e2eextmaint',
+      userType: 'EXTERNAL_MAINTAINER',
+      companyId,
+    };
 
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty('message');
-        expect(String(res.body.message).toLowerCase()).toMatch("missing company id");
-    });
+    const res = await request(app)
+      .post('/api/users/employees')
+      .set('Authorization', `Bearer ${token}`)
+      .send(newExtMaintainer);
 
-    it('/login for municipality user => 200 and returns token', async () => {
+    expect(res.status).toBe(201);
+  });
+
+  it("/employees => 400 when EXTERNAL_MAINTAINER missing companyId (admin token)", async () => {
+    // login as admin
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
+    expect(loginRes.status).toBe(200);
+    const token = loginRes.body.token as string;
+
+    const badPayload = {
+      email: 'e2e_test@example.com',
+      password: 'munipass',
+      firstName: 'E2E',
+      lastName: 'NoOffice',
+      username: 'e2emuni_no_office',
+      userType: 'EXTERNAL_MAINTAINER',
+    };
+
+    const res = await request(app)
+      .post('/api/users/employees')
+      .set('Authorization', `Bearer ${token}`)
+      .send(badPayload);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message');
+    expect(String(res.body.message).toLowerCase()).toMatch("missing company id");
+  });
+
+  it('/login for municipality user => 200 and returns token', async () => {
     const credentials = { username: 'e2emuni', password: 'munipass' };
     const res = await request(app).post('/api/users/login').send(credentials);
     expect(res.status).toBe(200);
@@ -177,6 +224,25 @@ describe("Users e2e tests : Login and Registration", () => {
     expect(found).toBeDefined();
     expect(found.userType).toBe('TECHNICAL_STAFF_MEMBER');
     expect(found.office).toBeDefined();
+  });
+
+  it('GET /api/users should include the created external maintainer with company', async () => {
+    const res = await request(app).get('/api/users');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('users');
+    const users = res.body.users as any[];
+    const found = users.find(u => u.email === 'e2e_ext_maint@example.com');
+    expect(found).toBeDefined();
+    expect(found.userType).toBe('EXTERNAL_MAINTAINER');
+    expect(found.company).toBeDefined();
+  });
+
+  it('/login for external maintainer => 200 and returns token', async () => {
+    const credentials = { username: 'e2eextmaint', password: 'extmaintpass' };
+    const res = await request(app).post('/api/users/login').send(credentials);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('token');
+    expect(typeof res.body.token).toBe('string');
   });
 
   it('POST /api/users/employees => 403 with non-admin token (e2e)', async () => {

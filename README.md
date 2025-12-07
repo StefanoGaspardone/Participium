@@ -232,13 +232,13 @@ These accounts are created after executing `npm run populate-db`.
 
 | Role | Username | Password | Email | First Name | Last Name |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Administrator | admin | admin | admin@gmail.com | Stefano | Lo Russo |
-| Municipal Administrator | munadm | password | munadm@part.se | Giorgio | Turio |
-| Public Relations Officer | pro | password | pro@part.se | Carlo | Ultimo |
-| Techinal Staff Member (Organization office) | tsm1 | password | tsm1@part.se | Carmine | Conte |
-| Techinal Staff Member (Public Services Division) | tsm2 | password | tsm2@part.se | Carmine | Conte |
-| Techinal Staff Member (Environmental Quality Division) | tsm3 | password | tsm3@part.se | Carmine | Conte |
-| Techinal Staff Member (Green Areas, Parks and Animal Welfare Division) | tsm4 | password | tsm4@part.se | Carmine | Conte |
-| Techinal Staff Member (Infrastructure Division) | tsm5 | password | tsm5@part.se | Carmine | Conte |
-| Techinal Staff Member (General Services Division) | tsm6 | password | tsm6@part.se | Carmine | Conte |
-| Citizen | user | user | user@gmail.com | Francesco | Totti |
+| Administrator | admin | admin | <admin@gmail.com> | Stefano | Lo Russo |
+| Municipal Administrator | munadm | password | <munadm@part.se> | Giorgio | Turio |
+| Public Relations Officer | pro | password | <pro@part.se> | Carlo | Ultimo |
+| Techinal Staff Member (Organization office) | tsm1 | password | <tsm1@part.se> | Carmine | Conte |
+| Techinal Staff Member (Public Services Division) | tsm2 | password | <tsm2@part.se> | Carmine | Conte |
+| Techinal Staff Member (Environmental Quality Division) | tsm3 | password | <tsm3@part.se> | Carmine | Conte |
+| Techinal Staff Member (Green Areas, Parks and Animal Welfare Division) | tsm4 | password | <tsm4@part.se> | Carmine | Conte |
+| Techinal Staff Member (Infrastructure Division) | tsm5 | password | <tsm5@part.se> | Carmine | Conte |
+| Techinal Staff Member (General Services Division) | tsm6 | password | <tsm6@part.se> | Carmine | Conte |
+| Citizen | user | user | <user@gmail.com> | Francesco | Totti |

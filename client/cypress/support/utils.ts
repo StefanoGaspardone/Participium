@@ -7,3 +7,4 @@ export const ADMINPAGE_URL = BASE_URL + "/admin";
 export const TSMPAGE_URL = BASE_URL + "/tech";
 export const MUNADMPAGE_URL = ""; // TO ADD 
 export const PUBRELOFFPAGE_URL = BASE_URL +"/pro";
+export const CONFIRMPAGE_URL = BASE_URL + "/confirm-code";

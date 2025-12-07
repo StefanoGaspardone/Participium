@@ -73,11 +73,12 @@ export class UserRepository {
     return saved;
   };
 
-  findMaintainersByCategory = async (category: CategoryDAO): Promise<UserDAO[]> => {
-    if (!category?.id) return [];
+  findMaintainersByCategory = async (category: CategoryDAO): Promise<UserDAO[]> =>{
+    if(!category?.id) return [];
+    
     return this.repo.createQueryBuilder('user')
-      .innerJoin('user.company', 'company')
-      .innerJoin('company.categories', 'c', 'c.id = :categoryId', { categoryId: category.id })
+      .innerJoinAndSelect('user.company', 'company')
+      .innerJoinAndSelect('company.categories', 'c', 'c.id = :categoryId', { categoryId: category.id })
       .where('user.userType = :type', { type: UserType.EXTERNAL_MAINTAINER })
       .getMany();
   };
