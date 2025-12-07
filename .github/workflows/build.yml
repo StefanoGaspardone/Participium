@@ -10,10 +10,104 @@ jobs:
   sonarqube:
     name: SonarQube Scan
     runs-on: ubuntu-latest
+  test-and-sonar:
+    name: Test and SonarQube Analysis
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: mysecretpassword
+          POSTGRES_DB: test_postgres
+        ports:
+          - 5445:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install server dependencies
+        working-directory: ./server
+        run: npm install
+      
+      - name: Install client dependencies
+        working-directory: ./client
+        run: npm install
+      
+      - name: Run server tests with coverage
+        working-directory: ./server
+        run: npm test -- --runInBand
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5445
+          DB_NAME: test_postgres
+          DB_USERNAME: postgres
+          DB_PASSWORD: mysecretpassword
+      
+      - name: Populate test database with seed data
+        working-directory: ./server
+        run: npm run populate-db
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5445
+          DB_NAME: test_postgres
+          DB_USERNAME: postgres
+          DB_PASSWORD: mysecretpassword
+      
+      - name: Start dev server in background
+        working-directory: ./server
+        run: |
+          npm run dev:test &
+          echo $! > server.pid
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5445
+          DB_NAME: test_postgres
+          DB_USERNAME: postgres
+          DB_PASSWORD: mysecretpassword
+      
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for server to start..."
+          sleep 15
+          curl http://localhost:3000 || echo "Server check complete"
+      
+      - name: Start client dev server
+        working-directory: ./client
+        run: |
+          npm run dev &
+          echo $! > client.pid
+        env:
+          VITE_API_URL: http://localhost:3000
+      
+      - name: Wait for client to be ready
+        run: |
+          echo "Waiting for client to start..."
+          sleep 10
+      
+      - name: Run Cypress E2E tests with coverage
+        working-directory: ./client
+        run: npm run test:e2e
+      
+      - name: Stop servers
+        if: always()
+        run: |
+          [ -f server/server.pid ] && kill $(cat server/server.pid) || true
+          [ -f client/client.pid ] && kill $(cat client/client.pid) || true
+      
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
