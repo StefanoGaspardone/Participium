@@ -309,6 +309,7 @@ describe("UserRepository.findLeastLoadedStaffForOffice (mock)", () => {
 describe("UserRepository.findMaintainersByCategory (mock)", () => {
   const createFakeQueryBuilder = (returnValue: any) => ({
     innerJoin: jest.fn().mockReturnThis(),
+    innerJoinAndSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     getMany: jest.fn().mockResolvedValue(returnValue),
   });
@@ -343,8 +344,8 @@ describe("UserRepository.findMaintainersByCategory (mock)", () => {
     const result = await repo.findMaintainersByCategory(category);
 
     expect(fakeRepo.createQueryBuilder).toHaveBeenCalledWith('user');
-    expect(fakeQueryBuilder.innerJoin).toHaveBeenCalledWith('user.company', 'company');
-    expect(fakeQueryBuilder.innerJoin).toHaveBeenCalledWith('company.categories', 'c', 'c.id = :categoryId', { categoryId: 1 });
+    expect(fakeQueryBuilder.innerJoinAndSelect).toHaveBeenCalledWith('user.company', 'company');
+    expect(fakeQueryBuilder.innerJoinAndSelect).toHaveBeenCalledWith('company.categories', 'c', 'c.id = :categoryId', { categoryId: 1 });
     expect(fakeQueryBuilder.where).toHaveBeenCalledWith('user.userType = :type', { type: UserType.EXTERNAL_MAINTAINER });
     expect(result).toEqual([maintainer1, maintainer2]);
   });
