@@ -563,7 +563,7 @@ export const createCompany = async (payload: Company) => {
   }
 }
 
-export const getAllCompanies = async () => {
+export const getAllCompanies = async (): Promise<Company[]> => {
   const res = await fetch(`${BASE_URL}/companies`, {
     method: "GET",
     headers: {
@@ -573,5 +573,38 @@ export const getAllCompanies = async () => {
   if (!res.ok) {
     throw await toApiError(res);
   }
-  return await res.json();
+
+  const data = await res.json();
+  const companies: Company[] = Array.isArray(data) ? data : Array.isArray(data?.companies) ? data.companies : [];
+  return companies.filter(company => String(company?.name) !== 'Fake');
 }
+
+// External Maintainers
+export const getExternalMaintainers = async (categoryId: number): Promise<User[]> => {
+  const res = await fetch(`${BASE_URL}/users/maintainers?categoryId=${encodeURIComponent(categoryId)}`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${getToken()}` }
+  });
+  
+  if(!res.ok) throw await toApiError(res);
+  
+  const data = await res.json();
+  const users: User[] = Array.isArray(data) ? data : [];
+  return users;
+};
+
+export const assignReportToExternalMaintainer = async (reportId: number, maintainerId: number): Promise<{ message: string; report: Report }> => {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/assign-external`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`
+    },
+    body: JSON.stringify({ maintainerId })
+  });
+
+  if(!res.ok) throw await toApiError(res);
+  
+  const data = await res.json();
+  return data as { message: string; report: Report };
+};

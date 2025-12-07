@@ -113,7 +113,7 @@ export default function AdminHomepage() {
     const fetchCompanies = async () => {
       try {
         const res = await getAllCompanies();
-        setCompanies(res.companies || []);
+        setCompanies(res || []);
       } catch (e) {
         console.error("Failed to load companies", e);
         toast.error("Unable to load companies.");
@@ -160,8 +160,8 @@ export default function AdminHomepage() {
       await createCompany({ id: 0, name: newCompanyName.trim(), categories: newCompanyCategories });
       toast.success("Company created successfully!");
       const res = await getAllCompanies();
-      setCompanies(res.companies || []);
-      const newCompany = res.companies.find((c: Company) => c.name === newCompanyName.trim());
+      setCompanies(res || []);
+      const newCompany = res.find((c: Company) => c.name === newCompanyName.trim());
       if (newCompany) {
         setForm((prev) => ({ ...prev, companyId: String(newCompany.id) }));
       }

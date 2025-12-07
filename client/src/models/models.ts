@@ -21,6 +21,7 @@ export interface User {
   office?: string | null;
   createdAt: Date;
   isActive: boolean;
+  company?: Company | null;
 }
 
 export interface Report {
@@ -37,6 +38,7 @@ export interface Report {
   createdBy?: Partial<User>;
   createdAt: string | Date;
   assignedTo?: Partial<User> | null;
+  coAssignedTo?: Partial<User> | null;
 }
 
 export interface Message {

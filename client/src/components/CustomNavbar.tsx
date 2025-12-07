@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Navbar, Container } from "react-bootstrap";
+import { Navbar, Container, Image } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { useAppContext } from "../contexts/AppContext";
-import { Image } from "react-bootstrap";
 import Notifications from "./Notifications";
 import { motion, AnimatePresence } from "framer-motion";
 import "./CustomNavbar.css";

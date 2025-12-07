@@ -18,7 +18,7 @@ export function mapCompanyDAOtoDTO(dao: CompanyDAO): CompanyDTO {
     const dto: CompanyDTO = {
         id: dao.id,
         name: dao.name,
-        categories: dao.categories.map((m) => createCategoryDTO(m)) 
+        categories: Array.isArray(dao.categories) ? dao.categories.map((m) => createCategoryDTO(m)) : []
     };
     return dto;
 }
