@@ -1,4 +1,4 @@
-import { LOGINPAGE_URL, REGISTERPAGE_URL, HOMEPAGE_URL, ADMINPAGE_URL, TSMPAGE_URL, PUBRELOFFPAGE_URL, MUNADMPAGE_URL, CONFIRMPAGE_URL } from '../../support/utils';
+import { LOGINPAGE_URL, REGISTERPAGE_URL, HOMEPAGE_URL, ADMINPAGE_URL, TSMPAGE_URL, PUBRELOFFPAGE_URL, MUNADMPAGE_URL, CONFIRMPAGE_URL, MAINTAINERPAGE_URL } from '../../support/utils';
 import { loginPage } from '../../pageObjects/loginPage';
 import { registerPage } from '../../pageObjects/registerPage';
 import { generateRandomString } from '../../pageObjects/utils';
@@ -150,7 +150,30 @@ describe('2. Test suite for login page :', () => {
 		cy.url().should('equal', PUBRELOFFPAGE_URL);
 	});
 
-	it('2.10 Login fails for not-activated user after registration', () => {
+	it('2.10 Logging in as an External Maintainer should lead to External Maintainer page', () => {
+		cy.intercept('POST', '/api/users/login', (req) => {
+			const token = makeToken({
+				id: 4,
+				username: 'mnt',
+				email: 'mnt@example.test',
+				firstName: 'mnt',
+				lastName: 'User',
+				userType: 'EXTERNAL_MAINTAINER',
+				emailNotificationsEnabled: true
+			});
+			req.reply({ statusCode: 200, body: { message: 'Login successful', token } });
+		}).as('loginMNT');
+
+		cy.visit(LOGINPAGE_URL);
+		loginPage.insertUsername('mnt');
+		loginPage.insertPassword('password');
+		loginPage.submitForm();
+		cy.wait('@loginMNT');
+		// cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible').and('contain.text', 'Welcome pro!');
+		cy.url().should('equal', MAINTAINERPAGE_URL);
+	});
+
+	it('2.11 Login fails for not-activated user after registration', () => {
 		cy.intercept('POST', '/api/users/signup', { 
 			statusCode: 201, 
 			body: {} 
