@@ -1,4 +1,4 @@
-import { ADMINPAGE_URL, HOMEPAGE_URL, LOGINPAGE_URL } from "../../support/utils";
+import { ADMINPAGE_URL, LOGINPAGE_URL } from "../../support/utils";
 import { loginPage } from "../../pageObjects/loginPage";
 import { adminPage } from "../../pageObjects/adminPage";
 import { generateRandomString } from "../../pageObjects/utils";
@@ -26,10 +26,6 @@ const stubLoginAdmin = () => {
     cy.intercept('POST', '/api/users/login', (req) => {
         req.reply({ statusCode: 200, body: { message: 'Login successful', token: adminToken } });
     }).as('loginAdmin');
-    // AppContext calls POST /api/users/me on first load; ensure it returns the token
-    cy.intercept('POST', '/api/users/me', (req) => {
-        req.reply({ statusCode: 200, body: { token: adminToken } });
-    }).as('me');
 };
 
 const stubAdminPageData = () => {
@@ -86,20 +82,22 @@ const performLoginAsAdmin = () => {
     loginPage.submitForm();
     
     cy.wait('@loginAdmin');
-    // wait for the /me check and the data used by the admin page
-    cy.wait('@me');
     cy.wait(['@getOffices', '@getCompanies', '@getCategories']);
     cy.url().should('equal', ADMINPAGE_URL);
 };
 
 describe("5. Test suite for the admin page (used to create new municipality users)", () => {
+    beforeEach(() => {
+		cy.intercept('POST', '/api/users/me', { statusCode: 401, body: { message: 'Unauthorized' } }).as('me');
+	});
+
     it('5.1 Logging in as an admin should redirect me to the admin page', () => {
         performLoginAsAdmin();
     });
 
     it('5.2 As an admin, trying to visit another page, should redirect me to the admin page again', () => {
         performLoginAsAdmin();
-        cy.visit(HOMEPAGE_URL);
+        adminPage.clickHomepage();
         cy.url().should('equal', ADMINPAGE_URL);
     });
 

@@ -87,7 +87,7 @@ export default function CustomNavbar() {
             />
           </div>
 
-          <motion.div
+          <motion.div id = 'to-homepage'
             onClick={handleBrandClick}
             role="button"
             tabIndex={0}

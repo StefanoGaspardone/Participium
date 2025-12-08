@@ -58,6 +58,10 @@ const adminPage = {
   },
   submitAccount: () => {
     cy.get('[id="create-account-button"]').focus().click();
+  },
+
+  clickHomepage: () => {
+    cy.get('[id="to-homepage"]').click();
   }
 };
 
