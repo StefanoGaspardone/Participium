@@ -57,7 +57,7 @@ export default function TechnicalStaffHomepage() {
         try {
             const addr = await fetchAddress(lat, lng);
             setAddressByReport(prev => ({ ...prev, [reportId]: addr }));
-        } catch (e) {
+        } catch {
             setAddressByReport(prev => ({ ...prev, [reportId]: 'Not available' }));
         }
     };
@@ -132,20 +132,23 @@ export default function TechnicalStaffHomepage() {
         }
     };
 
-    const handleAssignMaintainer = async (report: Report, overrideMaintainerId?: number) => {
-        const maintainerId = overrideMaintainerId ?? selectedMaintainerByReportId[report.id];
+    const handleAssignMaintainer = async (reportId: number, overrideMaintainerId?: number) => {
+        const maintainerId = overrideMaintainerId ?? selectedMaintainerByReportId[reportId];
         if (!maintainerId) return;
         try {
-            setAssigningReportId(report.id);
-            const res = await assignReportToExternalMaintainer(report.id, maintainerId);
-
-            setReports(prev => prev.map(r => r.id === report.id ? res.report : r));
+            setAssigningReportId(reportId);
+            const report = await assignReportToExternalMaintainer(reportId, maintainerId);            
+            setReports(prev => prev.map(r => r.id === reportId ? report : r));
         } catch (e) {
             console.error('Failed to assign external maintainer', e);
         } finally {
             setAssigningReportId(null);
         }
     };
+
+    useEffect(() => {
+        console.log(reports)
+    }, [reports]);
 
     const getAvailableActions = (status: string) => {
         switch (status) {
@@ -448,14 +451,17 @@ export default function TechnicalStaffHomepage() {
                                                                             style={{ maxWidth: 280 }}
                                                                         >
                                                                             <option value="" disabled>Select maintainer</option>
-                                                                            {maintainersByReportId.filter(mnt => mnt.id !== 13).map(m => (
-                                                                                <option key={m.id} value={m.id}>{m.firstName} {m.lastName} {m.company ? `- ${m.company.name}` : ''}</option>
-                                                                            ))}
+                                                                            {maintainersByReportId
+                                                                                .filter(Boolean)
+                                                                                .filter(mnt => mnt.id !== 13)
+                                                                                .map(m => (
+                                                                                    <option key={m?.id} value={m?.id}>{m?.firstName} {m?.lastName} {m?.company ? `- ${typeof m.company === 'string' ? m.company : m.company?.name}` : ''}</option>
+                                                                                ))}
                                                                         </select>
                                                                         <Button
                                                                             id={`assign-maintainer-button-${r.id}`}
                                                                             variant="primary"
-                                                                            onClick={() => handleAssignMaintainer(r)}
+                                                                            onClick={() => handleAssignMaintainer(r.id)}
                                                                             disabled={!selectedMaintainerByReportId[r.id] || assigningReportId === r.id}
                                                                             className="auth-button-primary"
                                                                         >
@@ -475,7 +481,7 @@ export default function TechnicalStaffHomepage() {
                                                                         variant="link"
                                                                         className="p-0"
                                                                         disabled={assigningReportId === r.id}
-                                                                        onClick={() => handleAssignMaintainer(r, 13)}
+                                                                        onClick={() => handleAssignMaintainer(r.id, 13)}
                                                                     >
                                                                         {assigningReportId === r.id ? (
                                                                             <>
@@ -507,7 +513,7 @@ export default function TechnicalStaffHomepage() {
                 slides={lightboxSlides}
                 index={lightboxIndex}
                 controller={{ closeOnBackdropClick: true }}
-                on={{ index: (newIndex: number) => setLightboxIndex(newIndex) } as any}
+                on={{ index: (newIndex: number) => setLightboxIndex(newIndex) as any }}
             />
         </>
     );

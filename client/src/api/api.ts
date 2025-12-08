@@ -593,7 +593,7 @@ export const getExternalMaintainers = async (categoryId: number): Promise<User[]
   return users;
 };
 
-export const assignReportToExternalMaintainer = async (reportId: number, maintainerId: number): Promise<{ message: string; report: Report }> => {
+export const assignReportToExternalMaintainer = async (reportId: number, maintainerId: number): Promise<Report> => {
   const res = await fetch(`${BASE_URL}/reports/${reportId}/assign-external`, {
     method: 'PUT',
     headers: {
@@ -606,5 +606,5 @@ export const assignReportToExternalMaintainer = async (reportId: number, maintai
   if(!res.ok) throw await toApiError(res);
   
   const data = await res.json();
-  return data as { message: string; report: Report };
+  return data as Report;
 };
