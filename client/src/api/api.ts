@@ -1,5 +1,5 @@
-import type { Category, Office, Report, User, Chat, Message, Company } from "../models/models";
-import { toApiError } from "../models/models";
+import type {Category, Chat, Company, Message, Office, Report, User} from "../models/models";
+import {toApiError} from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
 
@@ -386,14 +386,7 @@ export const getMyNotifications = async (): Promise<Notification[]> => {
     throw new Error("Invalid JSON in /offices response");
   }
 
-  const notificationsArray =
-    Array.isArray(data)
-      ? data
-      : Array.isArray(data.notifications)
-        ? data.notifications
-        : [];
-
-  return notificationsArray;
+  return Array.isArray(data.notifications) ? data.notifications : [];
 }
 
 export const markNotificationAsSeen = async (id: number) => {

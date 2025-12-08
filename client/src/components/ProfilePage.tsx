@@ -228,9 +228,10 @@ export default function ProfilePage() {
                             ) : (
                                 <form onSubmit={handleSubmit} className="profile-edit-form">
                                     <div className="profile-form-group" style={{ marginBottom: '20px' }}>
-                                        <label className="profile-form-label">Profile Picture</label>
+                                        <label className="profile-form-label" htmlFor="profilePicture">Profile Picture</label>
                                         <input
                                             type="file"
+                                            id="profilePicture"
                                             accept="image/*"
                                             onChange={handleImageChange}
                                             className="profile-form-input"
@@ -244,9 +245,10 @@ export default function ProfilePage() {
 
                                     <div className="profile-info-grid">
                                         <div className="profile-form-group">
-                                            <label className="profile-form-label">First Name</label>
+                                            <label className="profile-form-label" htmlFor="firstName">First Name</label>
                                             <input
                                                 type="text"
+                                                id="firstName"
                                                 name="firstName"
                                                 value={formData.firstName}
                                                 onChange={handleInputChange}
@@ -255,9 +257,10 @@ export default function ProfilePage() {
                                             />
                                         </div>
                                         <div className="profile-form-group">
-                                            <label className="profile-form-label">Last Name</label>
+                                            <label className="profile-form-label" htmlFor="lastName">Last Name</label>
                                             <input
                                                 type="text"
+                                                id="lastName"
                                                 name="lastName"
                                                 value={formData.lastName}
                                                 onChange={handleInputChange}
@@ -266,9 +269,10 @@ export default function ProfilePage() {
                                             />
                                         </div>
                                         <div className="profile-form-group">
-                                            <label className="profile-form-label">Username</label>
+                                            <label className="profile-form-label" htmlFor="username">Username</label>
                                             <input
                                                 type="text"
+                                                id="username"
                                                 name="username"
                                                 value={formData.username}
                                                 onChange={handleInputChange}
@@ -277,9 +281,10 @@ export default function ProfilePage() {
                                             />
                                         </div>
                                         <div className="profile-form-group">
-                                            <label className="profile-form-label">Email</label>
+                                            <label className="profile-form-label" htmlFor="email">Email</label>
                                             <input
                                                 type="email"
+                                                id="email"
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleInputChange}
@@ -288,9 +293,10 @@ export default function ProfilePage() {
                                             />
                                         </div>
                                         <div className="profile-form-group">
-                                            <label className="profile-form-label">Telegram Username</label>
+                                            <label className="profile-form-label" htmlFor="telegramUsername">Telegram Username</label>
                                             <input
                                                 type="text"
+                                                id="telegramUsername"
                                                 name="telegramUsername"
                                                 value={formData.telegramUsername}
                                                 onChange={handleInputChange}
@@ -300,7 +306,7 @@ export default function ProfilePage() {
                                         </div>
                                     </div>
                                     <div className="profile-form-group profile-notifications-toggle">
-                                        <label className="profile-toggle-label">
+                                        <label className="profile-toggle-label" htmlFor="emailNotifications">
                                             <div className="profile-toggle-content">
                                                 <div className="profile-toggle-info">
                                                     <span className="profile-toggle-title">Email Notifications</span>
@@ -311,6 +317,7 @@ export default function ProfilePage() {
                                                 <div className="profile-toggle-switch">
                                                     <input
                                                         type="checkbox"
+                                                        id="emailNotifications"
                                                         name="emailNotifications"
                                                         checked={formData.emailNotifications}
                                                         onChange={(e) => setFormData(prev => ({ ...prev, emailNotifications: e.target.checked }))}

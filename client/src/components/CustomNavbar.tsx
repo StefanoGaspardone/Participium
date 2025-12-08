@@ -340,41 +340,49 @@ export default function CustomNavbar() {
                         }}
                       >
                         {user?.userType === 'CITIZEN' && (
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
-                            onClick={() => { closeDropdown(); navigate('/profile'); }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                closeDropdown();
-                                navigate('/profile');
-                              }
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                          >
-                            Profile
-                          </div>
+                            <button
+                                type="button"
+                                style={{
+                                    // Stili per resettare l'aspetto del bottone
+                                    background: 'none',
+                                    border: 'none',
+                                    textAlign: 'left',
+                                    width: '100%',
+                                    // Stili originali del div
+                                    padding: '0.35rem 0.9rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.95rem',
+                                    fontWeight: 400,
+                                    color: 'inherit', // Eredita il colore dal genitore
+                                    transition: 'transform 0.18s'
+                                }}
+                                onClick={() => { closeDropdown(); navigate('/profile'); }}
+                                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                            >
+                                Profile
+                            </button>
                         )}
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600, color: '#c62828', transition: 'transform 0.18s' }}
-                            onClick={() => { closeDropdown(); handleLogout(); }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                closeDropdown();
-                                handleLogout();
-                              }
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                        >
-                          Logout
-                        </div>
+                          <button
+                              type="button"
+                              style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: '0.35rem 0.9rem',
+                                  textAlign: 'left',
+                                  // I tuoi stili
+                                  cursor: 'pointer',
+                                  fontSize: '0.95rem',
+                                  fontWeight: 600,
+                                  color: '#c62828',
+                                  transition: 'transform 0.18s'
+                              }}
+                              onClick={() => { closeDropdown(); handleLogout(); }}
+                              onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                              onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          >
+                              Logout
+                          </button>
                       </motion.div>
                     )}
                   </AnimatePresence>

@@ -53,15 +53,13 @@ describe("UserRepository (mock)", () => {
     expect(users.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("login should call findOneBy and compare password", async () => {
+  it("login should call findOne (with relations) and compare password", async () => {
     const bcrypt = require("bcryptjs");
     const hashed = await bcrypt.hash(TEST_PASSWORD, 10);
     const fakeRepo: any = {
       save: jest.fn(),
       find: jest.fn(),
-      findOneBy: jest
-        .fn()
-        .mockResolvedValue({ id: 1, email: "t@t", passwordHash: hashed }),
+      findOne: jest.fn().mockResolvedValue({ id: 1, email: "t@t", passwordHash: hashed }),
     };
     const database = require("@database");
     jest
@@ -70,19 +68,17 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOneBy).toHaveBeenCalled();
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
     expect(ok).not.toBeNull();
   });
 
-  it("login should call findOneBy, compare (wrong) password and fail", async () => {
+  it("login should call findOne, compare (wrong) password and fail", async () => {
     const bcrypt = require("bcryptjs");
     const hashed = await bcrypt.hash(TEST_PASSWORD, 10);
     const fakeRepo: any = {
       save: jest.fn(),
       find: jest.fn(),
-      findOneBy: jest
-        .fn()
-        .mockResolvedValue({ id: 1, email: "t@t", passwordHash: "wrongone" }),
+      findOne: jest.fn().mockResolvedValue({ id: 1, email: "t@t", passwordHash: "wrongone" }),
     };
     const database = require("@database");
     jest
@@ -91,17 +87,15 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOneBy).toHaveBeenCalled();
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
     expect(ok).toBeNull();
   });
 
-  it("login should call findOneBy, BUT not comparing the password beacuse user is not found", async () => {
+  it("login should call findOne, BUT not compare the password because user is not found", async () => {
     const fakeRepo: any = {
       save: jest.fn(),
       find: jest.fn(),
-      findOneBy: jest
-        .fn()
-        .mockResolvedValue(null),
+      findOne: jest.fn().mockResolvedValue(null),
     };
     const database = require("@database");
     jest
@@ -110,7 +104,7 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOneBy).toHaveBeenCalled();
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
     expect(ok).toBeNull();
   });
 });
