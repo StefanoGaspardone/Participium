@@ -15,11 +15,11 @@ export class ReportRepository {
     }
 
     findReportsByStatus = async (status: ReportStatus): Promise<ReportDAO[]> => {
-        return this.repo.find({ where: { status }, relations: ["category", "createdBy", "assignedTo", "coAssignedTo"] });
+        return this.repo.find({ where: { status }, relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"] });
     }
 
     findReportById = async (id: number): Promise<ReportDAO | null> => {
-        return this.repo.findOne({ where: { id }, relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo"] });
+        return this.repo.findOne({ where: { id }, relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"] });
     }
 
     save = async (report: ReportDAO): Promise<ReportDAO> => {
@@ -29,7 +29,7 @@ export class ReportRepository {
     findReportsAssignedTo = async (userId: number): Promise<ReportDAO[]> => {
         return this.repo.find({
             where: { assignedTo: { id: userId } as any },
-            relations: ["category", "createdBy", "assignedTo", "coAssignedTo.company"],
+            relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
             order: { createdAt: "DESC" }
         });
     }
@@ -37,7 +37,7 @@ export class ReportRepository {
     findReportsCoAssignedTo = async (userId: number): Promise<ReportDAO[]> => {
         return this.repo.find({
             where: { coAssignedTo: { id: userId } as any },
-            relations: ["category", "createdBy", "assignedTo", "coAssignedTo.company"],
+            relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
             order: { createdAt: "DESC" }
         });
     }

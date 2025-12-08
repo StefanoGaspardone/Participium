@@ -53,7 +53,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.findOne).toHaveBeenCalledWith({
       where: { id: 1 },
-      relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo"]
+      relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"]
     });
     expect(result).toEqual(mockReport);
   });
@@ -71,7 +71,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.findOne).toHaveBeenCalledWith({
       where: { id: 999 },
-      relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo"]
+      relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"]
     });
     expect(result).toBeNull();
   });
@@ -109,7 +109,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { status: 'PendingApproval' },
-      relations: ['category', 'createdBy', 'assignedTo', 'coAssignedTo'],
+      relations: ['category', 'createdBy', 'assignedTo', 'coAssignedTo', 'coAssignedTo.company'],
     });
 
     expect(result).toHaveLength(2);
@@ -137,7 +137,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { assignedTo: { id: 123 } },
-      relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
+      relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
       order: { createdAt: "DESC" }
     });
 
@@ -159,7 +159,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { assignedTo: { id: 456 } },
-      relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
+      relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
       order: { createdAt: "DESC" }
     });
 
@@ -208,7 +208,7 @@ describe('ReportRepository (mock)', () => {
 
       expect(fakeRepo.find).toHaveBeenCalledWith({
           where: { coAssignedTo: { id: 123 } },
-          relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
+          relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
           order: { createdAt: "DESC" }
       });
 
@@ -230,7 +230,7 @@ describe('ReportRepository (mock)', () => {
 
         expect(fakeRepo.find).toHaveBeenCalledWith({
             where: { coAssignedTo: { id: 456 } },
-            relations: ["category", "createdBy", "assignedTo", "coAssignedTo"],
+            relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
             order: { createdAt: "DESC" }
         });
 

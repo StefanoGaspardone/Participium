@@ -31,7 +31,6 @@ export const MapUserDAOtoDTO = (user: UserDAO): UserDTO => {
         office: user.office? user.office.name : null,
         company: user.company? mapCompanyDAOtoDTO(user.company) : null,
         createdAt: new Date(user.createdAt),
-        passwordHash: user.passwordHash,
         isActive: user.isActive,
     } as UserDTO;
 }

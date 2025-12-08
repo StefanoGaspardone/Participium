@@ -313,7 +313,7 @@ describe("Reports e2e tests", () => {
 				title: "E2E External Maintainer Test",
 				description: "Testing external maintainer chat",
 				category: category!,
-				images: ["http://img/e2e_ext.jpg"],
+				images: ["https://img/e2e_ext.jpg"],
 				lat: 45.07,
 				long: 7.65,
 				anonymous: false,

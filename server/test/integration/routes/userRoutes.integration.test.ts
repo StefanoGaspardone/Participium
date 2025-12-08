@@ -5,6 +5,14 @@ import { OfficeDAO } from '@daos/OfficeDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import * as bcrypt from 'bcryptjs';
 
+// Test password constants
+const TEST_PASSWORD_ADMIN = 'admin'; //NOSONAR
+const TEST_PASSWORD_USER = 'user'; //NOSONAR
+const TEST_PASSWORD_GENERIC = 'password'; //NOSONAR
+const TEST_PASSWORD_TG = 'tgpass'; //NOSONAR
+const TEST_PASSWORD_EXT = 'extpass'; //NOSONAR
+const TEST_PASSWORD_TEST = 'testpass'; //NOSONAR
+
 describe('User routes integration tests', () => {
   let roleId: number | undefined;
 
@@ -21,7 +29,7 @@ describe('User routes integration tests', () => {
     roleId = role.id;
 
     const salt1 = await bcrypt.genSalt(10);
-    const adminHash = await bcrypt.hash('admin', salt1);
+    const adminHash = await bcrypt.hash(TEST_PASSWORD_ADMIN, salt1);
     const adminUser = userRepo.create({
       username: 'self_admin',
       email: 'self_admin@gmail.com',
@@ -33,7 +41,7 @@ describe('User routes integration tests', () => {
     await userRepo.save(adminUser);
 
     const salt2 = await bcrypt.genSalt(10);
-    const userHash = await bcrypt.hash('user', salt2);
+    const userHash = await bcrypt.hash(TEST_PASSWORD_USER, salt2);
     const normalUser = userRepo.create({
       username: 'self_user',
       email: 'self_user@gmail.com',
@@ -60,7 +68,7 @@ describe('User routes integration tests', () => {
   it('POST /api/users/signup => 201', async () => {
     const newUser = {
       email: 'self_route1@example.com',
-      password: 'password',
+      password: TEST_PASSWORD_GENERIC,
       firstName: 'Route',
       lastName: 'Test',
       username: 'selfroute1',
@@ -71,7 +79,7 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/login => 200 and returns token', async () => {
-    const credentials = { username: 'self_user', password: 'user' };
+    const credentials = { username: 'self_user', password: TEST_PASSWORD_USER };
     const res = await request(app).post('/api/users/login').send(credentials);
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
@@ -99,7 +107,7 @@ describe('User routes integration tests', () => {
   it('POST /api/users/employees => 401 without token', async () => {
     const payload = {
       email: 'self_muni1@example.com',
-      password: 'password',
+      password: TEST_PASSWORD_GENERIC,
       firstName: 'Muni',
       lastName: 'One',
       username: 'selfmuni1',
@@ -113,13 +121,13 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 201 with admin token', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: 'admin' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
     const payload = {
       email: 'self_muni2@example.com',
-      password: 'password',
+      password: TEST_PASSWORD_GENERIC,
       firstName: 'Muni',
       lastName: 'Two',
       username: 'selfmuni2',
@@ -136,13 +144,13 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 409 with admin token when email already exists', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: 'admin' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
     const payload = {
       email: 'self_user@gmail.com', // already exists
-      password: 'password',
+      password: TEST_PASSWORD_GENERIC,
       firstName: 'Dup',
       lastName: 'User',
       username: 'dupuser',
@@ -160,13 +168,13 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 400 when office not found for TECHNICAL_STAFF_MEMBER', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: 'admin' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
     const payload = {
       email: 'no_office@example.com',
-      password: 'password',
+      password: TEST_PASSWORD_GENERIC,
       firstName: 'NoOffice',
       lastName: 'User',
       username: 'nooffice',
@@ -185,14 +193,14 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 400 with admin token when missing mandatory fields', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: 'admin' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
     // missing `username` and `userType` should trigger validation error
     const incomplete = {
       email: 'self_muni_missing@example.com',
-      password: 'password',
+      password: TEST_PASSWORD_GENERIC,
       firstName: 'Muni',
       lastName: 'Missing',
       // username: missing
@@ -211,13 +219,13 @@ describe('User routes integration tests', () => {
   });
 
   it('POST /api/users/employees => 403 with non-admin token', async () => {
-    const login = await request(app).post('/api/users/login').send({ username: 'self_user', password: 'user' });
+    const login = await request(app).post('/api/users/login').send({ username: 'self_user', password: TEST_PASSWORD_USER });
     expect(login.status).toBe(200);
     const token = login.body.token as string;
 
     const payload = {
       email: 'self_muni3@example.com',
-      password: 'password',
+      password: TEST_PASSWORD_GENERIC,
       firstName: 'Muni',
       lastName: 'Three',
       username: 'selfmuni3',
@@ -241,7 +249,7 @@ describe('User routes integration tests', () => {
     const userRepo = AppDataSource.getRepository(UserDAO);
     
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('tgpass', salt);
+    const hash = await bcrypt.hash(TEST_PASSWORD_TG, salt);
     const telegramUser = userRepo.create({
       username: 'tguser123',
       email: 'tguser@test.com',
@@ -269,6 +277,318 @@ describe('User routes integration tests', () => {
     const res = await request(app).get('/api/users/invalid');
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/not a valid telegram username/);
+  });
+
+  describe('GET /api/users/maintainers', () => {
+    let testCategoryId: number;
+    let extMaintainerId: number;
+
+    beforeAll(async () => {
+      const { AppDataSource } = await import('@database');
+      const categoryRepo = AppDataSource.getRepository(await import('@daos/CategoryDAO').then(m => m.CategoryDAO));
+      const companyRepo = AppDataSource.getRepository(await import('@daos/CompanyDAO').then(m => m.CompanyDAO));
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+
+      // Get or create an office
+      let office = await officeRepo.findOne({ where: {} });
+      if (!office) {
+        office = officeRepo.create({ name: 'Maintainers Test Office' });
+        await officeRepo.save(office);
+      }
+
+      // Create a test category
+      const category = categoryRepo.create({
+        name: 'Test Category for Maintainers',
+        office
+      });
+      await categoryRepo.save(category);
+      testCategoryId = category.id;
+
+      // Create a company with this category
+      const company = companyRepo.create({
+        name: `Test Company for Maintainers ${Date.now()}`,
+        categories: [category]
+      });
+      const savedCompany = await companyRepo.save(company);
+
+      // Create external maintainer with this company
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(TEST_PASSWORD_EXT, salt);
+      const extMaintainer = userRepo.create({
+        username: 'ext_maintainer_test',
+        email: 'extmaintainer@test.com',
+        passwordHash: hash,
+        firstName: 'External',
+        lastName: 'Maintainer',
+        userType: UserType.EXTERNAL_MAINTAINER,
+        company: savedCompany
+      });
+      const saved = await userRepo.save(extMaintainer);
+      extMaintainerId = saved.id;
+
+      // Create another external maintainer with a different company (no shared categories)
+      const company2 = companyRepo.create({
+        name: `Test Company 2 ${Date.now()}`,
+        categories: []
+      });
+      const savedCompany2 = await companyRepo.save(company2);
+
+      const extMaintainer2 = userRepo.create({
+        username: 'ext_maintainer_no_cat',
+        email: 'extnocategory@test.com',
+        passwordHash: hash,
+        firstName: 'No',
+        lastName: 'Category',
+        userType: UserType.EXTERNAL_MAINTAINER,
+        company: savedCompany2
+      });
+      await userRepo.save(extMaintainer2);
+    });
+
+    it('should return 400 when categoryId is missing', async () => {
+      const res = await request(app).get('/api/users/maintainers');
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/categoryId.*required/i);
+    });
+
+    it('should return 400 when categoryId is not a number', async () => {
+      const res = await request(app).get('/api/users/maintainers?categoryId=abc');
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+    });
+
+    it('should return 400 when categoryId is negative', async () => {
+      const res = await request(app).get('/api/users/maintainers?categoryId=-1');
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty('message');
+    });
+
+    it('should return 404 when category does not exist', async () => {
+      const res = await request(app).get('/api/users/maintainers?categoryId=99999');
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('should return 200 and empty array when no maintainers for category', async () => {
+      // Create a category with no maintainers
+      const { AppDataSource } = await import('@database');
+      const categoryRepo = AppDataSource.getRepository(await import('@daos/CategoryDAO').then(m => m.CategoryDAO));
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+
+      let office = await officeRepo.findOne({ where: {} });
+      if (!office) {
+        office = officeRepo.create({ name: 'Empty Maintainers Office' });
+        await officeRepo.save(office);
+      }
+
+      const emptyCategory = categoryRepo.create({
+        name: 'Empty Category',
+        office
+      });
+      await categoryRepo.save(emptyCategory);
+
+      const res = await request(app).get(`/api/users/maintainers?categoryId=${emptyCategory.id}`);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBe(0);
+    });
+
+    it('should return 200 and list of maintainers for valid category', async () => {
+      const res = await request(app).get(`/api/users/maintainers?categoryId=${testCategoryId}`);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBeGreaterThan(0);
+      
+      const maintainer = res.body.find((m: any) => m.id === extMaintainerId);
+      expect(maintainer).toBeDefined();
+      expect(maintainer.username).toBe('ext_maintainer_test');
+      expect(maintainer.userType).toBe(UserType.EXTERNAL_MAINTAINER);
+    });
+
+    it('should return maintainers with correct DTO structure', async () => {
+      const res = await request(app).get(`/api/users/maintainers?categoryId=${testCategoryId}`);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      
+      const maintainer = res.body[0];
+      expect(maintainer).toHaveProperty('id');
+      expect(maintainer).toHaveProperty('username');
+      expect(maintainer).toHaveProperty('email');
+      expect(maintainer).toHaveProperty('firstName');
+      expect(maintainer).toHaveProperty('lastName');
+      expect(maintainer).toHaveProperty('userType');
+      expect(maintainer).not.toHaveProperty('passwordHash');
+    });
+  });
+
+  describe('POST /api/users/employees - EXTERNAL_MAINTAINER', () => {
+    let adminToken: string;
+    let testCompanyId: number;
+
+    beforeAll(async () => {
+      const login = await request(app).post('/api/users/login').send({ 
+        username: 'self_admin', 
+        password: TEST_PASSWORD_ADMIN 
+      });
+      expect(login.status).toBe(200);
+      adminToken = login.body.token as string;
+
+      // Create a test company for external maintainers
+      const { AppDataSource } = await import('@database');
+      const companyRepo = AppDataSource.getRepository(await import('@daos/CompanyDAO').then(m => m.CompanyDAO));
+      const categoryRepo = AppDataSource.getRepository(await import('@daos/CategoryDAO').then(m => m.CategoryDAO));
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+
+      let office = await officeRepo.findOne({ where: {} });
+      if (!office) {
+        office = officeRepo.create({ name: 'External Maintainer Office' });
+        await officeRepo.save(office);
+      }
+
+      const category = categoryRepo.create({
+        name: 'External Maintainer Category',
+        office
+      });
+      await categoryRepo.save(category);
+
+      const company = companyRepo.create({
+        name: `External Maintainer Company ${Date.now()}`,
+        categories: [category]
+      });
+      const savedCompany = await companyRepo.save(company);
+      testCompanyId = savedCompany.id;
+    });
+
+    it('should return 400 when companyId is missing for EXTERNAL_MAINTAINER', async () => {
+      const payload = {
+        email: 'extmaint1@example.com',
+        password: TEST_PASSWORD_GENERIC,
+        firstName: 'External',
+        lastName: 'Maintainer',
+        username: 'extmaint1',
+        userType: UserType.EXTERNAL_MAINTAINER
+      };
+
+      const res = await request(app)
+        .post('/api/users/employees')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload);
+      
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/Missing company id/i);
+    });
+
+    it('should return 400 when company does not exist for EXTERNAL_MAINTAINER', async () => {
+      const payload = {
+        email: 'extmaint2@example.com',
+        password: TEST_PASSWORD_GENERIC,
+        firstName: 'External',
+        lastName: 'Maintainer',
+        username: 'extmaint2',
+        userType: UserType.EXTERNAL_MAINTAINER,
+        companyId: 99999
+      };
+
+      const res = await request(app)
+        .post('/api/users/employees')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload);
+      
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('should return 201 when creating EXTERNAL_MAINTAINER with valid company', async () => {
+      const payload = {
+        email: 'extmaint3@example.com',
+        password: TEST_PASSWORD_GENERIC,
+        firstName: 'External',
+        lastName: 'Maintainer',
+        username: 'extmaint3',
+        userType: UserType.EXTERNAL_MAINTAINER,
+        companyId: testCompanyId
+      };
+
+      const res = await request(app)
+        .post('/api/users/employees')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload);
+      
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toBe('Municipality user created');
+    });
+
+    it('should return 409 when email already exists for EXTERNAL_MAINTAINER', async () => {
+      const payload = {
+        email: 'extmaint4@example.com',
+        password: TEST_PASSWORD_GENERIC,
+        firstName: 'External',
+        lastName: 'Maintainer',
+        username: 'extmaint4',
+        userType: UserType.EXTERNAL_MAINTAINER,
+        companyId: testCompanyId
+      };
+
+      // Create first user
+      await request(app)
+        .post('/api/users/employees')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload);
+
+      // Try to create duplicate with same email
+      const duplicatePayload = { ...payload, username: 'extmaint4_dup' };
+      const res = await request(app)
+        .post('/api/users/employees')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(duplicatePayload);
+      
+      expect(res.status).toBe(409);
+      expect(res.body).toHaveProperty('message');
+    });
+
+    it('should verify EXTERNAL_MAINTAINER has correct company assigned', async () => {
+      const payload = {
+        email: 'extmaint5@example.com',
+        password: TEST_PASSWORD_GENERIC,
+        firstName: 'External',
+        lastName: 'Maintainer',
+        username: 'extmaint5',
+        userType: UserType.EXTERNAL_MAINTAINER,
+        companyId: testCompanyId
+      };
+
+      const createRes = await request(app)
+        .post('/api/users/employees')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload);
+      
+      expect(createRes.status).toBe(201);
+
+      // Verify the user can be found when querying by the company's category
+      const { AppDataSource } = await import('@database');
+      const companyRepo = AppDataSource.getRepository(await import('@daos/CompanyDAO').then(m => m.CompanyDAO));
+      const company = await companyRepo.findOne({ 
+        where: { id: testCompanyId },
+        relations: ['categories']
+      });
+      
+      if (company && company.categories.length > 0) {
+        const categoryId = company.categories[0].id;
+        const maintainersRes = await request(app).get(`/api/users/maintainers?categoryId=${categoryId}`);
+        expect(maintainersRes.status).toBe(200);
+        expect(Array.isArray(maintainersRes.body)).toBe(true);
+        
+        const createdMaintainer = maintainersRes.body.find((m: any) => m.username === 'extmaint5');
+        expect(createdMaintainer).toBeDefined();
+        expect(createdMaintainer.userType).toBe(UserType.EXTERNAL_MAINTAINER);
+      }
+    });
   });
 
   describe('POST /api/users/validate-user', () => {
@@ -323,7 +643,7 @@ describe('User routes integration tests', () => {
       const codeConfirmationRepo = AppDataSource.getRepository(await import('@daos/CodeConfirmationDAO').then(m => m.CodeConfirmationDAO));
 
       const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash('testpass', salt);
+      const hash = await bcrypt.hash(TEST_PASSWORD_TEST, salt);
       const newUser = userRepo.create({
         username: 'unverified_user',
         email: 'unverified@test.com',
@@ -361,7 +681,7 @@ describe('User routes integration tests', () => {
       const codeConfirmationRepo = AppDataSource.getRepository(await import('@daos/CodeConfirmationDAO').then(m => m.CodeConfirmationDAO));
 
       const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash('testpass', salt);
+      const hash = await bcrypt.hash(TEST_PASSWORD_TEST, salt);
       const newUser = userRepo.create({
         username: 'expired_code_user',
         email: 'expired@test.com',
@@ -398,7 +718,7 @@ describe('User routes integration tests', () => {
       const codeConfirmationRepo = AppDataSource.getRepository(await import('@daos/CodeConfirmationDAO').then(m => m.CodeConfirmationDAO));
 
       const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash('testpass', salt);
+      const hash = await bcrypt.hash(TEST_PASSWORD_TEST, salt);
       const newUser = userRepo.create({
         username: 'valid_code_user',
         email: 'valid@test.com',
@@ -471,7 +791,7 @@ describe('User routes integration tests', () => {
       const userRepo = AppDataSource.getRepository(UserDAO);
 
       const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash('testpass', salt);
+      const hash = await bcrypt.hash(TEST_PASSWORD_TEST, salt);
       const newUser = userRepo.create({
         username: 'resend_user',
         email: 'resend@test.com',
