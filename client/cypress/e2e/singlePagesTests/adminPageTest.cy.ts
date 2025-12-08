@@ -3,7 +3,6 @@ import { loginPage } from "../../pageObjects/loginPage";
 import { adminPage } from "../../pageObjects/adminPage";
 import { generateRandomString } from "../../pageObjects/utils";
 
-// Helpers: stubs and login
 const makeToken = (user: any) => {
     const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
     const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -11,7 +10,6 @@ const makeToken = (user: any) => {
     return `${header}.${payload}.`;
 };
 
-// prepare a reusable admin token so both login and /me return the same one
 const adminToken = makeToken({
     id: 999,
     username: 'admin',
@@ -29,7 +27,6 @@ const stubLoginAdmin = () => {
 };
 
 const stubAdminPageData = () => {
-    // Offices, Companies, Categories used to populate selects
     cy.intercept('GET', '/api/offices', {
         statusCode: 200,
         body: [
