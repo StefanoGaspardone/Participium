@@ -93,7 +93,6 @@ describe("4. Test suite for report page :", () => {
 		reportPage.submitForm();
 		
 		cy.wait(['@signUpload', '@cloudinaryUpload', '@createReport']);
-		// cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible').and('contain.text', 'Report successfully created');
 		cy.url().should('equal', HOMEPAGE_URL);
 	});
 
