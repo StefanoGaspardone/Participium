@@ -1,5 +1,5 @@
-import type { Category, Office, Report, User, Chat, Message, Company } from "../models/models";
-import { toApiError } from "../models/models";
+import type {Category, Chat, Company, Message, Office, Report, User} from "../models/models";
+import {toApiError} from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
 
@@ -386,14 +386,7 @@ export const getMyNotifications = async (): Promise<Notification[]> => {
     throw new Error("Invalid JSON in /offices response");
   }
 
-  const notificationsArray =
-    Array.isArray(data)
-      ? data
-      : Array.isArray(data.notifications)
-        ? data.notifications
-        : [];
-
-  return notificationsArray;
+  return Array.isArray(data.notifications) ? data.notifications : [];
 }
 
 export const markNotificationAsSeen = async (id: number) => {
@@ -563,7 +556,7 @@ export const createCompany = async (payload: Company) => {
   }
 }
 
-export const getAllCompanies = async () => {
+export const getAllCompanies = async (): Promise<Company[]> => {
   const res = await fetch(`${BASE_URL}/companies`, {
     method: "GET",
     headers: {
@@ -573,5 +566,38 @@ export const getAllCompanies = async () => {
   if (!res.ok) {
     throw await toApiError(res);
   }
-  return await res.json();
+
+  const data = await res.json();
+  const companies: Company[] = Array.isArray(data) ? data : Array.isArray(data?.companies) ? data.companies : [];
+  return companies.filter(company => Number(company?.id) !== 3);
 }
+
+// External Maintainers
+export const getExternalMaintainers = async (categoryId: number): Promise<User[]> => {
+  const res = await fetch(`${BASE_URL}/users/maintainers?categoryId=${encodeURIComponent(categoryId)}`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${getToken()}` }
+  });
+  
+  if(!res.ok) throw await toApiError(res);
+  
+  const data = await res.json();
+  const users: User[] = Array.isArray(data) ? data : [];
+  return users;
+};
+
+export const assignReportToExternalMaintainer = async (reportId: number, maintainerId: number): Promise<Report> => {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/assign-external`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`
+    },
+    body: JSON.stringify({ maintainerId })
+  });
+
+  if(!res.ok) throw await toApiError(res);
+  
+  const data = await res.json();
+  return data as Report;
+};

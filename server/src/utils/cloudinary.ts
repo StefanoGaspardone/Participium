@@ -31,7 +31,7 @@ export const getCloudinaryConfig = (): CloudinaryConfig => {
 export const signParams = (params: Record<string, string | number>, apiSecret: string): string => {
     const toSign = Object.keys(params)
         .filter(k => params[k] !== undefined && params[k] !== null && params[k] !== '')
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .map(k => `${k}=${params[k]}`)
         .join('&');
 

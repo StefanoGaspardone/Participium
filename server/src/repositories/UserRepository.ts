@@ -3,7 +3,7 @@ import { Repository } from "typeorm";
 import { UserDAO, UserType } from "@daos/UserDAO";
 import { ReportStatus } from "@daos/ReportDAO";
 import * as bcrypt from "bcryptjs";
-import {CategoryDAO} from "@daos/CategoryDAO";
+import { CategoryDAO } from "@daos/CategoryDAO";
 
 export class UserRepository {
   private repo: Repository<UserDAO>;
@@ -33,7 +33,9 @@ export class UserRepository {
   };
 
   login = async (username: string, password: string): Promise<UserDAO | null> => {
-    const user = await this.repo.findOneBy({ username });
+    // Ensure relations (office, company) are loaded so the returned user
+    // contains the office data (name) required when mapping to DTO/token.
+    const user = await this.repo.findOne({ where: { username }, relations: ["office", "company", "company.categories"] });
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
       if (isPasswordValid) return user;
@@ -71,14 +73,15 @@ export class UserRepository {
     return saved;
   };
 
-    findMaintainersByCategory = async (category: CategoryDAO): Promise<UserDAO[]> =>{
-        if (!category?.id) return [];
-        return this.repo.createQueryBuilder('user')
-            .innerJoin('user.company', 'company')
-            .innerJoin('company.categories', 'c', 'c.id = :categoryId', { categoryId: category.id })
-            .where('user.userType = :type', { type: UserType.EXTERNAL_MAINTAINER })
-            .getMany();
-        };
+  findMaintainersByCategory = async (category: CategoryDAO): Promise<UserDAO[]> =>{
+    if(!category?.id) return [];
+    
+    return this.repo.createQueryBuilder('user')
+      .innerJoinAndSelect('user.company', 'company')
+      .innerJoinAndSelect('company.categories', 'c', 'c.id = :categoryId', { categoryId: category.id })
+      .where('user.userType = :type', { type: UserType.EXTERNAL_MAINTAINER })
+      .getMany();
+  };
 }
 
 export const userRepository = new UserRepository();

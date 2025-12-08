@@ -190,37 +190,40 @@ export class UserController {
 
   updateUser = async (req: UpdateUserRequest, res: Response, next: NextFunction) => {
     try {
-      if (!req.token) throw new UnauthorizedError('Token is missing, not authenticated');
-      const decodedAny = req.token;
-      let userDto = decodedAny?.user || null;
-      if (!userDto) throw new UnauthorizedError('User not found');
-      const userId = userDto.id;
-
-      // check that in the requst body there are only fields that can be updated
-      for (const key in req.body) {
-        if (!Object.values(["firstName", "lastName", "username", "email", "image", "telegramUsername", "emailNotificationsEnabled"]).includes(key)) {
-          throw new BadRequestError(`Field ${key} cannot be updated.`);
+        if (!req.token?.user?.id) throw new UnauthorizedError('Not authenticated or user not found');
+        const userId = req.token.user.id;
+        // check that in the requst body there are only fields that can be updated
+        for (const key in req.body) {
+            if (!Object.values(["firstName", "lastName", "username", "email", "image", "telegramUsername", "emailNotificationsEnabled"]).includes(key)) {
+                throw new BadRequestError(`Field ${key} cannot be updated.`);
+            }
+            if (req.body[key] === '') {
+                throw new BadRequestError(`Field ${key} cannot be empty.`);
+            }
         }
-        if (req.body[key] === '') {
-          throw new BadRequestError(`Field ${key} cannot be empty.`);
+        const fieldsToUpdate = [
+          'firstName',
+          'lastName',
+          'username',
+          'email',
+          'image',
+          'telegramUsername',
+          'emailNotificationsEnabled'
+        ] as const;
+        const updateData: Partial<NewUserDTO> = {};
+        for (const field of fieldsToUpdate) {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
         }
-      }
 
-      const updateData: Partial<NewUserDTO> = {};
-      if (req.body.firstName !== undefined) updateData.firstName = req.body.firstName;
-      if (req.body.lastName !== undefined) updateData.lastName = req.body.lastName;
-      if (req.body.username !== undefined) updateData.username = req.body.username;
-      if (req.body.email !== undefined) updateData.email = req.body.email;
-      if (req.body.image !== undefined) updateData.image = req.body.image;
-      if (req.body.telegramUsername !== undefined) updateData.telegramUsername = req.body.telegramUsername;
-      if (req.body.emailNotificationsEnabled !== undefined) updateData.emailNotificationsEnabled = req.body.emailNotificationsEnabled;
-      const user = await this.userService.updateUser(userId, updateData);
-      res.status(200).json({ message: "User updated successfully", user });
+        const user = await this.userService.updateUser(userId, updateData);
+        res.status(200).json({ message: "User updated successfully", user });
     } catch (error) {
-      if (error instanceof QueryFailedError && (error as any).code === "23505") {
-        return next(new ConflictError("Email, username or telegram username already exists"));
-      }
-      next(error);
+        if (error instanceof QueryFailedError && (error as any).code === "23505") {
+            return next(new ConflictError("Email, username or telegram username already exists"));
+        }
+        next(error);
     }
   };
 

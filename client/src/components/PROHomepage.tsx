@@ -8,6 +8,7 @@ import type { Report, Category } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2Icon, ChevronLeft, ChevronRight } from 'lucide-react';
+import Select, { components, type MenuProps, type SingleValue, type OptionProps } from 'react-select';
 import './AuthForms.css';
 
 import Lightbox from "yet-another-react-lightbox";
@@ -31,6 +32,35 @@ export default function PROHomepage() {
   const [addressByReport, setAddressByReport] = useState<Record<number, string>>({});
 
   const [imageIndexByReport, setImageIndexByReport] = useState<Record<number, number>>({});
+
+  // react-select options for categories
+  const categoryOptions = categories.map((cat) => ({ value: String(cat.id), label: cat.name }));
+
+  const AnimatedMenu = (props: MenuProps<any, false>) => (
+    <AnimatePresence>
+      {props.selectProps.menuIsOpen && (
+        <components.Menu {...props}>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+          >
+            {props.children}
+          </motion.div>
+        </components.Menu>
+      )}
+    </AnimatePresence>
+  );
+
+  const CategoryOption = (props: OptionProps<any, false>) => {
+    const id = `select-category-${String(props.data.value)}`;
+    return (
+      <div id={id}>
+        <components.Option {...props} />
+      </div>
+    );
+  };
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
@@ -343,36 +373,21 @@ export default function PROHomepage() {
                           style={{ alignItems: 'center', gap: '0.5rem', marginLeft: '10px' }}
                         >
                           <h5 style={{ color: '#F97316', fontWeight: 600, margin: 0, whiteSpace: 'nowrap' }}>Change category</h5>
-                          <Form.Select
-                            id="select-category"
-                            disabled={
-                              updatingId === r.id || statusUpdatingId === r.id
-                            }
-                            defaultValue={r.category.id}
-                            onChange={(e) =>
-                              handleCategoryChange(r, e.target.value)
-                            }
-                            aria-label="Select new category"
-                            style={{
-                              borderRadius: '0.55rem',
-                              border: '1px solid #ced4da',
-                              fontSize: '0.95rem',
-                              transition: 'border-color 0.18s ease, box-shadow 0.25s ease',
-                              minWidth: '180px',
-                              maxWidth: '400px'
-                            }}
-                          >
-                            {categories.map((c) => (
-                              <option
-                                key={c.id}
-                                value={c.id}
-                                disabled={c.id === r.category.id}
-                              >
-                                {c.name}
-                                {c.id === r.category.id ? " (current)" : ""}
-                              </option>
-                            ))}
-                          </Form.Select>
+                          <div style={{ minWidth: '300px', maxWidth: '400px' }}>
+                            <Select
+                              inputId={`select-category-${r.id}`}
+                              instanceId={`select-category-${r.id}`}
+                              options={categoryOptions}
+                              value={categoryOptions.find((o) => o.value === String(r.category.id)) ?? null}
+                              onChange={(opt: SingleValue<{ value: string; label: string }>) =>
+                                handleCategoryChange(r, opt?.value ?? "")
+                              }
+                              isDisabled={updatingId === r.id || statusUpdatingId === r.id}
+                              placeholder="Select a category"
+                              components={{ Menu: AnimatedMenu, Option: CategoryOption }}
+                              classNamePrefix="rs"
+                            />
+                          </div>
                           {updatingId === r.id && (
                             <motion.div
                               initial={{ opacity: 0 }}

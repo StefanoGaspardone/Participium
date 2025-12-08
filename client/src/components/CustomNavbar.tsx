@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Navbar, Container } from "react-bootstrap";
+import { Navbar, Container, Image } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { useAppContext } from "../contexts/AppContext";
-import { Image } from "react-bootstrap";
 import Notifications from "./Notifications";
 import { motion, AnimatePresence } from "framer-motion";
 import "./CustomNavbar.css";
@@ -112,6 +111,12 @@ export default function CustomNavbar() {
                     role="button"
                     tabIndex={0}
                     onClick={toggleDropdown}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleDropdown();
+                      }
+                    }}
                     onMouseEnter={() => setProfileHover(true)}
                     onMouseLeave={() => setProfileHover(false)}
                     style={{
@@ -186,11 +191,20 @@ export default function CustomNavbar() {
                           {user?.userType === 'CITIZEN' && (
                             <motion.div
                               layout
+                              role="button"
+                              tabIndex={0}
                               initial={{ opacity: 0, y: 6 }}
                               animate={{ opacity: 1, y: 0 }}
                               whileHover={{ scale: 1.015 }}
                               whileTap={{ scale: 0.97 }}
                               onClick={() => { closeDropdown(); navigate('/profile'); }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  closeDropdown();
+                                  navigate('/profile');
+                                }
+                              }}
                               style={{
                                 background: '#ffffff',
                                 border: '1px solid #e6e6e6',
@@ -211,11 +225,20 @@ export default function CustomNavbar() {
                           )}
                           <motion.div
                             layout
+                            role="button"
+                            tabIndex={0}
                             initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
                             whileHover={{ scale: 1.015 }}
                             whileTap={{ scale: 0.96 }}
                             onClick={() => { closeDropdown(); handleLogout(); }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                closeDropdown();
+                                handleLogout();
+                              }
+                            }}
                             style={{
                               background: '#ffffff',
                               border: '1px solid #e6e6e6',
@@ -269,6 +292,12 @@ export default function CustomNavbar() {
                     role="button"
                     tabIndex={0}
                     onClick={toggleDropdown}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleDropdown();
+                      }
+                    }}
                     initial={false}
                     animate={{ scale: profileHover ? 1.06 : 1 }}
                     transition={{ duration: 0.18 }}
@@ -311,23 +340,49 @@ export default function CustomNavbar() {
                         }}
                       >
                         {user?.userType === 'CITIZEN' && (
-                          <div
-                            style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 400, transition: 'transform 0.18s' }}
-                            onClick={() => { closeDropdown(); navigate('/profile'); }}
-                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                          >
-                            Profile
-                          </div>
+                            <button
+                                type="button"
+                                style={{
+                                    // Stili per resettare l'aspetto del bottone
+                                    background: 'none',
+                                    border: 'none',
+                                    textAlign: 'left',
+                                    width: '100%',
+                                    // Stili originali del div
+                                    padding: '0.35rem 0.9rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.95rem',
+                                    fontWeight: 400,
+                                    color: 'inherit', // Eredita il colore dal genitore
+                                    transition: 'transform 0.18s'
+                                }}
+                                onClick={() => { closeDropdown(); navigate('/profile'); }}
+                                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                            >
+                                Profile
+                            </button>
                         )}
-                        <div
-                          style={{ padding: '0.35rem 0.9rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600, color: '#c62828', transition: 'transform 0.18s' }}
-                          onClick={() => { closeDropdown(); handleLogout(); }}
-                          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                        >
-                          Logout
-                        </div>
+                          <button
+                              type="button"
+                              style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: '0.35rem 0.9rem',
+                                  textAlign: 'left',
+                                  // I tuoi stili
+                                  cursor: 'pointer',
+                                  fontSize: '0.95rem',
+                                  fontWeight: 600,
+                                  color: '#c62828',
+                                  transition: 'transform 0.18s'
+                              }}
+                              onClick={() => { closeDropdown(); handleLogout(); }}
+                              onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                              onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          >
+                              Logout
+                          </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
