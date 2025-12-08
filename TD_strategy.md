@@ -2,9 +2,12 @@
 
 ## Code Quality Checks Within The Sprint Activities
 
-- In order to maintain code quality, we will be using SonarQube Server's integration with GitHub; adding the analysis process into our pipeline. SonarScanners that runs on GitHub Actions will automatically keep an eye on our main and dev branch. Analysis will be performed everytime we introduce changes into these branches.
+- In order to maintain code quality, we will be using two approaches:
+  - **SonarQube Cloud Integration with GitHub**: Adding the analysis process into our pipeline. SonarScanner that runs on GitHub Actions will automatically keep an eye on our main branch.           Analysis will be performed every time we introduce changes into the branch.
+  - **SonarQube for IDE**: Real-time code analysis in the IDE.
 
-- Team members will review SonarQube at every PR and will decide how to act (e.g., fix immediately, create a TD task, or accept the issue with justification).
+- Team members will review SonarQube Cloud at every merge to the main branch and will decide on how to act (e.g., fix immediately, create a TD task, or accept the issue with justification).
+- Team members will check the real-time analysis in the IDE before committing code to be aware of the issues they might introduce and decide on how to act.
 
 ## Flow of Paying Back Technical Debt
 
@@ -18,11 +21,13 @@ Decision to address technical debt will depend on the severity of the TD item, i
 
 ### Workflow
 
-- TD items will be identified by automated detection and we will decide as a team what needs to be addressed based on our priority criterias.
+- TD items will be identified by automated detection and in most cases we will decide as a team what needs to be addressed based on our priority criteria.
 
-- We will allocate time (no more than 15% of the sprint time) considering the status of our technical debt on each sprint planning.
+- With real-time code analysis in the IDE, we will individually assess the issues that might arise.
 
-- A task for managing technical debt called "Technical Debt" will be added.
+- We will allocate time (no more than 15% of the sprint time) considering the status of our technical debt at each sprint planning.
+
+- A task for managing technical debt called "Technical Debt Management" will be added.
 
 ### Internal Organisation
 
