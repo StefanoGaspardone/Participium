@@ -11,6 +11,7 @@ import {
 import { Badge, Alert } from "react-bootstrap";
 import { useAppContext } from "../contexts/AppContext";
 import { AnimatePresence, motion } from "framer-motion";
+import { REPORT_STATUS_COLORS } from "../constants/reportStatusColors";
 
 /**
  * activeReport is used to open the chat related to that Report, it will need to change bc it will have 
@@ -28,6 +29,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
     const popoverRef = useRef<HTMLDivElement | null>(null);
     const toggleRef = useRef<HTMLButtonElement | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const ignoreActiveReportRef = useRef<boolean>(false);
 
     // the list of chat the user is involved into
     const [chats, setChats] = useState<Chat[] | undefined>(undefined);
@@ -97,8 +99,10 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
     useEffect(() => {
         if (!activeReport || !show || !chats) return;
 
-        // Find if a chat already exists for this report.
-        // If a targetUserId is provided, prefer the chat where the other user matches it.
+        // if the selection was just made by the user, do not override it
+        if (ignoreActiveReportRef.current) return;
+
+        // rest of the effect unchanged...
         const findChatForTarget = (targetId?: number | null) => {
             if (!targetId) return chats.find(c => c.report.id === activeReport.id);
             return chats.find(c => c.report.id === activeReport.id && (
@@ -110,7 +114,6 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
         if (existingChat) {
             setSelectedChat(existingChat.id);
         } else {
-            // No chat exists yet — will create when user sends first message
             setSelectedChat(undefined);
             setShowedMessages(undefined);
         }
@@ -146,6 +149,11 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
     }, [show, handleToggle]);
 
     const handleChatSelect = (chat: Chat) => {
+        // prevent the 'activeReport' effect from overriding this user selection
+        ignoreActiveReportRef.current = true;
+        // small safety timeout to re-enable the effect after the user action settles
+        window.setTimeout(() => { ignoreActiveReportRef.current = false; }, 300);
+
         setSelectedChat(chat.id);
         setActiveReport(chat.report);
         setError(null);
@@ -194,6 +202,11 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
         }
     };
 
+    // derived sorted messages by sentAt (oldest → newest)
+    const sortedShowedMessages = showedMessages
+        ? [...showedMessages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime())
+        : undefined;
+
     return (
         <div className="chat-wrapper">
             <AnimatePresence>
@@ -207,7 +220,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                         <div ref={popoverRef} className="chats-popover p-0 overflow-hidden">
                             <div className="row h-100 m-0">
                                 {/* Left column: list of chats */}
-                                <div className="col-4 h-100 border-end p-0 d-flex flex-column">
+                                <div className="col-5 h-100 border-end p-0 d-flex flex-column">
                                     <div className="p-2 border-bottom bg-light">
                                         <h6 className="mb-0">Chats</h6>
                                     </div>
@@ -233,37 +246,44 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                                         <button
                                                             key={chat.id}
                                                             type="button"
-                                                            className={`list-group-item list-group-item-action d-flex flex-column ${isActive ? "active" : ""}`}
+                                                            className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${isActive ? "active" : ""}`}
                                                             onClick={() => handleChatSelect(chat)}
                                                         >
-                                                            <div className="d-flex align-items-center w-100 mb-1">
-                                                                <div className="me-2 flex-grow-1 text-truncate fw-semibold">
-                                                                    {chat.report.title}
+                                                            <div className="d-flex align-items-center me-2">
+                                                                {(chat.tosm_user?.image || chat.second_user?.image) ? (
+                                                                    <img
+                                                                        src={(chat.tosm_user?.id === user?.id ? chat.second_user?.image : chat.tosm_user?.image) ?? undefined}
+                                                                        alt="avatar"
+                                                                        width={44}
+                                                                        height={44}
+                                                                        className="rounded-circle"
+                                                                    />
+                                                                ) : (
+                                                                    <FaUserCircle size={44} className="text-muted" />
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex-grow-1 min-width-0">
+                                                                <div className="d-flex align-items-center justify-content-between mb-1">
+                                                                    <div className="fw-semibold text-truncate">{chat.report.title}</div>
+                                                                    <small className="text-muted">#{chat.report.id}</small>
                                                                 </div>
-                                                                <small className="text-muted">
-                                                                    #{chat.report.id}
-                                                                </small>
-                                                            </div>
-                                                            <div className="small text-truncate mb-2">
-                                                                {otherUser
-                                                                    ? `${otherUser.firstName} ${otherUser.lastName}`
-                                                                    : "Unknown"}
-                                                            </div>
-                                                            <div className="d-flex gap-2">
-                                                                <Badge
-                                                                    bg={
-                                                                        chat.report.status === "Assigned"
-                                                                            ? "primary"
-                                                                            : chat.report.status === "Resolved"
-                                                                                ? "success"
-                                                                                : "warning"
-                                                                    }
-                                                                >
-                                                                    {chat.report.status}
-                                                                </Badge>
-                                                                <Badge bg="secondary">
-                                                                    {chat.report.category?.name}
-                                                                </Badge>
+
+                                                                <div className="small text-truncate text-muted mb-1">
+                                                                    {/* mostra qui l'ultima preview se disponibile (se il modello chat include lastMessage o puoi usare showedMessages cache) */}
+                                                                    {chat.lastMessage ? chat.lastMessage.text : (chat.second_user ? `${chat.second_user.firstName} ${chat.second_user.lastName}` : '')}
+                                                                </div>
+
+                                                                <div className="d-flex gap-2 align-items-center">
+                                                                    {/* status badge usando REPORT_STATUS_COLORS */}
+                                                                    <Badge
+                                                                        bg={REPORT_STATUS_COLORS[chat.report.status] && !REPORT_STATUS_COLORS[chat.report.status].startsWith('#') ? REPORT_STATUS_COLORS[chat.report.status] : undefined}
+                                                                        style={REPORT_STATUS_COLORS[chat.report.status] && REPORT_STATUS_COLORS[chat.report.status].startsWith('#') ? { backgroundColor: REPORT_STATUS_COLORS[chat.report.status] } : undefined}
+                                                                    >
+                                                                        {chat.report.status}
+                                                                    </Badge>
+                                                                    <Badge bg="secondary">{chat.report.category?.name}</Badge>
+                                                                </div>
                                                             </div>
                                                         </button>
                                                     );
@@ -274,7 +294,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                 </div>
 
                                 {/* Right column: selected chat messages */}
-                                <div className="col-8 d-flex flex-column p-0 chat-messages-container">
+                                <div className="col-7 d-flex flex-column p-0 chat-messages-container">
                                     {selectedChat === undefined && !activeReport ? (
                                         <div className="h-100 d-flex align-items-center justify-content-center">
                                             <div className="text-muted">
@@ -341,13 +361,13 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                                     <Alert variant="danger" className="text-center mb-0">
                                                         {error}
                                                     </Alert>
-                                                ) : !showedMessages || showedMessages.length === 0 ? (
+                                                ) : !sortedShowedMessages || sortedShowedMessages.length === 0 ? (
                                                     <div className="h-100 d-flex align-items-center justify-content-center text-muted">
                                                         No messages yet. Start the conversation!
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        {showedMessages.map((msg) => {
+                                                        {sortedShowedMessages.map((msg) => {
                                                             // support both shapes: sender can be a number (id) or an object with .id
                                                             const rawSender: any = (msg as any).sender;
                                                             const senderId: number | undefined =

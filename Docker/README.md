@@ -21,6 +21,15 @@ Windows environments :
 
     docker compose -f .\docker-compose.prod.yaml --env-file .\prod.env up -d
 
+> [!WARNING]
+> The application will be actually working ONLY when the server has printed the line 
+    
+    [<date and hour>] INFO: [EMAIL SETUP] SMTP transporter for smtp.gmail.com is ready. Emails will be sent from: pparticipium@gmail.com
+
+> you can check it by inspecting the logs of the server executing the command :
+
+    docker logs -f participium_server
+
 ## Stop the application
 
 If you want to stop the application, you have to execute the following commands in the `working` folder :
