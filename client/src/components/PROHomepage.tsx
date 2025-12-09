@@ -386,6 +386,10 @@ export default function PROHomepage() {
                               placeholder="Select a category"
                               components={{ Menu: AnimatedMenu, Option: CategoryOption }}
                               classNamePrefix="rs"
+                              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                              menuPosition="fixed"
+                              menuPlacement="auto"
+                              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                             />
                           </div>
                           {updatingId === r.id && (
