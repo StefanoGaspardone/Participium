@@ -86,5 +86,4 @@ describe("6. Test suite for Public Relations Officer page", () => {
         proPage.clickReject(randomTitle);
         proPage.reportShouldNotExist(randomTitle);
     });
-    it.only('6.4')
 })

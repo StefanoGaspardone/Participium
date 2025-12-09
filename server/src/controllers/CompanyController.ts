@@ -40,7 +40,7 @@ export class CompanyController {
             payload.name = compName;
             const compCategories: CategoryDTO[] = [];
             for (const cat of categories) {
-                var catToAdd = {} as CategoryDTO;
+                let catToAdd = {} as CategoryDTO;
                 catToAdd.id = cat.id;
                 catToAdd.name = cat.name;
                 compCategories.push(catToAdd);
