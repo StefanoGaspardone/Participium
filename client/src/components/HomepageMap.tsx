@@ -350,7 +350,7 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
             <motion.div id = { legendContainerId } className = 'map-legend' initial = {{ opacity: 0, y: 20 }} animate = {{ opacity: 1, y: 0 }} transition = {{ duration: 0.35, ease: 'easeOut' }}>
                 <motion.button type = 'button' id = { legendToggleId } className = 'map-legend-toggle' onClick = { () => setLegendOpen((prev) => !prev) } aria-expanded = { legendOpen } aria-controls = { legendPanelId } whileHover = {{ scale: 1.01 }} whileTap = {{ scale: 0.98 }}>
                     <div className = 'map-legend-title-block' id = { `${legendBaseId}-title` }>
-                        <span className = 'map-legend-title'>Report's color mapping</span>
+                        <span className = 'map-legend-title'>Report Status Colours</span>
                     </div>
                     <motion.span id = { `${legendBaseId}-caret` } className = { `map-legend-caret ${legendOpen ? 'open' : ''}` } aria-hidden = 'true' animate = {{ rotate: legendOpen ? 0 : -180 }} transition = {{ duration: 0.3, ease: 'easeOut' }}>
                         <ChevronUp size = { 16 }/>
