@@ -4,7 +4,7 @@ import { getAssignedReports, updateReportStatus, getExternalMaintainers, assignR
 import type { Report, User } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
 import { ChevronLeft, ChevronRight, Loader2Icon } from 'lucide-react';
-import { Accordion, Badge, Alert, Button, Card, Row, Col } from 'react-bootstrap';
+import { Accordion, Badge, Alert, Button, Row, Col } from 'react-bootstrap';
 import ReportMiniMap from './ReportMiniMap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserCircle } from "react-icons/fa";
@@ -14,7 +14,6 @@ import { fetchAddress } from './HomepageMap';
 import { Lightbox } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { REPORT_STATUS_COLORS } from '../constants/reportStatusColors';
-import { Link } from 'react-router-dom';
 
 export default function TechnicalStaffHomepage() {
     const [reports, setReports] = useState<Report[]>([]);
@@ -242,7 +241,13 @@ export default function TechnicalStaffHomepage() {
                                             <Accordion.Header
                                                 onClick={() => handleRToggle(r.id)}
                                             >
-                                                <div onClick={() => handleFetchMaintainers(r)} className="d-flex w-100 align-items-center justify-content-between">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); handleFetchMaintainers(r); }}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleFetchMaintainers(r); } }}
+                                                    className="d-flex w-100 align-items-center justify-content-between"
+                                                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                                                >
                                                     <h4 id="report-title" className="mb-0 fw-bold" style={{ color: '#00205B', fontSize: '1.5rem' }}>{r.title}</h4>
                                                     <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem', marginRight: '0.5rem' }}>
                                                         <span
@@ -262,7 +267,7 @@ export default function TechnicalStaffHomepage() {
                                                         </span>
                                                         {new Date(r.createdAt).toLocaleString()}
                                                     </small>
-                                                </div>
+                                                </button>
                                             </Accordion.Header>
                                             <Accordion.Body>
                                                 {/* Top section: Images and Map side by side */}
@@ -366,29 +371,39 @@ export default function TechnicalStaffHomepage() {
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Update Status</h5>
                                                             {getAvailableActions(r.status).length > 0 ? (
                                                                 <div className="d-flex gap-2 flex-wrap">
-                                                                    {getAvailableActions(r.status).map(action => (
-                                                                        <Button
-                                                                            id={"switch-report-status" + r.title}
-                                                                            key={action.value}
-                                                                            variant={
-                                                                                action.value === 'Resolved' ? 'success' :
-                                                                                    action.value === 'InProgress' ? 'primary' :
-                                                                                        'warning'
-                                                                            }
-                                                                            size="lg"
-                                                                            disabled={updatingReportId === r.id}
-                                                                            onClick={() => handleStatusChange(r.id, action.value)}
-                                                                            className="auth-button-primary"
-                                                                            style={{
-                                                                                background: action.value === 'Resolved'
-                                                                                    ? 'linear-gradient(90deg, #28a745, #34ce57)'
-                                                                                    : action.value === 'InProgress'
-                                                                                        ? 'linear-gradient(90deg, #007bff, #0056b3)'
-                                                                                        : 'linear-gradient(90deg, #ffc107, #ff9800)',
-                                                                                border: 'none'
-                                                                            }}
-                                                                        >
-                                                                            {updatingReportId === r.id ? (
+                                                                    {getAvailableActions(r.status).map(action => {
+                                                                        let variant: string;
+                                                                        if (action.value === 'Resolved') {
+                                                                            variant = 'success';
+                                                                        } else if (action.value === 'InProgress') {
+                                                                            variant = 'primary';
+                                                                        } else {
+                                                                            variant = 'warning';
+                                                                        }
+                                                                    
+                                                                        let background: string;
+                                                                        if (action.value === 'Resolved') {
+                                                                            background = 'linear-gradient(90deg, #28a745, #34ce57)';
+                                                                        } else if (action.value === 'InProgress') {
+                                                                            background = 'linear-gradient(90deg, #007bff, #0056b3)';
+                                                                        } else {
+                                                                            background = 'linear-gradient(90deg, #ffc107, #ff9800)';
+                                                                        }
+                                                                    
+                                                                        return (
+                                                                            <Button
+                                                                                id={"switch-report-status" + r.title}
+                                                                                key={action.value}
+                                                                                variant={variant}
+                                                                                size="lg"
+                                                                                disabled={updatingReportId === r.id}
+                                                                                onClick={() => handleStatusChange(r.id, action.value)}
+                                                                                className="auth-button-primary"
+                                                                                style={{
+                                                                                    background,
+                                                                                    border: 'none'
+                                                                                }}
+                                                                            > {updatingReportId === r.id ? (
                                                                                 <>
                                                                                     <Loader2Icon
                                                                                         size={16}
@@ -396,9 +411,12 @@ export default function TechnicalStaffHomepage() {
                                                                                     />
                                                                                     Updating...
                                                                                 </>
-                                                                            ) : action.label}
-                                                                        </Button>
-                                                                    ))}
+                                                                            ) : (
+                                                                                <>{action.label}</>
+                                                                            )}
+                                                                            </Button>
+                                                                        );
+                                                                    })}
                                                                 </div>
                                                             ) : (
                                                                 <motion.div
