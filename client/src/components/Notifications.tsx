@@ -147,7 +147,7 @@ export default function Notifications() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.9)'
+                            boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.9)'
                         }}
                     >
                         {unreadCount > 9 ? '9+' : unreadCount}

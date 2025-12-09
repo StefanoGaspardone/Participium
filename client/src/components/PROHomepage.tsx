@@ -16,6 +16,32 @@ import "yet-another-react-lightbox/styles.css";
 
 interface PendingReport extends Report { }
 
+const AnimatedMenu = (props: MenuProps<any, false>) => (
+  <AnimatePresence>
+    {props.selectProps.menuIsOpen && (
+      <components.Menu {...props}>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+        >
+          {props.children}
+        </motion.div>
+      </components.Menu>
+    )}
+  </AnimatePresence>
+);
+
+const CategoryOption = (props: OptionProps<any, false>) => {
+  const id = `select-category-${String(props.data.value)}`;
+  return (
+    <div id={id}>
+      <components.Option {...props} />
+    </div>
+  );
+};
+
 export default function PROHomepage() {
   const { user } = useAppContext();
   const [reports, setReports] = useState<PendingReport[]>([]);
@@ -35,32 +61,6 @@ export default function PROHomepage() {
 
   // react-select options for categories
   const categoryOptions = categories.map((cat) => ({ value: String(cat.id), label: cat.name }));
-
-  const AnimatedMenu = (props: MenuProps<any, false>) => (
-    <AnimatePresence>
-      {props.selectProps.menuIsOpen && (
-        <components.Menu {...props}>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-          >
-            {props.children}
-          </motion.div>
-        </components.Menu>
-      )}
-    </AnimatePresence>
-  );
-
-  const CategoryOption = (props: OptionProps<any, false>) => {
-    const id = `select-category-${String(props.data.value)}`;
-    return (
-      <div id={id}>
-        <components.Option {...props} />
-      </div>
-    );
-  };
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
