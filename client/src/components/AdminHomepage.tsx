@@ -10,6 +10,48 @@ import "./AuthForms.css";
 import { toast } from "react-hot-toast";
 import Select, { components, type MenuProps, type SingleValue, type MultiValue, type OptionProps } from "react-select";
 
+type SelectOptionProps = OptionProps<any, false> & {
+  idPrefix: string;
+};
+
+export const SelectOption = (props: SelectOptionProps) => {
+  const id = `${props.idPrefix}${String(props.data?.value ?? '')}`;
+  return (
+    <div id={id}>
+      <components.Option {...props} />
+    </div>
+  );
+};
+
+export const RoleOption = (props: OptionProps<any, false> & { roleIdByValue: Record<string, string> }) => {
+  return <SelectOption {...props} idPrefix={props.roleIdByValue[props.data.value] ?? 'select-role'} />;
+};
+
+export const OfficeOption = (props: OptionProps<any, false> & { idPrefix?: string }) => {
+  return <SelectOption {...props} idPrefix={props.idPrefix ?? 'select-office'} />;
+};
+
+export const CompanyOption = (props: OptionProps<any, false> & { idPrefix?: string }) => {
+  return <SelectOption {...props} idPrefix={props.idPrefix ?? 'select-company'} />;
+};
+
+const AnimatedMenu = (props: MenuProps<any, false>) => (
+  <AnimatePresence>
+    {props.selectProps.menuIsOpen && (
+      <components.Menu {...props}>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+        >
+          {props.children}
+        </motion.div>
+      </components.Menu>
+    )}
+  </AnimatePresence>
+);
+
 export default function AdminHomepage() {
   const { user } = useAppContext();
 
@@ -53,50 +95,6 @@ export default function AdminHomepage() {
   const officeOptions = offices.map((o) => ({ value: String(o.id), label: o.name }));
   const companyOptions = companies.map((c) => ({ value: String(c.id), label: c.name }));
   const categoryOptions = categories.map((cat) => ({ value: String(cat.id), label: cat.name }));
-
-  const AnimatedMenu = (props: MenuProps<any, false>) => (
-    <AnimatePresence>
-      {props.selectProps.menuIsOpen && (
-        <components.Menu {...props}>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-          >
-            {props.children}
-          </motion.div>
-        </components.Menu>
-      )}
-    </AnimatePresence>
-  );
-
-  const RoleOption = (props: OptionProps<any, false>) => {
-    const id = roleIdByValue[props.data.value as string] ?? undefined;
-    return (
-      <div id={id}>
-        <components.Option {...props} />
-      </div>
-    );
-  };
-
-  const OfficeOption = (props: OptionProps<any, false>) => {
-    const id = `select-office${String(props.data.value)}`;
-    return (
-      <div id={id}>
-        <components.Option {...props} />
-      </div>
-    );
-  };
-
-  const CompanyOption = (props: OptionProps<any, false>) => {
-    const id = `select-company${String(props.data.value)}`;
-    return (
-      <div id={id}>
-        <components.Option {...props} />
-      </div>
-    );
-  };
 
   useEffect(() => {
     const fetchOffices = async () => {
@@ -356,7 +354,7 @@ export default function AdminHomepage() {
                           }
                           isDisabled={isSubmitting}
                           placeholder="Select a role"
-                          components={{ Menu: AnimatedMenu, Option: RoleOption }}
+                          components={{ Menu: AnimatedMenu, Option: (selectProps) => <RoleOption {...selectProps} roleIdByValue={roleIdByValue} /> }}
                           classNamePrefix="rs"
                         />
                       </Form.Group>
