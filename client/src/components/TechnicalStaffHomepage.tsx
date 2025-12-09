@@ -477,7 +477,7 @@ export default function TechnicalStaffHomepage() {
                                                                 <span id="chat-redirect-issuer" onClick={() => { setChatTargetUserId(r.createdBy?.id ?? null); setActiveReport(r); setShow(true); }} className="auth-link-inline">Click</span>
                                                                 {" "}to open chat with the report submitter
                                                             </motion.div>
-                                                            {r?.coAssignedTo && (
+                                                            {r?.coAssignedTo && r?.coAssignedTo.id !== 13 && (
                                                                 <motion.div className="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
                                                                     <span id="chat-redirect-maintainer" onClick={() => { setChatTargetUserId(r.coAssignedTo?.id ?? null); setActiveReport(r); setShow(true); }} className="auth-link-inline">Click</span>
                                                                     {" "}to open chat with the external maintainer
