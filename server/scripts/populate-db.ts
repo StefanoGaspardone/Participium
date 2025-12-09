@@ -337,7 +337,7 @@ async function upsertCompanies() {
 }
 
 async function deleteActualState() {
-    const tables = ['users', 'reports', 'office_roles', 'categories', 'notifications', 'messages', 'chats'];
+    const tables = ['users', 'reports', 'office_roles', 'categories', 'notifications', 'messages', 'chats', 'companies', 'company_categories'];
     for (const t of tables) {
         const sql = "TRUNCATE TABLE " + t + " RESTART IDENTITY CASCADE";
         await AppDataSource.query(sql);
