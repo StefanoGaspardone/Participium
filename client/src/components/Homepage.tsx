@@ -125,7 +125,7 @@ export default function HomePage({ selected, setSelected }: Props) {
               <p className="lead mb-4 px-2">
                 Participium is a web application for <strong>citizen participation</strong> in the
                 management of <strong>urban environments</strong>.<br />
-                It enables citizens to interact with the public administration by <strong>reporting </strong>
+                It enables citizens to interact with the public administration by <strong>reporting</strong> {" "}
                 local issues such as 🕳️ potholes, ♿ sidewalk barriers, 🗑️ trash on the streets,
                 💡 broken streetlights, and more.
               </p>

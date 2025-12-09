@@ -290,7 +290,12 @@ export default function TechnicalStaffHomepage() {
                                                                         </motion.button>
                                                                     )}
 
-                                                                    <div onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer' }}>
+                                                                    <button
+                                                                        type="button"
+                                                                        aria-label="View report image in fullscreen"
+                                                                        onClick={(e) => { e.stopPropagation(); openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length)); }}
+                                                                        style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                                                                    >
                                                                         <AnimatePresence mode="wait">
                                                                             <motion.img
                                                                                 key={getCurrentImageIndex(r.id, r.images.length)}
@@ -301,10 +306,9 @@ export default function TechnicalStaffHomepage() {
                                                                                 exit={{ opacity: 0, x: -18 }}
                                                                                 transition={{ duration: 0.28 }}
                                                                                 style={{ width: '100%', maxWidth: '460px', height: '270px', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
-                                                                                onClick={() => openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length))}
                                                                             />
                                                                         </AnimatePresence>
-                                                                    </div>
+                                                                    </button>
 
                                                                     {r.images.length > 1 && (
                                                                         <motion.button

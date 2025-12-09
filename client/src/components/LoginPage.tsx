@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { loginUser } from "../api/api";
 import { useAppContext } from "../contexts/AppContext";
 import { motion } from "framer-motion";
@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
+
 
   const { setUserFromToken } = useAppContext();
 
@@ -104,7 +104,7 @@ export default function LoginPage() {
                   </motion.div>
                   <motion.div className="mt-1 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
                     Still have to active your account?{" "}
-                    <span id="code-confirm-redirect" onClick = { () => navigate('/confirm-code', { state: { username: username.trim() } }) } className="auth-link-inline">Click here</span>
+                    <Link id="code-confirm-redirect" to="/confirm-code" state={{ username: username.trim() }} className="auth-link-inline">Click here</Link>
                   </motion.div>
                 </Card.Body>
               </Card>
