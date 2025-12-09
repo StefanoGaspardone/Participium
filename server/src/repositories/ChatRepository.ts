@@ -32,6 +32,7 @@ export class ChatRepository {
       .leftJoinAndSelect("report.createdBy", "createdBy")
       .leftJoinAndSelect("report.assignedTo", "assignedTo")
       .where("report.id = :reportId", { reportId: report })
+      .andWhere("tosm_user.id <> :blockedId AND second_user.id <> :blockedId", { blockedId: 13 })
       .orderBy("chat.id", "ASC")
       .getMany();
   };
@@ -49,7 +50,8 @@ export class ChatRepository {
       .leftJoinAndSelect("report.category", "category")
       .leftJoinAndSelect("report.createdBy", "createdBy")
       .leftJoinAndSelect("report.assignedTo", "assignedTo")
-      .where("tosm_user.id = :userId OR second_user.id = :userId", { userId })
+      .where("(tosm_user.id = :userId OR second_user.id = :userId)", { userId })
+      .andWhere("tosm_user.id <> :blockedId AND second_user.id <> :blockedId", { blockedId: 13 })
       .orderBy("chat.id", "ASC")
       .getMany();
   };
