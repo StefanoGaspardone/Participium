@@ -1,15 +1,34 @@
-# Create the Persistent VOLUME
- to do so, you have to create a docker volume, mapped to a directory to "save" datas across the runs, running the command:
- > docker volume create pg_participium_volume
- 
- this volume will be mapped to the "folder" used by postgres to save the datas
+## Create the `working` folder
 
-# Download the IMAGE
-once the volume to save datas is created, we have to pull the image from Docker Hub :
-> \*\*\*\*\*\*\*\*COMMAND\*\*\*\*\*\*\*\*
+First of all, you have to create a new folder, in which the actions to build the application will be executed
 
-# Run the CONTAINER
-once the image has been downloaded, we just have to run :
-> docker run <--name participium-app> -p 3000:3000 -p 5173:5173 -v pg_participium_volume:/var/lib/postgresql/data participium-group5
+## Move the `docker-compose.prod.yaml` and `prod.env` into `working`folder
 
-<--name participium-app> is optional, if used, it enables you to interact with the container using that name
+You now have to insert the file provided to you (`docker-compose.prod.yaml` and `prod.env`) inside the `working` folder previously created
+
+> [!WARNING]
+> The `prod.env` has to be kept and exchanged in a secure way because it contains sensitive information (e.g., passwords, secret keys, etc.)
+
+## Execute the application
+
+Now that everything you need is in the right place, you have to execute the following commands INSIDE of the `working` folder :
+
+Linux/MacOS environments :
+
+    docker compose -f ./docker-compose.prod.yaml --env-file ./prod.env up -d
+
+Windows environments :
+
+    docker compose -f .\docker-compose.prod.yaml --env-file .\prod.env up -d
+
+## Stop the application
+
+If you want to stop the application, you have to execute the following commands in the `working` folder :
+
+Linux/MacOS environments :
+
+    docker compose -f ./docker-compose.prod.yaml --env-file ./prod.env down --volumes --remove-orphans
+
+Windows environments :
+
+    docker compose -f .\docker-compose.prod.yaml --env-file .\prod.env down --volumes --remove-orphans

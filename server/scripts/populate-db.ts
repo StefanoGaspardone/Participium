@@ -5,7 +5,7 @@ import { OfficeDAO } from '@daos/OfficeDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { UserDAO } from '@daos/UserDAO';
 import { logInfo, logError } from '@utils/logger';
-import { UserType } from "@daos/UserDAO";
+import { UserDAO, UserType } from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import { NotificationDAO } from '@daos/NotificationsDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
