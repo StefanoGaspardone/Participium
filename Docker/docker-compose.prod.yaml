@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: participium_db
+    env_file:
+      - ./prod.env
+    environment:
+      # possiamo comunque mappare esplicitamente per chiarezza
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres_data_production:/var/lib/postgresql/data
+    restart: always
+
+  server:
+    image: participium-group5-server:latest
+    container_name: participium_server
+    env_file:
+      - ./prod.env
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      APP_PORT: ${APP_PORT:-3000}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      # opzionale: se preferisci che il server costruisca DATABASE_URL da solo, puoi rimuoverla da qui
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  client:
+    image: participium-group5-client:latest
+    container_name: participium_client
+    env_file:
+      - ./prod.env
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      # Nota: se il client è buildato statico (nginx), le VITE_* devono essere bake-ate al build-time.
+      # Se usi un runtime config (config.json), puoi evitare di passare VITE_* qui.
+    ports:
+      - "5173:5173"   # es. serve il client su 80 (adatta se l'immagine client usa nginx)
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

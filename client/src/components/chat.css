@@ -1,157 +1,255 @@
 .chat-wrapper {
-    position: fixed;
-    right: 1.5rem;
-    bottom: 1.5rem;
-    z-index: 20000;
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 20000;
 }
 
 .chat-toggle {
-    background-color: #0057A0;
-    color: #fff;
-    border-radius: 0.5rem;
-    outline: none;
-    border: none;
-    padding: 0.75rem 0.75rem;
-    font-size: 500;
-    transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    z-index: 20002;
-    box-shadow: 0 4px 12px rgba(2,6,23,0.1), 0 2px 4px rgba(2,6,23,0.06);
+  background-color: #0057a0;
+  color: #fff;
+  border-radius: 0.5rem;
+  outline: none;
+  border: none;
+  padding: 0.75rem 0.75rem;
+  font-size: 500;
+  transition: transform 160ms ease, background-color 160ms ease,
+    box-shadow 160ms ease, color 160ms ease;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 20002;
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.1), 0 2px 4px rgba(2, 6, 23, 0.06);
 }
 
 .chat-toggle:hover {
-    background-color: #01467e;
-    box-shadow: 0 6px 16px rgba(2,6,23,0.12), 0 4px 8px rgba(2,6,23,0.08);
-    transform: scale(1.05);
+  background-color: #01467e;
+  box-shadow: 0 6px 16px rgba(2, 6, 23, 0.12), 0 4px 8px rgba(2, 6, 23, 0.08);
+  transform: scale(1.05);
 }
 
 .chat-toggle:active {
-    background-color: #01335c;
-    transform: scale(.95);
+  background-color: #01335c;
+  transform: scale(0.95);
 }
 
 .chats-popover {
-    background-color: #E8F0FF;
-    padding: 0.75rem 0.75rem;
-    border-radius: 0.5rem;
-    outline: none;
-    border: none;
-    height: 31rem;
-    width: 40rem;
-    margin-bottom: 4rem;
-    box-shadow: 0 12px 30px rgba(2,6,23,0.12), 0 4px 8px rgba(2,6,23,0.06);
+  background-color: #e8f0ff;
+  padding: 0.75rem 0.75rem;
+  border-radius: 0.5rem;
+  outline: none;
+  border: none;
+  width: 980px;
+  max-width: 96vw;
+  height: 72vh;
+  max-height: 94vh;
+  margin-bottom: 4rem;
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12), 0 4px 8px rgba(2, 6, 23, 0.06);
 }
 
 @media (max-width: 768px) {
-    .chats-popover {
-        width: calc(100vw - 3rem);
-        height: calc(100vh - 8rem);
-        max-width: 100%;
-        margin-bottom: 4.5rem;
-    }
+  .chats-popover {
+    width: calc(100vw - 3rem);
+    height: calc(100vh - 8rem);
+    max-width: 100%;
+    margin-bottom: 4.5rem;
+  }
 
-    .chats-popover .col-4 {
-        display: none;
-    }
+  .chats-popover .col-4 {
+    display: none;
+  }
 
-    .chats-popover .col-8 {
-        width: 100% !important;
-    }
+  .chats-popover .col-8 {
+    width: 100% !important;
+  }
 
-    .chat-wrapper {
-        right: 1rem;
-        bottom: 1rem;
-    }
+  .chat-wrapper {
+    right: 1rem;
+    bottom: 1rem;
+  }
 
-    .chat-toggle {
-        padding: 0.5rem 0.5rem;
-    }
+  .chat-toggle {
+    padding: 0.5rem 0.5rem;
+  }
 }
 
 .chats-popover div ::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 .chat-loader {
-    color: #0057A0;
-    animation: chat-spin 1s linear infinite;
+  color: #0057a0;
+  animation: chat-spin 1s linear infinite;
 }
 
 @keyframes chat-spin {
-    to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .message-bubble {
-    max-width: 70%;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.75rem;
-    background: #ffffff;
-    box-shadow: 0 2px 6px rgba(2,6,23,0.06);
+  max-width: 70%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 6, 23, 0.06);
 }
 
 .message-bubble .small {
-    font-size: smaller;
+  font-size: smaller;
 }
 
 .message-bubble.mine {
-    background-color: #0057A0;
-    color: #fff;
+  background-color: #0057a0;
+  color: #fff;
 }
 
 .message-bubble.mine .small {
-    color: #fff !important;
+  color: #fff !important;
 }
 
 .message-bubble.other {
-    background: #ffffff;
+  background: #ffffff;
 }
 
 /* Ensure bubbles stay compact and align nicely */
 .message-bubble.mine {
-    margin-left: auto;
+  margin-left: auto;
 }
 .message-bubble.other {
-    margin-right: auto;
+  margin-right: auto;
 }
 
 .message-bubble {
-    word-break: break-word;
+  word-break: break-word;
 }
 
 @media (max-width: 768px) {
-    .message-bubble {
-        max-width: 85%;
-    }
+  .message-bubble {
+    max-width: 85%;
+  }
 }
 
 .chat-messages {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-messages-container {
-    position: relative;
+  position: relative;
 }
 
 .min-width-0 {
-    min-width: 0;
+  min-width: 0;
 }
 
 .chat-right-header {
-    flex-wrap: nowrap;
-    white-space: nowrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
-    .chat-right-header {
-        flex-wrap: wrap;
-    }
+  .chat-right-header {
+    flex-wrap: wrap;
+  }
 }
 
 /* make title and id white when a chat list item is active */
 .list-group-item.active .fw-semibold,
 .list-group-item.active .text-muted {
-    color: #fff !important;
+  color: #fff !important;
+}
+
+.chats-popover .list-group-item {
+  padding: 0.65rem 0.9rem;
+  align-items: center;
+}
+
+.chats-popover .list-group-item .rounded-circle {
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.chats-popover .list-group-item .fw-semibold {
+  font-size: 0.95rem;
+}
+
+/* active item visual */
+.chats-popover .list-group-item.active {
+  background: linear-gradient(
+    90deg,
+    rgba(13, 110, 253, 0.06),
+    rgba(13, 110, 253, 0.02)
+  );
+  border-left: 3px solid rgba(13, 110, 253, 0.6);
+}
+
+/* ensure truncation works */
+.chats-popover .min-width-0 {
+  min-width: 0;
+}
+
+.chats-popover .text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Layout fixes: left list and right chat header/input fixed; message area scrolls */
+.chats-popover .row {
+  height: 100%;
+}
+
+/* Ensure columns are flex-columns and allow internal scrolling */
+.chats-popover .col-5,
+.chats-popover .col-7 {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; /* important for overflow flex children to work */
+}
+
+/* Left column: header fixed, list scrollable */
+.chats-popover .col-5 > .p-2.border-bottom {
+  flex: 0 0 auto;
+}
+.chats-popover .col-5 > .flex-grow-1 {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* Right column container: ensure full height flex column */
+.chat-messages-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Right column: header and input fixed, messages scroll */
+.chat-right-header {
+  flex: 0 0 auto;
+  z-index: 1;
+}
+.chat-input {
+  flex: 0 0 auto;
+  z-index: 1;
+}
+.chat-messages {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+  padding: 1rem;
+}
+
+/* Make sure list-group fills available area */
+.chats-popover .list-group {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.chats-popover .list-group .list-group-item {
+  white-space: normal;
 }

@@ -65,8 +65,8 @@ export class MailService {
         try {
             const info = await this.transporter.sendMail(mailDetails);
             return info;
-        } catch {
-            // swallow catch
+        } catch(error) {
+            logError('[EMAIL SENDING] Error while sending email: ', error);
         }
     }
 }

@@ -11,8 +11,7 @@ import {
   createReport,
   type CreateReportPayload,
 } from "../api/api";
-import type { Category, Coord } from "../models/models";
-import { isApiError, type FieldErrors } from "../models/models";
+import { isApiError, type Category, type Coord, type FieldErrors } from "../models/models";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import Select, { components, type MenuProps, type SingleValue, type OptionProps } from "react-select";
@@ -21,6 +20,32 @@ import "./AuthForms.css";
 type Props = {
   selected: Coord | null;
   setSelected: React.Dispatch<React.SetStateAction<Coord | null>>;
+};
+
+const AnimatedMenu = (props: MenuProps<any, false>) => (
+  <AnimatePresence>
+    {props.selectProps.menuIsOpen && (
+      <components.Menu {...props}>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+        >
+          {props.children}
+        </motion.div>
+      </components.Menu>
+    )}
+  </AnimatePresence>
+);
+
+const CategoryOption = (props: OptionProps<any, false>) => {
+  const id = `select-category-${String(props.data.value)}`;
+  return (
+    <div id={id}>
+      <components.Option {...props} />
+    </div>
+  );
 };
 
 export default function UploadReport({ selected, setSelected }: Props) {
@@ -299,7 +324,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.4 }}>
                   <Form.Group className="mb-3">
                     <Form.Label>Category</Form.Label>
-                    <Select
+                    <Select<{ value: string; label: string }>
                       inputId="select-category"
                       instanceId="select-category"
                       ref={categorySelectRef}
@@ -309,21 +334,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
                       placeholder="Select a category"
                       isDisabled={isSubmitting}
                       classNamePrefix="rs"
-                      components={{
-                        Menu: (props: MenuProps<any, false>) => (
-                          <AnimatePresence>
-                            {props.selectProps.menuIsOpen && (
-                              <components.Menu {...props}>
-                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.18, ease: "easeOut" }}>
-                                  {props.children}
-                                </motion.div>
-                              </components.Menu>
-                            )}
-                          </AnimatePresence>
-                        ), Option: (props: OptionProps<any, false>) => (
-                          <div id={`category-${props.data.value}`}><components.Option {...props} /></div>
-                        )
-                      }}
+                      components={{ Menu: AnimatedMenu, Option: CategoryOption }}
                     />
                     {fieldErrors.categoryId && (
                       <div className="text-danger mt-1">
@@ -360,16 +371,15 @@ export default function UploadReport({ selected, setSelected }: Props) {
                       ))}
                       {images.length < 3 && (
                         <Col xs={12} sm={6} md={4}>
-                          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }}
+                          <motion.button initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }}
                             id="add-image-button"
-                            role="button"
                             onClick={onClickAddImage}
-                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClickAddImage(); }}
-                            tabIndex={0}
                             className="add-image-tile"
+                            type="button"
+                            aria-label="Add image"
                           >
                             Click to add an image
-                          </motion.div>
+                          </motion.button>
                         </Col>
                       )}
                     </Row>
