@@ -92,6 +92,7 @@ describe('ChatRepository (mock)', () => {
       const queryBuilder: any = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue(mockChats)
       };
@@ -119,6 +120,7 @@ describe('ChatRepository (mock)', () => {
       const queryBuilder: any = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([])
       };
@@ -151,6 +153,7 @@ describe('ChatRepository (mock)', () => {
       const queryBuilder: any = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue(mockChats)
       };
@@ -167,8 +170,7 @@ describe('ChatRepository (mock)', () => {
       expect(fakeRepo.createQueryBuilder).toHaveBeenCalledWith('chat');
       expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledTimes(6);
       expect(queryBuilder.where).toHaveBeenCalledWith(
-        'tosm_user.id = :userId OR second_user.id = :userId',
-        { userId: 2 }
+          "(tosm_user.id = :userId OR second_user.id = :userId)", {"userId": 2}
       );
       expect(queryBuilder.orderBy).toHaveBeenCalledWith('chat.id', 'ASC');
       expect(result).toHaveLength(2);
@@ -178,6 +180,7 @@ describe('ChatRepository (mock)', () => {
       const queryBuilder: any = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([])
       };
