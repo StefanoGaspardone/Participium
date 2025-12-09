@@ -14,6 +14,7 @@ import { fetchAddress } from './HomepageMap';
 import { Lightbox } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { REPORT_STATUS_COLORS } from '../constants/reportStatusColors';
+import { Link } from 'react-router-dom';
 
 export default function TechnicalStaffHomepage() {
     const [reports, setReports] = useState<Report[]>([]);
@@ -27,6 +28,7 @@ export default function TechnicalStaffHomepage() {
     const [show, setShow] = useState<boolean>(false);
     const [expanded, setExpanded] = useState<number | null>(null);
     const [activeReport, setActiveReport] = useState<Report | null>(null);
+    const [chatTargetUserId, setChatTargetUserId] = useState<number | null>(null);
     const [imageIndexByReport, setImageIndexByReport] = useState<Record<number, number>>({});
     const [addressByReport, setAddressByReport] = useState<Record<number, string>>({});
 
@@ -137,7 +139,7 @@ export default function TechnicalStaffHomepage() {
         if (!maintainerId) return;
         try {
             setAssigningReportId(reportId);
-            const report = await assignReportToExternalMaintainer(reportId, maintainerId);            
+            const report = await assignReportToExternalMaintainer(reportId, maintainerId);
             setReports(prev => prev.map(r => r.id === reportId ? report : r));
         } catch (e) {
             console.error('Failed to assign external maintainer', e);
@@ -182,7 +184,7 @@ export default function TechnicalStaffHomepage() {
                         {user?.office ? `${user.office} office` : 'Office'}
                     </motion.h1>
                     <motion.h2
-                        className="mb-4 text-center auth-title"
+                        className="text-center auth-title"
                         initial={{ opacity: 0, y: -12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
@@ -236,8 +238,7 @@ export default function TechnicalStaffHomepage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.08, duration: 0.4 }}
                                 >
-                                    <Card className="mb-3 auth-card">
-                                        <Accordion.Item eventKey={String(r.id)}>
+                                        <Accordion.Item eventKey={String(r.id)} className="mt-4">
                                             <Accordion.Header
                                                 onClick={() => handleRToggle(r.id)}
                                             >
@@ -407,24 +408,9 @@ export default function TechnicalStaffHomepage() {
                                                                 </motion.div>
                                                             )}
                                                         </div>
-
-                                                        {/* Send message button */}
-                                                        <div>
-                                                            <h5 style={{ color: '#00205B', fontWeight: 600 }}>Comunication</h5>
-
-                                                            <Button
-                                                                variant="link"
-                                                                className="me-2 p-0"
-                                                                onClick={() => { setActiveReport(r); setShow(true); }}
-                                                                aria-label={`open-chat-${r.id}`}
-                                                            >
-                                                                Click
-                                                            </Button>
-                                                            <span className="me-2" style={{ marginRight: '0.5rem', color: '#6c757d' }}> to open chat with the report submitter</span>
-                                                        </div>
                                                     </div>
                                                     <div className='col-6'>
-                                                        <div className="mb-4">
+                                                        <div className="mb-3">
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Assign to an external maintainer</h5>
                                                             {r?.coAssignedTo ? (
                                                                 r?.coAssignedTo.id === 13 ? (
@@ -440,7 +426,7 @@ export default function TechnicalStaffHomepage() {
                                                                 )
                                                             ) : (
                                                                 <div>
-                                                                    <div className="d-flex align-items-center gap-2 mb-2">
+                                                                    <div className="d-flex align-items-center gap-2 mb-1">
                                                                         <select
                                                                             id={`assign-maintainer-select-${r.id}`}
                                                                             className="form-select"
@@ -463,7 +449,6 @@ export default function TechnicalStaffHomepage() {
                                                                             variant="primary"
                                                                             onClick={() => handleAssignMaintainer(r.id)}
                                                                             disabled={!selectedMaintainerByReportId[r.id] || assigningReportId === r.id}
-                                                                            className="auth-button-primary"
                                                                         >
                                                                             {assigningReportId === r.id ? (
                                                                                 <>
@@ -475,37 +460,40 @@ export default function TechnicalStaffHomepage() {
                                                                             )}
                                                                         </Button>
                                                                     </div>
-                                                                    <span className="ms-2 align-middle" style={{ marginRight: '0.5rem', color: '#6c757d' }}>or</span>
-                                                                    <Button
-                                                                        id={`assign-outside-button-${r.id}`}
-                                                                        variant="link"
-                                                                        className="p-0"
-                                                                        disabled={assigningReportId === r.id}
-                                                                        onClick={() => handleAssignMaintainer(r.id, 13)}
-                                                                    >
-                                                                        {assigningReportId === r.id ? (
-                                                                            <>
-                                                                                <Loader2Icon size={16} className="animate-spin me-1" />
-                                                                                Assigning...
-                                                                            </>
-                                                                        ) : (
-                                                                            'assign to maintainer out of Participium'
-                                                                        )}
-                                                                    </Button>
+                                                                    <motion.div className="mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
+                                                                        or{" "}
+                                                                        <span id={`assign-outside-button-${r.id}`}
+                                                                            onClick={() => handleAssignMaintainer(r.id, 13)}
+                                                                            className="auth-link-inline"
+                                                                        > assign to maintainer out of participium
+                                                                        </span>
+                                                                    </motion.div>
                                                                 </div>
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <h5 style={{ color: '#00205B', fontWeight: 600 }}>Comunication</h5>
+                                                            <motion.div className="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
+                                                                <span id="chat-redirect-issuer" onClick={() => { setChatTargetUserId(r.createdBy?.id ?? null); setActiveReport(r); setShow(true); }} className="auth-link-inline">Click</span>
+                                                                {" "}to open chat with the report submitter
+                                                            </motion.div>
+                                                            {r?.coAssignedTo && (
+                                                                <motion.div className="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
+                                                                    <span id="chat-redirect-maintainer" onClick={() => { setChatTargetUserId(r.coAssignedTo?.id ?? null); setActiveReport(r); setShow(true); }} className="auth-link-inline">Click</span>
+                                                                    {" "}to open chat with the external maintainer
+                                                                </motion.div>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </Accordion.Body>
                                         </Accordion.Item>
-                                    </Card>
                                 </motion.div>
                             ))}
                         </Accordion>
                     )}
                 </div>
-                <Chats show={show} handleToggle={handleToggle} activeReport={activeReport} setActiveReport={setActiveReport} />
+                <Chats show={show} handleToggle={handleToggle} activeReport={activeReport} setActiveReport={setActiveReport} targetUserId={chatTargetUserId} />
             </div>
             <Lightbox
                 open={lightboxOpen}
@@ -513,7 +501,7 @@ export default function TechnicalStaffHomepage() {
                 slides={lightboxSlides}
                 index={lightboxIndex}
                 controller={{ closeOnBackdropClick: true }}
-                on={{ index: (newIndex: number) => setLightboxIndex(newIndex) as any }}
+                on={{ index: (newIndex: number) => setLightboxIndex(newIndex) } as any}
             />
         </>
     );

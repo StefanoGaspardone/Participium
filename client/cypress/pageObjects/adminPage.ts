@@ -1,4 +1,4 @@
-import { HOMEPAGE_URL, ADMINPAGE_URL, LOGINPAGE_URL } from "../support/utils";
+import { ADMINPAGE_URL } from "../support/utils";
 
 const adminPage = {
   url: ADMINPAGE_URL,
@@ -23,31 +23,45 @@ const adminPage = {
    * @param choice is related to the role (it's valid only if 0 <= choice <= 3)
    */
   selectRole: (choice: number) => {
-    let role: string = "";
-    if (choice < 0 && choice > 3) {
-        return;
+    const roleIdByChoice: Record<number, string> = {
+      0: "municipal_administrator",
+      1: "public_relations_officer",
+      2: "technical_staff_member",
+      3: "external_maintainer",
+    };
+    if (choice < 0 || choice > 3) {
+      return;
     }
-    if (choice === 0) {
-      role = "MUNICIPAL_ADMINISTRATOR";
-    } else if (choice === 1) {
-      role = "PUBLIC_RELATIONS_OFFICER";
-    } else if (choice === 2) {
-      role = "TECHNICAL_STAFF_MEMBER";
-    }
-    cy.get('[id="open-roles"]').focus().select(role);
+    const optionId = roleIdByChoice[choice];
+    cy.get('#open-roles').click();
+    cy.get(`#${optionId}`).click();
   },
   /**
    * @param choice is related to the office (it's valid only if 1 <= choice <= 5)
    */
   selectOffice: (choice: number) => {
-    if (choice < 1 && choice > 5) {
-        return;
-    } else {
-        cy.get('[id="open-offices"]').focus().select(choice.toString());
+    if (choice < 1 || choice > 5) {
+      return;
     }
+    cy.get('#open-offices').click();
+    cy.get(`#select-office${choice}`).click();
   },
-  submitReport: () => {
+  /**
+   * Select an existing company by id value
+   */
+  selectCompany: (choice: number) => {
+    if (choice < 1) {
+      return;
+    }
+    cy.get('#open-companies').click();
+    cy.get(`#select-company${choice}`).click();
+  },
+  submitAccount: () => {
     cy.get('[id="create-account-button"]').focus().click();
+  },
+
+  clickHomepage: () => {
+    cy.get('[id="to-homepage"]').click();
   }
 };
 

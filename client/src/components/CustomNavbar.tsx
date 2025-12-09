@@ -87,7 +87,7 @@ export default function CustomNavbar() {
             />
           </div>
 
-          <motion.div
+          <motion.div id = 'to-homepage'
             onClick={handleBrandClick}
             role="button"
             tabIndex={0}
@@ -125,7 +125,8 @@ export default function CustomNavbar() {
                       padding: '0.25rem 0.55rem',
                       borderRadius: 6,
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      marginRight: '1rem',
                     }}
                     initial={false}
                     animate={{ scale: profileHover ? 1.06 : 1 }}

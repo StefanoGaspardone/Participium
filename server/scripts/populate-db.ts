@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import { AppDataSource, initializeDatabase, closeDatabase } from '@database';
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
+import { UserDAO } from '@daos/UserDAO';
 import { logInfo, logError } from '@utils/logger';
 import { UserDAO, UserType } from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
@@ -47,7 +48,7 @@ const CATEGORIES: Array<{ name: string; office: string }> = [
 ];
 
 async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number; company?:number }>) {
-    const repo = AppDataSource.getRepository('UserDAO');
+    const repo = AppDataSource.getRepository(UserDAO);
 
     for(const { username, email, password, firstName, lastName, userType, office, company } of users) {
         const trimmedUsername = username.trim();
@@ -145,7 +146,7 @@ async function upsertCategories(items: Array<{ name: string; office: string }>, 
 }
 
 async function upsertReports() {
-    const userRepo = AppDataSource.getRepository('UserDAO');
+    const userRepo = AppDataSource.getRepository(UserDAO);
     const categoryRepo = AppDataSource.getRepository(CategoryDAO);
     const reportRepo = AppDataSource.getRepository(ReportDAO);
 
@@ -243,7 +244,7 @@ async function upsertReports() {
 }
 
 async function upsertNotifications() {
-    const userRepo = AppDataSource.getRepository('UserDAO');
+    const userRepo = AppDataSource.getRepository(UserDAO);
     const reportRepo = AppDataSource.getRepository(ReportDAO);
     const notifRepo = AppDataSource.getRepository(NotificationDAO);
 
@@ -345,41 +346,6 @@ async function deleteActualState() {
     }
 }
 
-async function ensureTestUserConfirmation() {
-    const userRepo = AppDataSource.getRepository('UserDAO');
-    const codeRepo = AppDataSource.getRepository('CodeConfirmationDAO');
-
-    const user = await userRepo.findOne({ where: { username: 'testuser' } });
-    if (!user) {
-        logError('[populate-db] testuser not found; skipping code confirmation creation');
-        return;
-    }
-
-    // make sure user is not active (so confirmation is required)
-    if (user.isActive) {
-        user.isActive = false;
-        await userRepo.save(user);
-        logInfo('[populate-db] Marked testuser as inactive');
-    }
-
-    const expiration = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
-
-    let existing = await codeRepo.findOne({ where: { user: { id: user.id } }, relations: ['user'] });
-    if (!existing) {
-        const cc = codeRepo.create({ code: '123456', expirationDate: expiration, user });
-        await codeRepo.save(cc);
-        logInfo('[populate-db] Created code confirmation for testuser (123456)');
-    } else {
-        existing.code = '123456';
-        existing.expirationDate = expiration;
-        const u = new UserDAO();
-        u.id = user.id;
-        existing.user = u as any;
-        await codeRepo.save(existing);
-        logInfo('[populate-db] Updated existing code confirmation for testuser to 123456');
-    }
-}
-
 async function main() {
     try {
         await initializeDatabase();
@@ -390,9 +356,6 @@ async function main() {
         await upsertCategories(CATEGORIES, rolesByName);
         await upsertCompanies();
         await upsertUsers(USERS);
-
-        // ensure test user has a pending code confirmation with code 123456
-        await ensureTestUserConfirmation();
 
         await upsertReports();
         await upsertNotifications();
