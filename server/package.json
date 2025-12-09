@@ -16,7 +16,8 @@
 		"db:dev:start": "docker compose -f ./docker/postgres/docker-compose.yaml up -d",
 		"db:dev:stop": "docker compose -f ./docker/postgres/docker-compose.yaml down",
 		"populate-db": "ts-node -r tsconfig-paths/register scripts/populate-db.ts",
-		"test:unit": "jest --testPathPatterns=test/unit --runInBand",
+		"test:unit": "jest --config jest.unit.config.ts --testPathPatterns=test/unit --runInBand",
+		"test:integration": "jest --config jest.integration.config.ts --testPathPatterns=test/integration --runInBand",
 		"test:e2e": "jest --testPathPatterns=test/e2e --runInBand"
 	},
 	"keywords": [],
