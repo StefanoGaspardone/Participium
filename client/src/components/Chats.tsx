@@ -32,6 +32,23 @@ const getOtherUser = (chat: Chat, currentUserId?: number) => {
     return chat.tosm_user;
 };
 
+const getBadgeProps = (status: string | undefined) => {
+    const statusColor = status ? REPORT_STATUS_COLORS[status] : undefined;
+    if (!statusColor) return {};
+    if (statusColor.startsWith('#')) {
+        return { style: { backgroundColor: statusColor } } as { style: React.CSSProperties };
+    }
+    return { bg: statusColor } as { bg?: string };
+};
+
+const getSenderId = (rawSender: number | { id?: number } | undefined): number | undefined => {
+    if (typeof rawSender === 'number') return rawSender;
+    return rawSender?.id;
+};
+
+const sortMessages = (messages?: Message[]) =>
+    messages ? [...messages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()) : undefined;
+
 const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId, }: Props) => {
     const popoverRef = useRef<HTMLDivElement | null>(null);
     const toggleRef = useRef<HTMLButtonElement | null>(null);
@@ -95,26 +112,25 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
         }
     };
 
-    let chatListContent;
+    const renderChatListContent = () => {
+        if (chatsLoading) {
+            return (
+                <div className="d-flex align-items-center justify-content-center h-100">
+                    <Loader2 className="chat-loader" size={32} />
+                </div>
+            );
+        }
 
-    if (chatsLoading) {
-        // Case 1: Loading
-        chatListContent = (
-            <div className="d-flex align-items-center justify-content-center h-100">
-                <Loader2 className="chat-loader" size={32} />
-            </div>
-        );
-    } else if (!chats || chats.length === 0) {
-        // Case 2: No chats
-        chatListContent = (
-            <div className="p-3 text-center text-muted">
-                <p className="mb-1">No chats yet.</p>
-                <small>Click "Send message" on a report to start.</small>
-            </div>
-        );
-    } else {
-        // Case 3: Chat list
-        chatListContent = (
+        if (!chats || chats.length === 0) {
+            return (
+                <div className="p-3 text-center text-muted">
+                    <p className="mb-1">No chats yet.</p>
+                    <small>Click "Send message" on a report to start.</small>
+                </div>
+            );
+        }
+
+        return (
             <div className="list-group list-group-flush">
                 {chats.map((chat) => {
                     const otherUser = getOtherUser(chat, user?.id);
@@ -124,14 +140,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                     const otherUserTypeLabel = otherUser?.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN";
                     const otherUserDetails = otherUser ? `${otherUser.firstName} ${otherUser.lastName} - ${otherUserTypeLabel}` : '';
 
-                    const statusColor = REPORT_STATUS_COLORS[chat.report.status];
-                    let badgeProps: { bg?: string; style?: React.CSSProperties; };
-
-                    if (statusColor?.startsWith('#')) {
-                        badgeProps = { style: { backgroundColor: statusColor } };
-                    } else {
-                        badgeProps = { bg: statusColor };
-                    }
+                    const badgeProps = getBadgeProps(chat.report.status);
 
                     return (
                         <button
@@ -160,7 +169,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                     <small className="text-muted">#{chat.report.id}</small>
                                 </div>
 
-                                <div className="small text-truncate text-muted mb-1">
+                                <div className="small text-truncate mb-1 other-user-details" >
                                     {otherUserDetails}
                                 </div>
 
@@ -176,44 +185,41 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                 })}
             </div>
         );
-    }
+    };
 
-    const sortedShowedMessages = showedMessages
-        ? [...showedMessages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime())
-        : undefined;
+    const chatListContent = renderChatListContent();
 
-    let messageContent;
+    const sortedShowedMessages = sortMessages(showedMessages);
 
-    if (messagesLoading) {
-        // Case 1: Loading
-        messageContent = (
-            <div className="h-100 d-flex align-items-center justify-content-center">
-                <Loader2 className="chat-loader" size={32} />
-            </div>
-        );
-    } else if (error) {
-        // Case 2: Error
-        messageContent = (
-            <Alert variant="danger" className="text-center mb-0">
-                {error}
-            </Alert>
-        );
-    } else if (!sortedShowedMessages || sortedShowedMessages.length === 0) {
-        // Case 3: No messages
-        messageContent = (
-            <div className="h-100 d-flex align-items-center justify-content-center text-muted">
-                No messages yet. Start the conversation!
-            </div>
-        );
-    } else {
-        // Case 4: There are messages to show
-        messageContent = (
+    const renderMessageContent = () => {
+        if (messagesLoading) {
+            return (
+                <div className="h-100 d-flex align-items-center justify-content-center">
+                    <Loader2 className="chat-loader" size={32} />
+                </div>
+            );
+        }
+
+        if (error) {
+            return (
+                <Alert variant="danger" className="text-center mb-0">
+                    {error}
+                </Alert>
+            );
+        }
+
+        if (!sortedShowedMessages || sortedShowedMessages.length === 0) {
+            return (
+                <div className="h-100 d-flex align-items-center justify-content-center text-muted">
+                    No messages yet. Start the conversation!
+                </div>
+            );
+        }
+
+        return (
             <>
                 {sortedShowedMessages.map((msg) => {
-                    const rawSender = msg.sender;
-                    const senderId: number | undefined =
-                        typeof rawSender === "number" ? rawSender : rawSender?.id;
-
+                    const senderId = getSenderId(msg.sender);
                     const isMine = senderId === user?.id;
                     const justifyClass = isMine ? "justify-content-end" : "justify-content-start";
                     const timeClass = isMine ? 'text-end' : 'text-start';
@@ -240,7 +246,9 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                 <div ref={messagesEndRef} />
             </>
         );
-    }
+    };
+
+    const messageContent = renderMessageContent();
 
     // Fetch all chats when popover opens
     useEffect(() => {

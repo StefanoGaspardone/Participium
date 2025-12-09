@@ -326,39 +326,47 @@ export default function ExternalPage() {
                                                         <h5 style={{ color: '#00205B', fontWeight: 600 }}>Update Status</h5>
                                                         {getAvailableActions(r.status).length > 0 ? (
                                                             <div className="d-flex gap-2 flex-wrap">
-                                                                {getAvailableActions(r.status).map(action => (
-                                                                    <Button
-                                                                        id={"switch-report-status" + r.title}
-                                                                        key={action.value}
-                                                                        variant={
-                                                                            action.value === 'Resolved' ? 'success' :
-                                                                                action.value === 'InProgress' ? 'primary' :
-                                                                                    'warning'
-                                                                        }
-                                                                        size="lg"
-                                                                        disabled={updatingReportId === r.id}
-                                                                        onClick={() => handleStatusChange(r.id, action.value)}
-                                                                        className="auth-button-primary"
-                                                                        style={{
-                                                                            background: action.value === 'Resolved'
-                                                                                ? 'linear-gradient(90deg, #28a745, #34ce57)'
-                                                                                : action.value === 'InProgress'
-                                                                                    ? 'linear-gradient(90deg, #007bff, #0056b3)'
-                                                                                    : 'linear-gradient(90deg, #ffc107, #ff9800)',
-                                                                            border: 'none'
-                                                                        }}
-                                                                    >
-                                                                        {updatingReportId === r.id ? (
-                                                                            <>
-                                                                                <Loader2Icon
-                                                                                    size={16}
-                                                                                    className="animate-spin me-1"
-                                                                                />
-                                                                                Updating...
-                                                                            </>
-                                                                        ) : action.label}
-                                                                    </Button>
-                                                                ))}
+                                                                {getAvailableActions(r.status).map(action => {
+                                                                    let btnVariant = 'warning';
+                                                                    if (action.value === 'Resolved') {
+                                                                        btnVariant = 'success';
+                                                                    } else if (action.value === 'InProgress') {
+                                                                        btnVariant = 'primary';
+                                                                    }
+        
+                                                                    let btnBackground = 'linear-gradient(90deg, #ffc107, #ff9800)';
+                                                                    if (action.value === 'Resolved') {
+                                                                        btnBackground = 'linear-gradient(90deg, #28a745, #34ce57)';
+                                                                    } else if (action.value === 'InProgress') {
+                                                                        btnBackground = 'linear-gradient(90deg, #007bff, #0056b3)';
+                                                                    }
+        
+                                                                    return (
+                                                                        <Button
+                                                                            id={"switch-report-status" + r.title}
+                                                                            key={action.value}
+                                                                            variant={btnVariant}
+                                                                            size="lg"
+                                                                            disabled={updatingReportId === r.id}
+                                                                            onClick={() => handleStatusChange(r.id, action.value)}
+                                                                            className="auth-button-primary"
+                                                                            style={{
+                                                                                background: btnBackground,
+                                                                                border: 'none'
+                                                                            }}
+                                                                        >
+                                                                            {updatingReportId === r.id ? (
+                                                                                <>
+                                                                                    <Loader2Icon
+                                                                                        size={16}
+                                                                                        className="animate-spin me-1"
+                                                                                    />
+                                                                                    Updating...
+                                                                                </>
+                                                                            ) : action.label}
+                                                                        </Button>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         ) : (
                                                             <motion.div

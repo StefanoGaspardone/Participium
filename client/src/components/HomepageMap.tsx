@@ -277,7 +277,7 @@ const MapUpdater = ({ position }: { position: Coord | null }) => {
     return null;
 }
 
-export default function Map({ selected, setSelected }: Props) {
+export default function MapDefault({ selected, setSelected }: Props) {
     const center = { lat: 45.06985, lng: 7.68228 };
     const zoom = 11;
     const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);

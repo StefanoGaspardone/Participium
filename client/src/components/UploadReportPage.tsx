@@ -1,7 +1,7 @@
 import CustomNavbar from "./CustomNavbar";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Map from "./HomepageMap";
+import MapDefault from "./HomepageMap";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import "./upload.css";
 import { Loader2Icon, XIcon } from "lucide-react";
@@ -247,7 +247,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
               <Form onSubmit={handleSubmit} className="d-flex flex-column auth-grid-gap">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.4 }}>
                   <section className="upload-map mb-3">
-                    <Map selected={selected} setSelected={setSelected} />
+                    <MapDefault selected={selected} setSelected={setSelected} />
                   </section>
                 </motion.div>
                 <Row className="mb-1">
