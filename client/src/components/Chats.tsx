@@ -270,15 +270,24 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                                                 </div>
 
                                                                 <div className="small text-truncate text-muted mb-1">
-                                                                    {/* mostra qui l'ultima preview se disponibile (se il modello chat include lastMessage o puoi usare showedMessages cache) */}
-                                                                    {chat.lastMessage ? chat.lastMessage.text : (chat.second_user ? `${chat.second_user.firstName} ${chat.second_user.lastName}` : '')}
+                                                                    {chat.second_user ? `${chat.second_user.firstName} ${chat.second_user.lastName} - ${chat.second_user.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN"}` : ''}
                                                                 </div>
 
                                                                 <div className="d-flex gap-2 align-items-center">
                                                                     {/* status badge usando REPORT_STATUS_COLORS */}
                                                                     <Badge
-                                                                        bg={REPORT_STATUS_COLORS[chat.report.status] && !REPORT_STATUS_COLORS[chat.report.status].startsWith('#') ? REPORT_STATUS_COLORS[chat.report.status] : undefined}
-                                                                        style={REPORT_STATUS_COLORS[chat.report.status] && REPORT_STATUS_COLORS[chat.report.status].startsWith('#') ? { backgroundColor: REPORT_STATUS_COLORS[chat.report.status] } : undefined}
+                                                                        bg={
+                                                                            // REPORT_STATUS_COLORS is expected to be a map like { Assigned: "primary", Resolved: "success", ... }
+                                                                            // It may contain hex colors — if so, react-bootstrap `Badge` accepts only variant names (primary, success...)
+                                                                            // If REPORT_STATUS_COLORS uses raw colors, we fallback to inline style.
+                                                                            REPORT_STATUS_COLORS[chat.report.status] || undefined
+                                                                        }
+                                                                        style={
+                                                                            // if the color is a hex/RGB string (not a bootstrap variant), apply as backgroundColor and keep bg undefined
+                                                                            REPORT_STATUS_COLORS[chat.report.status] && REPORT_STATUS_COLORS[chat.report.status].startsWith('#')
+                                                                                ? { backgroundColor: REPORT_STATUS_COLORS[chat.report.status] }
+                                                                                : undefined
+                                                                        }
                                                                     >
                                                                         {chat.report.status}
                                                                     </Badge>
@@ -342,7 +351,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                                                 </div>
                                                                 <div className="small text-muted text-truncate">
                                                                     {otherUser
-                                                                        ? `${otherUser.firstName} ${otherUser.lastName}`
+                                                                        ? `${otherUser.firstName} ${otherUser.lastName} - ${otherUser.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN"}`
                                                                         : "Loading..."}
                                                                 </div>
                                                             </div>
