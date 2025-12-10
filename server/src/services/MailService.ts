@@ -22,27 +22,31 @@ export class MailService {
         this.fromAddress = CONFIG.MAIL.MAIL_FROM_ADDRESS; 
         this.fromName = CONFIG.MAIL.MAIL_FROM_NAME;
 
+        const smtpHost = CONFIG.MAIL.SMTP_HOST;
+        const smtpPort = CONFIG.MAIL.SMTP_PORT;
         const smtpUser = CONFIG.MAIL.SMTP_USER;
-        const clientId = CONFIG.MAIL.OAUTH_CLIENT_ID;
-        const clientSecret = CONFIG.MAIL.OAUTH_CLIENT_SECRET;
-        const refreshToken = CONFIG.MAIL.OAUTH_REFRESH_TOKEN;
+        const smtpPass = CONFIG.MAIL.SMTP_PASS;
+
+        if(!smtpPass) this.transporter = null;
 
         this.transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: smtpHost,         
+            port: smtpPort,         
+            secure: smtpPort === 465,
             auth: {
-                type: 'OAuth2',
                 user: smtpUser,
-                clientId: clientId,
-                clientSecret: clientSecret,
-                refreshToken: refreshToken,
+                pass: smtpPass,
             },
+            
             pool: true,
             maxConnections: 5,
-            rateLimit: 10,
+            maxMessages: 100,
+            rateLimit: 1,
+            rateDelta: 1000,
         });
 
         this.transporter.verify()
-            .then(() => logInfo(`[EMAIL SETUP] OAuth client is ready and emails will be sent from: ${this.fromAddress}`))
+            .then(() => logInfo(`[EMAIL SETUP] SMTP transporter for ${smtpHost} is ready. Emails will be sent from: ${this.fromAddress}`))
             .catch(error => {
                 logError('[EMAIL SETUP] SMTP verification error. Check HOST, PORT and CREDENTIALS.', error.message);
                 this.transporter = null;
