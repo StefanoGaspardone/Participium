@@ -42,7 +42,7 @@ export class MailService {
         });
 
         this.transporter.verify()
-            .then(() => logInfo(`[EMAIL SETUP] SMTP transporter for ${smtpHost} is ready. Emails will be sent from: ${this.fromAddress}`))
+            .then(() => logInfo(`[EMAIL SETUP] OAuth client is ready and emails will be sent from: ${this.fromAddress}`))
             .catch(error => {
                 logError('[EMAIL SETUP] SMTP verification error. Check HOST, PORT and CREDENTIALS.', error.message);
                 this.transporter = null;
