@@ -1,15 +1,15 @@
 import { confirmCodePage } from '../../pageObjects/confirmCodePage';
 import { CONFIRMPAGE_URL, LOGINPAGE_URL } from '../../support/utils';
 
-describe('6. Test suite for confirm code page', () => {
+describe('2. Test suite for confirm code page', () => {
 	
-	it('6.1 Shows initial cooldown message on entry', () => {
+	it('2.1 Shows initial cooldown message on entry', () => {
 		cy.visit(CONFIRMPAGE_URL);
 		confirmCodePage.setUsername('testuser');
 		confirmCodePage.getCooldownText().should('be.visible').and('contain.text', 'Resend available');
 	});
 
-	it('6.2 Successful code confirmation navigates to login and shows success toast', () => {
+	it('2.2 Successful code confirmation navigates to login and shows success toast', () => {
 		cy.intercept('POST', '/api/users/validate-user', {
 			statusCode: 200,
 			body: { message: 'Account verified! You can log in.' }
@@ -24,7 +24,7 @@ describe('6. Test suite for confirm code page', () => {
 		cy.url().should('equal', LOGINPAGE_URL);
 	});
 
-	it('6.3 Invalid code shows error and enables resend, resend call succeeds and starts cooldown', () => {
+	it('2.3 Invalid code shows error and enables resend, resend call succeeds and starts cooldown', () => {
 		cy.intercept('POST', '/api/users/validate-user', {
 			statusCode: 400,
 			body: { message: 'Invalid code' }
@@ -50,7 +50,7 @@ describe('6. Test suite for confirm code page', () => {
 		confirmCodePage.getCooldownText().should('be.visible').and('contain.text', 'Resend available');
 	});
 
-	it('6.4 Pasting a 6-digit code fills all inputs', () => {
+	it('2.4 Pasting a 6-digit code fills all inputs', () => {
 		cy.visit(CONFIRMPAGE_URL);
 		confirmCodePage.setUsername('testuser');
 
@@ -62,7 +62,7 @@ describe('6. Test suite for confirm code page', () => {
 		});
 	});
 
-	it('6.5 Submitting an invalid username shows an error toast', () => {
+	it('2.5 Submitting an invalid username shows an error toast', () => {
 		cy.intercept('POST', '/api/users/validate-user', {
 			statusCode: 404,
 			body: { message: 'User with username not found' }
@@ -76,7 +76,7 @@ describe('6. Test suite for confirm code page', () => {
 		// cy.get('.e2e-toast-error', { timeout: 5000 }).should('be.visible').and('contain.text', 'User with username');
 	});
 
-	it('6.6 Confirming code for an already active user shows appropriate error', () => {
+	it('2.6 Confirming code for an already active user shows appropriate error', () => {
 		cy.intercept('POST', '/api/users/validate-user', {
 			statusCode: 400,
 			body: { message: 'User is already active' }

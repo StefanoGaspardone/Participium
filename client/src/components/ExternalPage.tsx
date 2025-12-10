@@ -254,7 +254,12 @@ export default function ExternalPage() {
                                                                     </motion.button>
                                                                 )}
 
-                                                                <div onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer' }}>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => { e.stopPropagation(); openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length)); }}
+                                                                    onTouchStart={(e) => e.stopPropagation()}
+                                                                    style={{ cursor: 'pointer', background: 'transparent', border: 'none', padding: 0, display: 'inline-block' }}
+                                                                >
                                                                     <AnimatePresence mode="wait">
                                                                         <motion.img
                                                                             key={getCurrentImageIndex(r.id, r.images.length)}
@@ -268,7 +273,7 @@ export default function ExternalPage() {
                                                                             onClick={() => openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length))}
                                                                         />
                                                                     </AnimatePresence>
-                                                                </div>
+                                                                </button>
 
                                                                 {r.images.length > 1 && (
                                                                     <motion.button
@@ -326,39 +331,47 @@ export default function ExternalPage() {
                                                         <h5 style={{ color: '#00205B', fontWeight: 600 }}>Update Status</h5>
                                                         {getAvailableActions(r.status).length > 0 ? (
                                                             <div className="d-flex gap-2 flex-wrap">
-                                                                {getAvailableActions(r.status).map(action => (
-                                                                    <Button
-                                                                        id={"switch-report-status" + r.title}
-                                                                        key={action.value}
-                                                                        variant={
-                                                                            action.value === 'Resolved' ? 'success' :
-                                                                                action.value === 'InProgress' ? 'primary' :
-                                                                                    'warning'
-                                                                        }
-                                                                        size="lg"
-                                                                        disabled={updatingReportId === r.id}
-                                                                        onClick={() => handleStatusChange(r.id, action.value)}
-                                                                        className="auth-button-primary"
-                                                                        style={{
-                                                                            background: action.value === 'Resolved'
-                                                                                ? 'linear-gradient(90deg, #28a745, #34ce57)'
-                                                                                : action.value === 'InProgress'
-                                                                                    ? 'linear-gradient(90deg, #007bff, #0056b3)'
-                                                                                    : 'linear-gradient(90deg, #ffc107, #ff9800)',
-                                                                            border: 'none'
-                                                                        }}
-                                                                    >
-                                                                        {updatingReportId === r.id ? (
-                                                                            <>
-                                                                                <Loader2Icon
-                                                                                    size={16}
-                                                                                    className="animate-spin me-1"
-                                                                                />
-                                                                                Updating...
-                                                                            </>
-                                                                        ) : action.label}
-                                                                    </Button>
-                                                                ))}
+                                                                {getAvailableActions(r.status).map(action => {
+                                                                    let btnVariant = 'warning';
+                                                                    if (action.value === 'Resolved') {
+                                                                        btnVariant = 'success';
+                                                                    } else if (action.value === 'InProgress') {
+                                                                        btnVariant = 'primary';
+                                                                    }
+        
+                                                                    let btnBackground = 'linear-gradient(90deg, #ffc107, #ff9800)';
+                                                                    if (action.value === 'Resolved') {
+                                                                        btnBackground = 'linear-gradient(90deg, #28a745, #34ce57)';
+                                                                    } else if (action.value === 'InProgress') {
+                                                                        btnBackground = 'linear-gradient(90deg, #007bff, #0056b3)';
+                                                                    }
+        
+                                                                    return (
+                                                                        <Button
+                                                                            id={"switch-report-status" + r.title}
+                                                                            key={action.value}
+                                                                            variant={btnVariant}
+                                                                            size="lg"
+                                                                            disabled={updatingReportId === r.id}
+                                                                            onClick={() => handleStatusChange(r.id, action.value)}
+                                                                            className="auth-button-primary"
+                                                                            style={{
+                                                                                background: btnBackground,
+                                                                                border: 'none'
+                                                                            }}
+                                                                        >
+                                                                            {updatingReportId === r.id ? (
+                                                                                <>
+                                                                                    <Loader2Icon
+                                                                                        size={16}
+                                                                                        className="animate-spin me-1"
+                                                                                    />
+                                                                                    Updating...
+                                                                                </>
+                                                                            ) : action.label}
+                                                                        </Button>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         ) : (
                                                             <motion.div
@@ -377,7 +390,7 @@ export default function ExternalPage() {
                                                     <div>
                                                         <h5 style={{ color: '#00205B', fontWeight: 600 }}>Communication</h5>
                                                         <motion.div className="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
-                                                            <span
+                                                            <button
                                                                 id="chat-redirect-technical-staff"
                                                                 onClick={() => {
                                                                     setChatTargetUserId(r.assignedTo?.id ?? null);
@@ -385,9 +398,10 @@ export default function ExternalPage() {
                                                                     setShow(true);
                                                                 }}
                                                                 className="auth-link-inline"
+                                                                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#265ea8', fontWeight: 600, fontFamily: 'inherit' }}
                                                             >
                                                                 Click
-                                                            </span>
+                                                            </button>
                                                             {" "}to open chat with the technical staff
                                                         </motion.div>
                                                     </div>

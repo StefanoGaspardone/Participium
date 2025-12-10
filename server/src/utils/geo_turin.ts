@@ -26,7 +26,6 @@ const loadTurinGeofence = () => {
         const type = TURIN_POLYGON.geometry?.type;
         if(!type || (type !== 'Polygon' && type !== 'MultiPolygon')) {
             throw new Error(`The geometry type is not a valid Polygon/MultiPolygon, found: ${type}`);
-            return;
         }
     } catch(e) {
         logError(`Error in loading Turin GeoJSON: `, e);

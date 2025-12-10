@@ -33,19 +33,6 @@ export class MessageRepository {
     return await this.repository.find({ where: { chat: { id: chatId } }, relations: ["sender", "receiver", "chat", "chat.tosm_user", "chat.second_user", "chat.report", "chat.report.category", "chat.report.createdBy", "chat.report.assignedTo", "chat.report.coAssignedTo", ] });
   };
 
-  // findAllByUserId = async (userId: number): Promise<MessageDAO[]> => {
-  //   return await this.repository.find({
-  //     where: [{ receiver: { id: userId } }, { sender: { id: userId } }],
-  //     relations: [
-  //       "sender",
-  //       "receiver",
-  //       "report",
-  //       "report.createdBy",
-  //       "report.category",
-  //     ],
-  //     order: { sentAt: "ASC" },
-  //   });
-  // };
 }
 
 export const messageRepository = new MessageRepository();

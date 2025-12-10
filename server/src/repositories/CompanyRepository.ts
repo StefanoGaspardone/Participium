@@ -5,7 +5,7 @@ import { CategoryDAO } from "@daos/CategoryDAO";
 import { CompanyDAO } from "@daos/CompanyDAO";
 
 export class CompanyRepository {
-    private repo: Repository<CompanyDAO>;
+    private readonly repo: Repository<CompanyDAO>;
 
     constructor() {
         this.repo = AppDataSource.getRepository(CompanyDAO);

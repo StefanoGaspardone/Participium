@@ -6,7 +6,7 @@ import { createChatDTO } from "@dtos/ChatDTO";
 import { UserType } from "@daos/UserDAO";
 
 export class ChatController {
-    private chatService: ChatService;
+    private readonly chatService: ChatService;
 
     constructor() {
         this.chatService = chatService;

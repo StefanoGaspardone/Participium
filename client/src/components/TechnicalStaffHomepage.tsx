@@ -124,7 +124,7 @@ export default function TechnicalStaffHomepage() {
     const handleFetchMaintainers = async (report: Report) => {
         try {
             const categoryId = Number(report?.category?.id);
-            if (!categoryId || isNaN(categoryId)) return;
+            if (!categoryId || Number.isNaN(categoryId)) return;
             const maintainers = await getExternalMaintainers(categoryId);
             setMaintainersByReportId(maintainers);
         } catch (e) {
@@ -484,11 +484,12 @@ export default function TechnicalStaffHomepage() {
                                                                     </div>
                                                                     <motion.div className="mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
                                                                         or{" "}
-                                                                        <span id={`assign-outside-button-${r.id}`}
+                                                                        <button id={`assign-outside-button-${r.id}`}
                                                                             onClick={() => handleAssignMaintainer(r.id, 13)}
                                                                             className="auth-link-inline"
+                                                                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#265ea8', fontWeight: 600, fontFamily: 'inherit' }}
                                                                         > assign to maintainer out of participium
-                                                                        </span>
+                                                                        </button>
                                                                     </motion.div>
                                                                 </div>
                                                             )}
@@ -496,12 +497,24 @@ export default function TechnicalStaffHomepage() {
                                                         <div>
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Comunication</h5>
                                                             <motion.div className="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
-                                                                <span id="chat-redirect-issuer" onClick={() => { setChatTargetUserId(r.createdBy?.id ?? null); setActiveReport(r); setShow(true); }} className="auth-link-inline">Click</span>
+                                                                <button 
+                                                                id="chat-redirect-issuer" 
+                                                                onClick={() => { setChatTargetUserId(r.createdBy?.id ?? null); setActiveReport(r); setShow(true); }} 
+                                                                className="auth-link-inline"
+                                                                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#265ea8', fontWeight: 600, fontFamily: 'inherit' }}
+                                                                > Click
+                                                                </button>
                                                                 {" "}to open chat with the report submitter
                                                             </motion.div>
                                                             {r?.coAssignedTo && r?.coAssignedTo.id !== 13 && (
                                                                 <motion.div className="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
-                                                                    <span id="chat-redirect-maintainer" onClick={() => { setChatTargetUserId(r.coAssignedTo?.id ?? null); setActiveReport(r); setShow(true); }} className="auth-link-inline">Click</span>
+                                                                    <button 
+                                                                    id="chat-redirect-maintainer" 
+                                                                    onClick={() => { setChatTargetUserId(r.coAssignedTo?.id ?? null); setActiveReport(r); setShow(true); }} 
+                                                                    className="auth-link-inline"
+                                                                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#265ea8', fontWeight: 600, fontFamily: 'inherit' }}
+                                                                    > Click
+                                                                    </button>
                                                                     {" "}to open chat with the external maintainer
                                                                 </motion.div>
                                                             )}

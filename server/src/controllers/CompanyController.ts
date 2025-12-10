@@ -9,7 +9,7 @@ import { Response, NextFunction, Request } from 'express';
 
 export class CompanyController {
 
-    private companyService: CompanyService;
+    private readonly companyService: CompanyService;
     // private categoryService: CategoryService;
 
     constructor() {

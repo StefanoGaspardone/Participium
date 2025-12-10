@@ -72,8 +72,8 @@ const performLoginAsCitizen = () => {
 	cy.url().should('equal', HOMEPAGE_URL);
 };
 
-describe("4. Test suite for report page :", () => {
-	it("4.1 As a logged user (citizen) i should be able to insert datas and upload a new report", () => {
+describe("8. Test suite for report page :", () => {
+	it("8.1 As a logged user (citizen) i should be able to insert datas and upload a new report", () => {
 		performLoginAsCitizen();
 		stubCategories();
 		stubUploadSigningAndCloudinary();
@@ -96,7 +96,7 @@ describe("4. Test suite for report page :", () => {
 		cy.url().should('equal', HOMEPAGE_URL);
 	});
 
-	it('4.2 As a logged user (citizen) i shouldn\'t be able to upload a new report if one or more fields are not inserted ', () => {
+	it('8.2 As a logged user (citizen) i shouldn\'t be able to upload a new report if one or more fields are not inserted ', () => {
 		performLoginAsCitizen();
 		stubCategories();
 		
@@ -113,7 +113,7 @@ describe("4. Test suite for report page :", () => {
 		reportPage.submitFormNotVisible(); //we check that the upload button should NOT be clickable (it should be disabled)
 	});
 
-	it('4.3 Shows validation error when required fields missing', () => {
+	it('8.3 Shows validation error when required fields missing', () => {
 		performLoginAsCitizen();
 		stubCategories();
 		homePage.clickNewReport();

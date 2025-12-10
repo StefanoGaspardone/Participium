@@ -12,10 +12,10 @@ import { ChatRepository, chatRepository } from '@repositories/ChatRepository';
 import { BadRequestError } from '@errors/BadRequestError';
 
 export class MessageService {
-    private messageRepository: MessageRepository;
-    private userRepository: UserRepository;
-    private reportRepository: ReportRepository;
-    private chatRepository: ChatRepository;
+    private readonly messageRepository: MessageRepository;
+    private readonly userRepository: UserRepository;
+    private readonly reportRepository: ReportRepository;
+    private readonly chatRepository: ChatRepository;
 
     constructor() {
         this.messageRepository = messageRepository;

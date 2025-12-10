@@ -9,8 +9,8 @@ import { CategoryDAO } from '@daos/CategoryDAO';
 
 export class CompanyService {
 
-    private companyRepo: CompanyRepository;
-    private categoryRepo: CategoryRepository;
+    private readonly companyRepo: CompanyRepository;
+    private readonly categoryRepo: CategoryRepository;
 
     constructor() {
         this.companyRepo = companyRepository;
