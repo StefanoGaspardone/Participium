@@ -3,7 +3,7 @@ import { loginPage } from '../../pageObjects/loginPage';
 import { registerPage } from '../../pageObjects/registerPage';
 import { generateRandomString } from '../../pageObjects/utils';
 
-describe('2. Test suite for login page :', () => {
+describe('4. Test suite for login page :', () => {
 	const makeToken = (user: any) => {
 		const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
 		const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -18,19 +18,19 @@ describe('2. Test suite for login page :', () => {
 		}).as('me');
 	});
 
-	it('2.1 Register button should lead to right register page', () => {
+	it('4.1 Register button should lead to right register page', () => {
 		cy.visit(LOGINPAGE_URL);
 		loginPage.clickRegister();
 		cy.url().should('equal', REGISTERPAGE_URL);
   	});
 	
-	it('2.2 Confirm code button should lead to right confirm code page', () => {
+	it('4.2 Confirm code button should lead to right confirm code page', () => {
 		cy.visit(LOGINPAGE_URL);
 		loginPage.clickConfirmCode();
 		cy.url().should('equal', CONFIRMPAGE_URL);
   	});
 
-	it('2.3 Logging in as a citizen should lead to homepage', () => {
+	it('4.3 Logging in as a citizen should lead to homepage', () => {
 		cy.intercept('POST', '/api/users/login', (req) => {
 			const token = makeToken({
 				id: 1,
@@ -53,7 +53,7 @@ describe('2. Test suite for login page :', () => {
 		cy.url().should('equal', HOMEPAGE_URL);
 	});
 
-	it('2.4 Inserting wrong credentials should lead to an error and NOT redirecting to other pages', () => {
+	it('4.4 Inserting wrong credentials should lead to an error and NOT redirecting to other pages', () => {
 		cy.intercept('POST', '/api/users/login', {
 			statusCode: 401,
 			body: { message: 'Invalid username or password' }
@@ -68,13 +68,13 @@ describe('2. Test suite for login page :', () => {
 		cy.url().should('equal', LOGINPAGE_URL);
 	});
 
-	it('2.5 Clicking on homepage button should correctly redirect to homepage', () => {
+	it('4.5 Clicking on homepage button should correctly redirect to homepage', () => {
 		cy.visit(LOGINPAGE_URL);
 		loginPage.clickHomepage();
 		cy.url().should('equal', HOMEPAGE_URL);
 	});
 
-	it('2.6 Logging in as an admin should lead to admin page', () => {
+	it('4.6 Logging in as an admin should lead to admin page', () => {
 		cy.intercept('POST', '/api/users/login', (req) => {
 			const token = makeToken({
 				id: 2,
@@ -97,7 +97,7 @@ describe('2. Test suite for login page :', () => {
 		cy.url().should('equal', ADMINPAGE_URL);
 	});
 
-	it('2.7 Logging in as a Technical Staff Member should lead to Techincal Staff page', () => {
+	it('4.7 Logging in as a Technical Staff Member should lead to Techincal Staff page', () => {
 		cy.intercept('POST', '/api/users/login', (req) => {
 			const token = makeToken({
 				id: 3,
@@ -120,14 +120,14 @@ describe('2. Test suite for login page :', () => {
 		cy.url().should('equal', TSMPAGE_URL);
 	});
   
-	it.skip('2.8 Logging in as a Municipal Administrator should lead to ???', () => {
+	it.skip('4.8 Logging in as a Municipal Administrator should lead to ???', () => {
 		loginPage.insertUsername('munadm');
 		loginPage.insertPassword('password');
 		loginPage.submitForm();
 		cy.url().should('equal', MUNADMPAGE_URL);
 	});
 
-	it('2.9 Logging in as a Public Relations Officer should lead to Public Relations Officer page', () => {
+	it('4.9 Logging in as a Public Relations Officer should lead to Public Relations Officer page', () => {
 		cy.intercept('POST', '/api/users/login', (req) => {
 			const token = makeToken({
 				id: 4,
@@ -150,7 +150,7 @@ describe('2. Test suite for login page :', () => {
 		cy.url().should('equal', PUBRELOFFPAGE_URL);
 	});
 
-	it('2.10 Logging in as an External Maintainer should lead to External Maintainer page', () => {
+	it('4.10 Logging in as an External Maintainer should lead to External Maintainer page', () => {
 		cy.intercept('POST', '/api/users/login', (req) => {
 			const token = makeToken({
 				id: 4,
@@ -173,7 +173,7 @@ describe('2. Test suite for login page :', () => {
 		cy.url().should('equal', MAINTAINERPAGE_URL);
 	});
 
-	it('2.11 Login fails for not-activated user after registration', () => {
+	it('4.11 Login fails for not-activated user after registration', () => {
 		cy.intercept('POST', '/api/users/signup', { 
 			statusCode: 201, 
 			body: {} 

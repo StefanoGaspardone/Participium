@@ -83,22 +83,22 @@ const performLoginAsAdmin = () => {
     cy.url().should('equal', ADMINPAGE_URL);
 };
 
-describe("5. Test suite for the admin page (used to create new municipality users)", () => {
+describe("1. Test suite for the admin page (used to create new municipality users)", () => {
     beforeEach(() => {
 		cy.intercept('POST', '/api/users/me', { statusCode: 401, body: { message: 'Unauthorized' } }).as('me');
 	});
 
-    it('5.1 Logging in as an admin should redirect me to the admin page', () => {
+    it('1.1 Logging in as an admin should redirect me to the admin page', () => {
         performLoginAsAdmin();
     });
 
-    it('5.2 As an admin, trying to visit another page, should redirect me to the admin page again', () => {
+    it('1.2 As an admin, trying to visit another page, should redirect me to the admin page again', () => {
         performLoginAsAdmin();
         adminPage.clickHomepage();
         cy.url().should('equal', ADMINPAGE_URL);
     });
 
-    it('5.3 Create Municipal Administrator', () => {
+    it('1.3 Create Municipal Administrator', () => {
         performLoginAsAdmin();
         stubCreateEmployee();
 
@@ -118,7 +118,7 @@ describe("5. Test suite for the admin page (used to create new municipality user
         cy.wait('@createEmployee');
     });
 
-    it('5.4 Create Municipal Public Relations Officer', () => {
+    it('1.4 Create Municipal Public Relations Officer', () => {
         performLoginAsAdmin();
         stubCreateEmployee();
         
@@ -133,7 +133,7 @@ describe("5. Test suite for the admin page (used to create new municipality user
         cy.wait('@createEmployee');
     });
 
-    it('5.5 Create Technical Office Staff Member', () => {
+    it('1.5 Create Technical Office Staff Member', () => {
         performLoginAsAdmin();
         stubCreateEmployee();
         
@@ -149,7 +149,7 @@ describe("5. Test suite for the admin page (used to create new municipality user
         cy.wait('@createEmployee');
     });
 
-    it('5.6 Create new Company and then External Maintainer', () => {
+    it('1.6 Create new Company and then External Maintainer', () => {
         performLoginAsAdmin();
         stubCreateCompany();
         stubCreateEmployee();

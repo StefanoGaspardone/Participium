@@ -43,24 +43,24 @@ const performLoginAsCitizen = () => {
 	cy.url().should('equal', HOMEPAGE_URL);
 };
 
-describe("1. Test suite for home page :", () => {
+describe("3. Test suite for home page :", () => {
 	beforeEach(() => {
 		cy.intercept('GET', '/api/users/me', { statusCode: 401, body: { message: 'Unauthorized' } }).as('meUnauthorized');
 	});
 	
-	it("1.1 Login button should lead to right login page", () => {
+	it("3.1 Login button should lead to right login page", () => {
 		cy.visit(HOMEPAGE_URL);
 		homePage.clickLogin();
 		cy.url().should("equal", LOGINPAGE_URL);
 	});
 
-	it("1.2 Login link should lead to right login page", () => {
+	it("3.2 Login link should lead to right login page", () => {
 		cy.visit(HOMEPAGE_URL);
 		homePage.clickLogin2();
 		cy.url().should("equal", LOGINPAGE_URL);
 	});
 	
-	it("1.3 As a logged user i should be able to click the map and select a location (identified b latitude and longitude)", () => {
+	it("3.3 As a logged user i should be able to click the map and select a location (identified b latitude and longitude)", () => {
 		performLoginAsCitizen();
 		
 		cy.wait(['@reportsAssigned', '@reportsInProgress', '@reportsSuspended', '@reportsResolved']);
@@ -69,18 +69,18 @@ describe("1. Test suite for home page :", () => {
 		cy.get('[alt="Marker"]').should('be.visible');
 	});
 
-	it("1.4 As a logged user i should be able to go onto the upload a new report page", () => {
+	it("3.4 As a logged user i should be able to go onto the upload a new report page", () => {
 		performLoginAsCitizen();
 		homePage.clickNewReport();
 		cy.url().should("equal", UPLOADREPORTPAGE_URL);
 	});
 
-	it("1.5 As a logged user (citizen) I should be able to open notifications dropdown", () => {
+	it("3.5 As a logged user (citizen) I should be able to open notifications dropdown", () => {
 		performLoginAsCitizen();
 		homePage.clickNotifications();
 	});
 
-	it("1.6 Register link should lead to right register page when not logged", () => {
+	it("3.6 Register link should lead to right register page when not logged", () => {
 		cy.visit(HOMEPAGE_URL);
 		homePage.clickRegister();
 		cy.url().should("equal", REGISTERPAGE_URL);
