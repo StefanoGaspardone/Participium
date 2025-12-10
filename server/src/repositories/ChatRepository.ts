@@ -4,7 +4,7 @@ import { AppDataSource } from "@database";
 import { ReportDAO } from "@daos/ReportDAO";
 
 export class ChatRepository {
-  private repository: Repository<ChatDAO>;
+  private readonly repository: Repository<ChatDAO>;
 
   constructor() {
     this.repository = AppDataSource.getRepository(ChatDAO);

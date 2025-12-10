@@ -12,8 +12,8 @@ import { pay } from 'telegraf/typings/button';
 
 export class ReportController {
 
-    private reportService: ReportService;
-    private chatService: ChatService;
+    private readonly reportService: ReportService;
+    private readonly chatService: ChatService;
 
     constructor() {
         this.reportService = reportService;

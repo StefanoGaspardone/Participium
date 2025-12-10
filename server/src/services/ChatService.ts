@@ -10,9 +10,9 @@ import { UserType } from "@daos/UserDAO";
 import { ChatDAO, ChatType } from "@daos/ChatsDAO";
 
 export class ChatService {
-  private chatRepository: ChatRepository;
-  private userRepository: UserRepository;
-  private reportRepository: ReportRepository;
+  private readonly chatRepository: ChatRepository;
+  private readonly userRepository: UserRepository;
+  private readonly reportRepository: ReportRepository;
 
   constructor() {
     this.chatRepository = chatRepository;

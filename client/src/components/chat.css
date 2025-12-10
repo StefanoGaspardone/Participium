@@ -94,6 +94,7 @@
   border-radius: 0.75rem;
   background: #ffffff;
   box-shadow: 0 2px 6px rgba(2, 6, 23, 0.06);
+  word-break: break-word;
 }
 
 .message-bubble .small {
@@ -103,6 +104,7 @@
 .message-bubble.mine {
   background-color: #0057a0;
   color: #fff;
+  margin-left: auto;
 }
 
 .message-bubble.mine .small {
@@ -111,18 +113,7 @@
 
 .message-bubble.other {
   background: #ffffff;
-}
-
-/* Ensure bubbles stay compact and align nicely */
-.message-bubble.mine {
-  margin-left: auto;
-}
-.message-bubble.other {
   margin-right: auto;
-}
-
-.message-bubble {
-  word-break: break-word;
 }
 
 @media (max-width: 768px) {
@@ -134,10 +125,18 @@
 .chat-messages {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+  padding: 1rem;
 }
 
 .chat-messages-container {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 .min-width-0 {
@@ -147,6 +146,8 @@
 .chat-right-header {
   flex-wrap: nowrap;
   white-space: nowrap;
+  flex: 0 0 auto;
+  z-index: 1;
 }
 
 @media (max-width: 768px) {
@@ -220,28 +221,9 @@
   min-height: 0;
 }
 
-/* Right column container: ensure full height flex column */
-.chat-messages-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-}
-
-/* Right column: header and input fixed, messages scroll */
-.chat-right-header {
-  flex: 0 0 auto;
-  z-index: 1;
-}
 .chat-input {
   flex: 0 0 auto;
   z-index: 1;
-}
-.chat-messages {
-  flex: 1 1 auto;
-  overflow: auto;
-  min-height: 0;
-  padding: 1rem;
 }
 
 /* Make sure list-group fills available area */
@@ -252,4 +234,8 @@
 }
 .chats-popover .list-group .list-group-item {
   white-space: normal;
+}
+
+.chats-popover .list-group-item .other-user-details {
+  color: #1f2937; /* colore desiderato (es. dark-gray) */
 }

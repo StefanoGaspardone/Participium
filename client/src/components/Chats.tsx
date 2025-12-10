@@ -25,6 +25,30 @@ interface Props {
     targetUserId?: number | null;
 }
 
+const getOtherUser = (chat: Chat, currentUserId?: number) => {
+    if (chat.tosm_user?.id === currentUserId) {
+        return chat.second_user;
+    }
+    return chat.tosm_user;
+};
+
+const getBadgeProps = (status: string | undefined) => {
+    const statusColor = status ? REPORT_STATUS_COLORS[status] : undefined;
+    if (!statusColor) return {};
+    if (statusColor.startsWith('#')) {
+        return { style: { backgroundColor: statusColor } } as { style: React.CSSProperties };
+    }
+    return { bg: statusColor } as { bg?: string };
+};
+
+const getSenderId = (rawSender: number | { id?: number } | undefined): number | undefined => {
+    if (typeof rawSender === 'number') return rawSender;
+    return rawSender?.id;
+};
+
+const sortMessages = (messages?: Message[]) =>
+    messages ? [...messages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()) : undefined;
+
 const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId, }: Props) => {
     const popoverRef = useRef<HTMLDivElement | null>(null);
     const toggleRef = useRef<HTMLButtonElement | null>(null);
@@ -88,6 +112,143 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
         }
     };
 
+    const renderChatListContent = () => {
+        if (chatsLoading) {
+            return (
+                <div className="d-flex align-items-center justify-content-center h-100">
+                    <Loader2 className="chat-loader" size={32} />
+                </div>
+            );
+        }
+
+        if (!chats || chats.length === 0) {
+            return (
+                <div className="p-3 text-center text-muted">
+                    <p className="mb-1">No chats yet.</p>
+                    <small>Click "Send message" on a report to start.</small>
+                </div>
+            );
+        }
+
+        return (
+            <div className="list-group list-group-flush">
+                {chats.map((chat) => {
+                    const otherUser = getOtherUser(chat, user?.id);
+                    const isActive = selectedChat === chat.id;
+
+                    const displayImage = otherUser?.image;
+                    const otherUserTypeLabel = otherUser?.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN";
+                    const otherUserDetails = otherUser ? `${otherUser.firstName} ${otherUser.lastName} - ${otherUserTypeLabel}` : '';
+
+                    const badgeProps = getBadgeProps(chat.report.status);
+
+                    return (
+                        <button
+                            key={chat.id}
+                            type="button"
+                            className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${isActive ? "active" : ""}`}
+                            onClick={() => handleChatSelect(chat)}
+                        >
+                            <div className="d-flex align-items-center me-2">
+                                {displayImage ? (
+                                    <img
+                                        src={displayImage}
+                                        alt="avatar"
+                                        width={44}
+                                        height={44}
+                                        className="rounded-circle"
+                                    />
+                                ) : (
+                                    <FaUserCircle size={44} className="text-muted" />
+                                )}
+                            </div>
+
+                            <div className="flex-grow-1 min-width-0">
+                                <div className="d-flex align-items-center justify-content-between mb-1">
+                                    <div className="fw-semibold text-truncate">{chat.report.title}</div>
+                                    <small className="text-muted">#{chat.report.id}</small>
+                                </div>
+
+                                <div className="small text-truncate mb-1 other-user-details" >
+                                    {otherUserDetails}
+                                </div>
+
+                                <div className="d-flex gap-2 align-items-center">
+                                    <Badge {...badgeProps}>
+                                        {chat.report.status}
+                                    </Badge>
+                                    <Badge bg="secondary">{chat.report.category?.name}</Badge>
+                                </div>
+                            </div>
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const chatListContent = renderChatListContent();
+
+    const sortedShowedMessages = sortMessages(showedMessages);
+
+    const renderMessageContent = () => {
+        if (messagesLoading) {
+            return (
+                <div className="h-100 d-flex align-items-center justify-content-center">
+                    <Loader2 className="chat-loader" size={32} />
+                </div>
+            );
+        }
+
+        if (error) {
+            return (
+                <Alert variant="danger" className="text-center mb-0">
+                    {error}
+                </Alert>
+            );
+        }
+
+        if (!sortedShowedMessages || sortedShowedMessages.length === 0) {
+            return (
+                <div className="h-100 d-flex align-items-center justify-content-center text-muted">
+                    No messages yet. Start the conversation!
+                </div>
+            );
+        }
+
+        return (
+            <>
+                {sortedShowedMessages.map((msg) => {
+                    const senderId = getSenderId(msg.sender);
+                    const isMine = senderId === user?.id;
+                    const justifyClass = isMine ? "justify-content-end" : "justify-content-start";
+                    const timeClass = isMine ? 'text-end' : 'text-start';
+
+                    return (
+                        <div
+                            key={msg.id}
+                            className={`mb-2 d-flex ${justifyClass}`}
+                        >
+                            <div
+                                className={`message-bubble ${isMine ? "mine" : "other"}`}
+                            >
+                                <div>{msg.text}</div>
+                                <div className={`small mt-1 ${timeClass} text-muted`}>
+                                    {new Date(msg.sentAt).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+                <div ref={messagesEndRef} />
+            </>
+        );
+    };
+
+    const messageContent = renderMessageContent();
 
     // Fetch all chats when popover opens
     useEffect(() => {
@@ -152,7 +313,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
         // prevent the 'activeReport' effect from overriding this user selection
         ignoreActiveReportRef.current = true;
         // small safety timeout to re-enable the effect after the user action settles
-        window.setTimeout(() => { ignoreActiveReportRef.current = false; }, 300);
+        globalThis.setTimeout(() => { ignoreActiveReportRef.current = false; }, 300);
 
         setSelectedChat(chat.id);
         setActiveReport(chat.report);
@@ -170,7 +331,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
 
             // If no chat exists, something went wrong
             if (chatIdToUse === undefined) {
-                return
+                return;
             }
 
             // Get current chat to find receiver
@@ -178,11 +339,14 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
             if (!currentChat)
                 throw new Error('Chat not found');
 
-            const receiverUser = currentChat.tosm_user.id === user.id
-                ? currentChat.second_user
-                : currentChat.tosm_user;
+            let receiverUser = null;
 
-            // if no receiver, something went wrong
+            if (currentChat.tosm_user.id === user.id) {
+                receiverUser = currentChat.second_user;
+            } else {
+                receiverUser = currentChat.tosm_user;
+            }
+
             if (receiverUser === null || receiverUser === undefined)
                 return;
 
@@ -202,10 +366,22 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
         }
     };
 
-    // derived sorted messages by sentAt (oldest → newest)
-    const sortedShowedMessages = showedMessages
-        ? [...showedMessages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime())
-        : undefined;
+    const currentSelectedChat = chats?.find(c => c.id === selectedChat);
+    const otherUserInHeader = currentSelectedChat && user ? getOtherUser(currentSelectedChat, user.id) : undefined;
+
+    const userTypeLabel = otherUserInHeader?.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN";
+    const otherUserDetailsInHeader = otherUserInHeader
+        ? `${otherUserInHeader.firstName} ${otherUserInHeader.lastName} - ${userTypeLabel}`
+        : "Loading...";
+
+    const otherUserImageInHeader = otherUserInHeader?.image;
+
+    const sendMessageButtonIcon = sendingMessage ? (
+        <Loader2 className="chat-loader" size={20} />
+    ) : (
+        <ChevronRight size={20} />
+    );
+
 
     return (
         <div className="chat-wrapper">
@@ -225,80 +401,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                         <h6 className="mb-0">Chats</h6>
                                     </div>
                                     <div className="flex-grow-1 overflow-auto">
-                                        {chatsLoading ? (
-                                            <div className="d-flex align-items-center justify-content-center h-100">
-                                                <Loader2 className="chat-loader" size={32} />
-                                            </div>
-                                        ) : !chats || chats.length === 0 ? (
-                                            <div className="p-3 text-center text-muted">
-                                                <p className="mb-1">No chats yet.</p>
-                                                <small>Click "Send message" on a report to start.</small>
-                                            </div>
-                                        ) : (
-                                            <div className="list-group list-group-flush">
-                                                {chats.map((chat) => {
-                                                    const otherUser = chat.tosm_user.id === user?.id
-                                                        ? chat.second_user
-                                                        : chat.tosm_user;
-                                                    const isActive = selectedChat === chat.id;
-
-                                                    return (
-                                                        <button
-                                                            key={chat.id}
-                                                            type="button"
-                                                            className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${isActive ? "active" : ""}`}
-                                                            onClick={() => handleChatSelect(chat)}
-                                                        >
-                                                            <div className="d-flex align-items-center me-2">
-                                                                {(chat.tosm_user?.image || chat.second_user?.image) ? (
-                                                                    <img
-                                                                        src={(chat.tosm_user?.id === user?.id ? chat.second_user?.image : chat.tosm_user?.image) ?? undefined}
-                                                                        alt="avatar"
-                                                                        width={44}
-                                                                        height={44}
-                                                                        className="rounded-circle"
-                                                                    />
-                                                                ) : (
-                                                                    <FaUserCircle size={44} className="text-muted" />
-                                                                )}
-                                                            </div>
-
-                                                            <div className="flex-grow-1 min-width-0">
-                                                                <div className="d-flex align-items-center justify-content-between mb-1">
-                                                                    <div className="fw-semibold text-truncate">{chat.report.title}</div>
-                                                                    <small className="text-muted">#{chat.report.id}</small>
-                                                                </div>
-
-                                                                <div className="small text-truncate text-muted mb-1">
-                                                                    {chat.second_user ? `${chat.second_user.firstName} ${chat.second_user.lastName} - ${chat.second_user.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN"}` : ''}
-                                                                </div>
-
-                                                                <div className="d-flex gap-2 align-items-center">
-                                                                    {/* status badge usando REPORT_STATUS_COLORS */}
-                                                                    <Badge
-                                                                        bg={
-                                                                            // REPORT_STATUS_COLORS is expected to be a map like { Assigned: "primary", Resolved: "success", ... }
-                                                                            // It may contain hex colors — if so, react-bootstrap `Badge` accepts only variant names (primary, success...)
-                                                                            // If REPORT_STATUS_COLORS uses raw colors, we fallback to inline style.
-                                                                            REPORT_STATUS_COLORS[chat.report.status] || undefined
-                                                                        }
-                                                                        style={
-                                                                            // if the color is a hex/RGB string (not a bootstrap variant), apply as backgroundColor and keep bg undefined
-                                                                            REPORT_STATUS_COLORS[chat.report.status] && REPORT_STATUS_COLORS[chat.report.status].startsWith('#')
-                                                                                ? { backgroundColor: REPORT_STATUS_COLORS[chat.report.status] }
-                                                                                : undefined
-                                                                        }
-                                                                    >
-                                                                        {chat.report.status}
-                                                                    </Badge>
-                                                                    <Badge bg="secondary">{chat.report.category?.name}</Badge>
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
+                                        {chatListContent}
                                     </div>
                                 </div>
 
@@ -312,7 +415,6 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                         </div>
                                     ) : (
                                         <>
-                                            {/* Chat header */}
                                             <div className="chat-right-header d-flex align-items-center gap-2 p-2 border-bottom bg-light">
                                                 <button
                                                     type="button"
@@ -325,91 +427,31 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                                 >
                                                     ←
                                                 </button>
-                                                {(() => {
-                                                    const currentChat = chats?.find(c => c.id === selectedChat);
-                                                    const otherUser = currentChat
-                                                        ? (currentChat.tosm_user.id === user?.id
-                                                            ? currentChat.second_user
-                                                            : currentChat.tosm_user)
-                                                        : null;
-                                                    return (
-                                                        <>
-                                                            {otherUser?.image ? (
-                                                                <img
-                                                                    src={otherUser.image}
-                                                                    alt="user"
-                                                                    width={40}
-                                                                    height={40}
-                                                                    className="rounded-circle"
-                                                                />
-                                                            ) : (
-                                                                <FaUserCircle size={40} className="text-muted" />
-                                                            )}
-                                                            <div className="flex-grow-1 min-width-0">
-                                                                <div className="fw-semibold text-truncate">
-                                                                    {activeReport?.title ?? "Chat"}
-                                                                </div>
-                                                                <div className="small text-muted text-truncate">
-                                                                    {otherUser
-                                                                        ? `${otherUser.firstName} ${otherUser.lastName} - ${otherUser.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN"}`
-                                                                        : "Loading..."}
-                                                                </div>
-                                                            </div>
-                                                        </>
-                                                    );
-                                                })()}
+
+                                                {otherUserImageInHeader ? (
+                                                    <img
+                                                        src={otherUserImageInHeader}
+                                                        alt="user"
+                                                        width={40}
+                                                        height={40}
+                                                        className="rounded-circle"
+                                                    />
+                                                ) : (
+                                                    <FaUserCircle size={40} className="text-muted" />
+                                                )}
+                                                <div className="flex-grow-1 min-width-0">
+                                                    <div className="fw-semibold text-truncate">
+                                                        {activeReport?.title ?? "Chat"}
+                                                    </div>
+                                                    <div className="small text-muted text-truncate">
+                                                        {otherUserDetailsInHeader}
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             {/* Messages area */}
                                             <div className="chat-messages flex-grow-1 overflow-auto p-3">
-                                                {messagesLoading ? (
-                                                    <div className="h-100 d-flex align-items-center justify-content-center">
-                                                        <Loader2 className="chat-loader" size={32} />
-                                                    </div>
-                                                ) : error ? (
-                                                    <Alert variant="danger" className="text-center mb-0">
-                                                        {error}
-                                                    </Alert>
-                                                ) : !sortedShowedMessages || sortedShowedMessages.length === 0 ? (
-                                                    <div className="h-100 d-flex align-items-center justify-content-center text-muted">
-                                                        No messages yet. Start the conversation!
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        {sortedShowedMessages.map((msg) => {
-                                                            // support both shapes: sender can be a number (id) or an object with .id
-                                                            const rawSender: any = (msg as any).sender;
-                                                            const senderId: number | undefined =
-                                                                typeof rawSender === "number"
-                                                                    ? rawSender
-                                                                    : rawSender?.id;
-                                                            const isMine = senderId === user?.id;
-
-                                                            return (
-                                                                <div
-                                                                    key={msg.id}
-                                                                    className={`mb-2 d-flex ${isMine
-                                                                        ? "justify-content-end"
-                                                                        : "justify-content-start"
-                                                                        }`}
-                                                                >
-                                                                    <div
-                                                                        className={`message-bubble ${isMine ? "mine" : "other"}`}
-                                                                    >
-                                                                        <div>{msg.text}</div>
-                                                                        <div className={`small mt-1 ${isMine ? 'text-end' : 'text-start'} text-muted`}>
-                                                                            {new Date(msg.sentAt).toLocaleTimeString([], {
-                                                                                hour: "2-digit",
-                                                                                minute: "2-digit",
-                                                                            })}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                        <div ref={messagesEndRef} />
-                                                    </>
-                                                )}
+                                                {messageContent}
                                             </div>
 
                                             {/* Message input */}
@@ -433,11 +475,7 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                                     onClick={handleSendMessage}
                                                     disabled={!text.trim() || sendingMessage}
                                                 >
-                                                    {sendingMessage ? (
-                                                        <Loader2 className="chat-loader" size={20} />
-                                                    ) : (
-                                                        <ChevronRight size={20} />
-                                                    )}
+                                                    {sendMessageButtonIcon}
                                                 </button>
                                             </div>
                                         </>
@@ -464,5 +502,4 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
         </div>
     );
 };
-
 export default Chats;
