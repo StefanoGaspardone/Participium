@@ -32,7 +32,8 @@ application is the [Iris platform in Venice](https://iris.sad.ve.it/?id_ente=c_l
 ### Reports
 
 Citizens can submit reports only if they have registered in the system with email , username, first name, and
-last name. Once registered, the citizen can make reports by selecting a point on the Turin map (based on
+last name. Once a registration is completed, the user gets and email with a confirmation code. The person can use the application only after confirming by eneting the valid for 30 minutes.  
+Once registered, the citizen can make reports by selecting a point on the Turin map (based on
 OpenStreetMap, standard layer) and filling out a form with the following required fields: title, textual
 description, and category (chosen from a list). It is also mandatory to attach one or more photos (up to 3
 per report).
@@ -69,6 +70,14 @@ The possible report statuses are: _Pending Approval_, _Assigned_, _In Progress_,
 - In case of rejection, an explanation from the Municipality Organization Office is mandatory (see next
   section).
 
+If the intervention has been done by maintainers of an external company (e.g. Enel X for category Public Lighting, or specific reports based on their content), two cases are possible:
+
+- Case 1: the company has access to Participium. In that case, the specific technical office assigns the report corresponding company users. External maintainers can move the report, but this will not be visible to the reporter (and neither to citizens). Once the work is finished, the external maintainer can resolve the report.
+
+N.B. Automatic assignment of all issues of a certain category (thus, without the initial review of the municipal public relations officer) is possible only if previously set by the municipak administrator.
+
+- Case 2: the company has NOT access to Participium. In this case, the external company updates the technical office out of Participium, and when the issues are resolved, the thechnical officer staff member will move the report to status _Resolved_.
+
 ### Citizen Updates
 
 To strengthen trust between citizens and institutions, citizens can be updated about their reports through
@@ -90,6 +99,10 @@ After approval, accepted reports immediately become visible on the Participium p
 
 In both views, the reporterʼs name is shown (“anonymous” if that option was chosen), along with the report
 title. Clicking the title opens the full description (with pictures).
+
+Unregistered users can also view reports on maps. Both registered and unregistered users can type an address into the search bar to zoom in on that area of the map and see all reports in that area.
+
+When logged into Participium, citizens can follow reports of other citizens and receive notifications (following the same rules as for owned reports).
 
 ### Statistics
 
@@ -172,7 +185,7 @@ git clone https://github.com/StefanoGaspardone/Participium.git
 
   The server will be running at <http://localhost:3000>.
 
-  A swagger documentation is available at <http://localhost:3000/api/docs>.
+  An API documentation is available at <http://localhost:3000/api/docs>.
 
   Moreover, the [telegram bot](#telegram-bot) is initialized and will be running at <https://t.me/ParticipiumSE05Bot>.
 
