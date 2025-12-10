@@ -125,7 +125,8 @@ export default function CustomNavbar() {
                       padding: '0.25rem 0.55rem',
                       borderRadius: 6,
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      marginRight: '1rem',
                     }}
                     initial={false}
                     animate={{ scale: profileHover ? 1.06 : 1 }}
@@ -135,10 +136,10 @@ export default function CustomNavbar() {
                     {user?.username && (
                       <motion.span
                         style={{
-                          color: '#0067c6',
+                          color: '#f8f8f8ff',
                           marginRight: '0.55rem',
                           fontWeight: 500,
-                          fontSize: '0.95rem',
+                          fontSize: '1.00rem',
                           textDecoration: 'underline',
                           textDecorationColor: '#0067c6',
                           textDecorationThickness: '2px',

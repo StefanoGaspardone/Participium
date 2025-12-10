@@ -25,17 +25,17 @@ interface NominatimResult {
 
 const processGeoJsonBoundary = (results: NominatimResult[]): L.LatLng[][] => {
     const feature = results.find(f => f.geojson && (f.geojson.type === 'Polygon' || f.geojson.type === 'MultiPolygon'));
-    if(!feature?.geojson) return [];
+    if (!feature?.geojson) return [];
 
     const gj = feature.geojson;
     const polys: L.LatLng[][] = [];
 
     const convertToLatLng = (rawCoords: number[][]) => rawCoords.map((pair) => L.latLng(pair[1], pair[0]));
 
-    if(gj.type === 'Polygon') {
+    if (gj.type === 'Polygon') {
         const rawOuter = (gj.coordinates)[0];
         polys.push(convertToLatLng(rawOuter));
-    } else if(gj.type === 'MultiPolygon') {
+    } else if (gj.type === 'MultiPolygon') {
         const rawMulti = gj.coordinates;
         rawMulti.forEach((poly) => {
             const rawOuter = poly[0];
@@ -48,14 +48,14 @@ const processGeoJsonBoundary = (results: NominatimResult[]): L.LatLng[][] => {
 
 const fetchAndProcessTurinBoundary = async (): Promise<L.LatLng[][]> => {
     const nominatimUrl = 'https://nominatim.openstreetmap.org/search.php?q=Turin%2C+Italy&polygon_geojson=1&format=jsonv2';
-    
-	try {
+
+    try {
         const response = await fetch(nominatimUrl);
-        if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const results: NominatimResult[] = await response.json();
         return processGeoJsonBoundary(results);
-    } catch(err) {
+    } catch (err) {
         console.error('Failed to load Turin boundary:', err);
         return [];
     }
@@ -76,13 +76,13 @@ L.Marker.prototype.options.icon = DefaultIcon;
 const pointInPolygon = (lat: number, long: number, polygon: L.LatLng[]): boolean => {
     let inside = false;
 
-    for(let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
         const xi = polygon[i].lng, yi = polygon[i].lat;
         const xj = polygon[j].lng, yj = polygon[j].lat;
 
         const intersect = yi > lat !== yj > lat && long < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
 
-        if(intersect) inside = !inside;
+        if (intersect) inside = !inside;
     }
 
     return inside;
@@ -92,7 +92,7 @@ const nearestOnSegment = (px: number, py: number, x1: number, y1: number, x2: nu
     const dx = x2 - x1;
     const dy = y2 - y1;
 
-    if(dx === 0 && dy === 0) {
+    if (dx === 0 && dy === 0) {
         const d2 = (px - x1) * (px - x1) + (py - y1) * (py - y1);
         return { x: x1, y: y1, d2 };
     }
@@ -106,16 +106,16 @@ const nearestOnSegment = (px: number, py: number, x1: number, y1: number, x2: nu
 }
 
 const nearestPointOnTurin = (lat: number, lng: number, polygon: L.LatLng[][]): { lat: number; lng: number } | null => {
-    if(!polygon.length) return null;
+    if (!polygon.length) return null;
 
     let best: { x: number; y: number; d2: number } | null = null;
-    for(const poly of polygon) {
-        for(let i = 0; i < poly.length; i++) {
+    for (const poly of polygon) {
+        for (let i = 0; i < poly.length; i++) {
             const a = poly[i];
             const b = poly[(i + 1) % poly.length];
 
             const cand = nearestOnSegment(lng, lat, a.lng, a.lat, b.lng, b.lat);
-            if(!best || cand.d2 < best.d2) best = cand;
+            if (!best || cand.d2 < best.d2) best = cand;
         }
     }
 
@@ -132,7 +132,7 @@ export const fetchAddress = async (lat: number, lng: number): Promise<string> =>
     try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`);
 
-        if(!res.ok) return 'Not available';
+        if (!res.ok) return 'Not available';
 
         const data = await res.json();
         const road = data.address?.road || data.address?.pedestrian || '';
@@ -140,7 +140,7 @@ export const fetchAddress = async (lat: number, lng: number): Promise<string> =>
         const address = `${road} ${houseNumber}`.trim() || data.display_name || '';
 
         return address || 'Not available';
-    } catch(error) {
+    } catch (error) {
         console.error(error);
         return 'Not available';
     }
@@ -155,19 +155,19 @@ const LocationMarker = ({ selected, setSelected, turinPolys }: { selected: Coord
 
     useMapEvents({
         async click(e) {
-            if(!isLoggedIn || !turinPolys.length) return;
+            if (!isLoggedIn || !turinPolys.length) return;
 
             const { lat, lng } = e.latlng;
             const inside = turinPolys.some((poly) => pointInPolygon(lat, lng, poly));
             const snapped = inside ? { lat, lng } : nearestPointOnTurin(lat, lng, turinPolys);
 
-            if(snapped) {
+            if (snapped) {
                 setSelected({ lat: snapped.lat, lng: snapped.lng, address: 'Fetching address...' });
                 const addr = await fetchAddress(snapped.lat, snapped.lng);
                 setSelected({ lat: snapped.lat, lng: snapped.lng, address: addr });
 
                 setTimeout(() => {
-                    if(markerRef.current) {
+                    if (markerRef.current) {
                         markerRef.current.openPopup();
                     }
                 }, 100);
@@ -176,14 +176,14 @@ const LocationMarker = ({ selected, setSelected, turinPolys }: { selected: Coord
     });
 
     return selected === null ? null : (
-        <Marker position = { [selected.lat, selected.lng] } ref = { markerRef }>
+        <Marker position={[selected.lat, selected.lng]} ref={markerRef}>
             <Popup>
-                <div style = {{ textAlign: 'center' }}>
-                    <p style = {{ margin: '0 0 5px 0', fontWeight: 'bold' }}>{selected.address || 'Not available'}</p>
+                <div style={{ textAlign: 'center' }}>
+                    <p style={{ margin: '0 0 5px 0', fontWeight: 'bold' }}>{selected.address || 'Not available'}</p>
                     {location.pathname === '/' && (
                         <button
-                            onClick = { () => navigate('/reports/new') }
-                            style = {{
+                            onClick={() => navigate('/reports/new')}
+                            style={{
                                 backgroundColor: '#0057A0',
                                 color: 'white',
                                 border: 'none',
@@ -206,11 +206,11 @@ const createClusterCustomIcon = (cluster: any) => {
     const count = cluster.getChildCount();
     let color;
 
-    if(count < 10) color = '#FDBA74'; // soft orange
-    else if(count < 25) color = '#FB923C'; // bright orange
-    else if(count < 50) color = '#F97316'; // vivid amber
-    else if(count < 100) color = '#EA580C'; // strong orange-red
-    else color = '#C2410C'; // deep red
+    if (count < 10) color = '#A5F3FC'; // light cyan
+    else if (count < 25) color = '#22D3EE'; // bright cyan
+    else if (count < 50) color = '#06B6D4'; // vivid cyan
+    else if (count < 100) color = '#0891B2'; // deep cyan
+    else color = '#164E63'; // dark teal
 
     return L.divIcon({
         html: `
@@ -222,7 +222,7 @@ const createClusterCustomIcon = (cluster: any) => {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: white;
+                color: rgba(255, 255, 255, 1);
                 font-weight: bold;
                 font-size: 16px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -259,8 +259,8 @@ const MapUpdater = ({ position }: { position: Coord | null }) => {
     const prevPosition = useRef<Coord | null>(null);
 
     useEffect(() => {
-        if(!position) return;
-		if(prevPosition.current && prevPosition.current.lat === position.lat && prevPosition.current.lng === position.lng) return;
+        if (!position) return;
+        if (prevPosition.current && prevPosition.current.lat === position.lat && prevPosition.current.lng === position.lng) return;
 
         prevPosition.current = position;
 
@@ -269,7 +269,7 @@ const MapUpdater = ({ position }: { position: Coord | null }) => {
                 animate: true,
                 duration: 1.5
             });
-        } catch(error) {
+        } catch (error) {
             console.error('Error in setView:', error);
         }
     }, [position, map]);
@@ -277,25 +277,25 @@ const MapUpdater = ({ position }: { position: Coord | null }) => {
     return null;
 }
 
-export default function Map({ selected, setSelected }: Props) {
+export default function MapDefault({ selected, setSelected }: Props) {
     const center = { lat: 45.06985, lng: 7.68228 };
     const zoom = 11;
     const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
 
     useEffect(() => {
         fetchAndProcessTurinBoundary()
-			.then(setTurinPolys);
-	}, []);
+            .then(setTurinPolys);
+    }, []);
 
     return (
-        <div id = 'map-container' className = 'map-wrap'>
-            <MapContainer center = { [center.lat, center.lng] } zoom = { zoom } scrollWheelZoom = { true } className = 'map'>
-                <TileLayer attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'/>
+        <div id='map-container' className='map-wrap'>
+            <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom={true} className='map'>
+                <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
                 {turinPolys.length > 0 && (
-                    <Polygon positions = { turinPolys } pathOptions = {{ color: '#0057A0', weight: 4, fillOpacity: 0 }}/>
+                    <Polygon positions={turinPolys} pathOptions={{ color: '#0057A0', weight: 4, fillOpacity: 0 }} />
                 )}
-                <MapUpdater position = { selected }/>
-                <LocationMarker selected = { selected } setSelected = { setSelected } turinPolys = { turinPolys }/>
+                <MapUpdater position={selected} />
+                <LocationMarker selected={selected} setSelected={setSelected} turinPolys={turinPolys} />
             </MapContainer>
         </div>
     );
@@ -304,16 +304,16 @@ export default function Map({ selected, setSelected }: Props) {
 export function HomepageMap({ selected, setSelected, reports }: Props) {
     const center = { lat: 45.06985, lng: 7.68228 };
     const zoom = 11;
-    
-	const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
+
+    const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
     const [legendOpen, setLegendOpen] = useState(false);
-    
-	const statusEntries = useMemo(
+
+    const statusEntries = useMemo(
         () => Object.entries(REPORT_STATUS_COLORS).filter(([status]) => status !== 'Pending'),
         []
     );
-    
-	const legendPanelId = useId();
+
+    const legendPanelId = useId();
     const legendBaseId = useMemo(() => `map-legend-${legendPanelId.replaceAll(/[^a-zA-Z0-9]/g, '')}`, [legendPanelId]);
     const legendContainerId = `${legendBaseId}-container`;
     const legendToggleId = `${legendBaseId}-toggle`;
@@ -321,24 +321,24 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
 
     useEffect(() => {
         fetchAndProcessTurinBoundary().then(setTurinPolys);
-	}, []);
+    }, []);
 
     return (
-        <div id = 'map-container' className = 'map-wrap'>
-            <MapContainer center = { [center.lat, center.lng] } zoom = { zoom } scrollWheelZoom = { true } className = 'map'>
-                <TileLayer attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'/>
+        <div id='map-container' className='map-wrap'>
+            <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom={true} className='map'>
+                <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
                 {turinPolys.length > 0 && (
-                    <Polygon positions = { turinPolys } pathOptions = {{ color: '#0057A0', weight: 4, fillOpacity: 0 }}/>
+                    <Polygon positions={turinPolys} pathOptions={{ color: '#0057A0', weight: 4, fillOpacity: 0 }} />
                 )}
-                <MapUpdater position = { selected }/>
-                <LocationMarker selected = { selected } setSelected = { setSelected } turinPolys = { turinPolys }/>
-                <MarkerClusterGroup chunkedLoading iconCreateFunction = { createClusterCustomIcon } maxClusterRadius = { 80 } spiderfyOnMaxZoom = { true } showCoverageOnHover = { false }>
+                <MapUpdater position={selected} />
+                <LocationMarker selected={selected} setSelected={setSelected} turinPolys={turinPolys} />
+                <MarkerClusterGroup chunkedLoading iconCreateFunction={createClusterCustomIcon} maxClusterRadius={80} spiderfyOnMaxZoom={true} showCoverageOnHover={false}>
                     {reports?.map((report) => (
-                        <Marker key = { report.id } position = { [report.lat, report.long] } icon = { createReportIcon(report.status) }>
+                        <Marker key={report.id} position={[report.lat, report.long]} icon={createReportIcon(report.status)}>
                             <Popup>
-                                <div style = {{ textAlign: 'center' }}>
-                                    <p style = {{ margin: '0 0 5px 0', fontWeight: 'bold' }}>{report.title}</p>
-                                    <p style = {{ margin: 0, fontSize: '13px', color: '#666' }}>
+                                <div style={{ textAlign: 'center' }}>
+                                    <p style={{ margin: '0 0 5px 0', fontWeight: 'bold' }}>{report.title}</p>
+                                    <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
                                         Issued by: {report.anonymous ? 'Anonymous' : `@${report.createdBy?.username || 'Unknown'}`}
                                     </p>
                                 </div>
@@ -347,27 +347,27 @@ export function HomepageMap({ selected, setSelected, reports }: Props) {
                     ))}
                 </MarkerClusterGroup>
             </MapContainer>
-            <motion.div id = { legendContainerId } className = 'map-legend' initial = {{ opacity: 0, y: 20 }} animate = {{ opacity: 1, y: 0 }} transition = {{ duration: 0.35, ease: 'easeOut' }}>
-                <motion.button type = 'button' id = { legendToggleId } className = 'map-legend-toggle' onClick = { () => setLegendOpen((prev) => !prev) } aria-expanded = { legendOpen } aria-controls = { legendPanelId } whileHover = {{ scale: 1.01 }} whileTap = {{ scale: 0.98 }}>
-                    <div className = 'map-legend-title-block' id = { `${legendBaseId}-title` }>
-                        <span className = 'map-legend-title'>Report's color mapping</span>
+            <motion.div id={legendContainerId} className='map-legend' initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}>
+                <motion.button type='button' id={legendToggleId} className='map-legend-toggle' onClick={() => setLegendOpen((prev) => !prev)} aria-expanded={legendOpen} aria-controls={legendPanelId} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+                    <div className='map-legend-title-block' id={`${legendBaseId}-title`}>
+                        <span className='map-legend-title'>Report Status Colours</span>
                     </div>
-                    <motion.span id = { `${legendBaseId}-caret` } className = { `map-legend-caret ${legendOpen ? 'open' : ''}` } aria-hidden = 'true' animate = {{ rotate: legendOpen ? 0 : -180 }} transition = {{ duration: 0.3, ease: 'easeOut' }}>
-                        <ChevronUp size = { 16 }/>
+                    <motion.span id={`${legendBaseId}-caret`} className={`map-legend-caret ${legendOpen ? 'open' : ''}`} aria-hidden='true' animate={{ rotate: legendOpen ? 0 : -180 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
+                        <ChevronUp size={16} />
                     </motion.span>
                 </motion.button>
-                <AnimatePresence initial = { false }>
+                <AnimatePresence initial={false}>
                     {legendOpen && (
-                        <motion.div key = 'map-legend-body' id = { legendPanelId } className = 'map-legend-body' initial = {{ opacity: 0, height: 0 }} animate ={{ opacity: 1, height: 'auto' }} exit = {{ opacity: 0, height: 0 }} transition = {{ duration: 0.3, ease: 'easeOut' }}>
-                            <ul id = { legendListId } className = 'map-legend-list'>
+                        <motion.div key='map-legend-body' id={legendPanelId} className='map-legend-body' initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
+                            <ul id={legendListId} className='map-legend-list'>
                                 {statusEntries.map(([status, color], index) => {
                                     const rowId = `${legendBaseId}-status-${sanitizeId(status)}`;
-                                    
-									return (
-                                        <motion.li id = { rowId } key = { status } className = 'map-legend-row' initial = {{ opacity: 0, x: -10 }} animate = {{ opacity: 1, x: 0 }} exit = {{ opacity: 0, x: -10 }} transition = {{ delay: 0.05 * index }}>
-                                            <span id = { `${rowId}-swatch` } className = 'map-legend-color' style = {{ backgroundColor: color }} aria-hidden = 'true'></span>
-                                            <div className = 'map-legend-labels'>
-                                                <span id = { `${rowId}-label` } className = 'map-legend-status'>
+
+                                    return (
+                                        <motion.li id={rowId} key={status} className='map-legend-row' initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ delay: 0.05 * index }}>
+                                            <span id={`${rowId}-swatch`} className='map-legend-color' style={{ backgroundColor: color }} aria-hidden='true'></span>
+                                            <div className='map-legend-labels'>
+                                                <span id={`${rowId}-label`} className='map-legend-status'>
                                                     {status}
                                                 </span>
                                             </div>

@@ -64,7 +64,24 @@ function App() {
 
     return (
         <>
-            <Toaster position = "top-right" reverseOrder = { false }/>
+            <Toaster
+        position="top-center"
+        containerStyle={{
+          zIndex: 99999
+        }}
+        toastOptions={{
+          style: { fontSize: '1.2rem', borderRadius: '11px' },
+          className: 'e2e-toast',
+          success: {
+            iconTheme: { primary: '#265ea8', secondary: '#fff' },
+            className: 'e2e-toast e2e-toast-success'
+          },
+          error: {
+            iconTheme: { primary: '#c62828', secondary: '#fff' },
+            className: 'e2e-toast e2e-toast-error'
+          }
+        }}
+      />
             <Routes>
                 <Route path = "/" element = { homeElement }/>
                 <Route path = "/login" element = { <LoginPage/> }/>

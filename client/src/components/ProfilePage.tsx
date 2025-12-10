@@ -122,7 +122,6 @@ export default function ProfilePage() {
                 setUser(response.user);
             }
 
-            //setSuccessMessage("Profile updated successfully!");
             setIsEditing(false);
             setProfilePic(null);
             setPreviewImage(null);

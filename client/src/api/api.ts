@@ -1,5 +1,5 @@
-import type {Category, Chat, Company, Message, Office, Report, User} from "../models/models";
-import {toApiError} from "../models/models";
+import type { Category, Chat, Company, Message, Office, Report, User } from "../models/models";
+import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
 
@@ -174,8 +174,7 @@ export const createEmployee = async (payload: {
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Failed to create employee: ${res.status} ${text}`);
+    throw await toApiError(res);
   }
 
   return res.json();
@@ -578,9 +577,9 @@ export const getExternalMaintainers = async (categoryId: number): Promise<User[]
     method: 'GET',
     headers: { 'Authorization': `Bearer ${getToken()}` }
   });
-  
-  if(!res.ok) throw await toApiError(res);
-  
+
+  if (!res.ok) throw await toApiError(res);
+
   const data = await res.json();
   const users: User[] = Array.isArray(data) ? data : [];
   return users;
@@ -596,8 +595,8 @@ export const assignReportToExternalMaintainer = async (reportId: number, maintai
     body: JSON.stringify({ maintainerId })
   });
 
-  if(!res.ok) throw await toApiError(res);
-  
+  if (!res.ok) throw await toApiError(res);
+
   const data = await res.json();
   return data as Report;
 };

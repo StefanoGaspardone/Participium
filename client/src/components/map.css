@@ -69,6 +69,7 @@
   font-size: 0.90rem;
   font-weight: 500;
   letter-spacing: 0.00em;
+  color: white;
 }
 
 .map-legend-subtitle {
@@ -149,9 +150,6 @@
     height: 22px;
   }
 }
-
-/* Mini map pin */
-.mini-map-pin-wrapper {}
 
 .mini-map-pin {
   width: 18px;

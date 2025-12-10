@@ -3,9 +3,8 @@ import 'reflect-metadata';
 import { AppDataSource, initializeDatabase, closeDatabase } from '@database';
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
-import { UserDAO } from '@daos/UserDAO';
+import { UserDAO, UserType } from '@daos/UserDAO';
 import { logInfo, logError } from '@utils/logger';
-import { UserType } from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 import { NotificationDAO } from '@daos/NotificationsDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
@@ -338,7 +337,7 @@ async function upsertCompanies() {
 }
 
 async function deleteActualState() {
-    const tables = ['users', 'reports', 'office_roles', 'categories', 'notifications', 'messages', 'chats'];
+    const tables = ['users', 'reports', 'office_roles', 'categories', 'notifications', 'messages', 'chats', 'companies', 'company_categories'];
     for (const t of tables) {
         const sql = "TRUNCATE TABLE " + t + " RESTART IDENTITY CASCADE";
         await AppDataSource.query(sql);

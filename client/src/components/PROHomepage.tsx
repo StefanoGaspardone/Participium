@@ -16,6 +16,32 @@ import "yet-another-react-lightbox/styles.css";
 
 interface PendingReport extends Report { }
 
+const AnimatedMenu = (props: MenuProps<any, false>) => (
+  <AnimatePresence>
+    {props.selectProps.menuIsOpen && (
+      <components.Menu {...props}>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+        >
+          {props.children}
+        </motion.div>
+      </components.Menu>
+    )}
+  </AnimatePresence>
+);
+
+const CategoryOption = (props: OptionProps<any, false>) => {
+  const id = `select-category-${String(props.data.value)}`;
+  return (
+    <div id={id}>
+      <components.Option {...props} />
+    </div>
+  );
+};
+
 export default function PROHomepage() {
   const { user } = useAppContext();
   const [reports, setReports] = useState<PendingReport[]>([]);
@@ -35,32 +61,6 @@ export default function PROHomepage() {
 
   // react-select options for categories
   const categoryOptions = categories.map((cat) => ({ value: String(cat.id), label: cat.name }));
-
-  const AnimatedMenu = (props: MenuProps<any, false>) => (
-    <AnimatePresence>
-      {props.selectProps.menuIsOpen && (
-        <components.Menu {...props}>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-          >
-            {props.children}
-          </motion.div>
-        </components.Menu>
-      )}
-    </AnimatePresence>
-  );
-
-  const CategoryOption = (props: OptionProps<any, false>) => {
-    const id = `select-category-${String(props.data.value)}`;
-    return (
-      <div id={id}>
-        <components.Option {...props} />
-      </div>
-    );
-  };
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
@@ -301,7 +301,12 @@ export default function PROHomepage() {
                                 </motion.button>
                               )}
 
-                              <div onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer' }}>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length)); }}
+                                style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                                aria-label="Open image fullscreen"
+                              >
                                 <AnimatePresence mode="wait">
                                   <motion.img
                                     key={getCurrentImageIndex(r.id, r.images.length)}
@@ -312,10 +317,9 @@ export default function PROHomepage() {
                                     exit={{ opacity: 0, x: -18 }}
                                     transition={{ duration: 0.28 }}
                                     style={{ width: '100%', maxWidth: '460px', height: '270px', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
-                                    onClick={() => openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length))}
                                   />
                                 </AnimatePresence>
-                              </div>
+                              </button>
 
                               {r.images.length > 1 && (
                                 <motion.button
@@ -386,6 +390,10 @@ export default function PROHomepage() {
                               placeholder="Select a category"
                               components={{ Menu: AnimatedMenu, Option: CategoryOption }}
                               classNamePrefix="rs"
+                              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                              menuPosition="fixed"
+                              menuPlacement="auto"
+                              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                             />
                           </div>
                           {updatingId === r.id && (

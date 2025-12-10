@@ -141,13 +141,13 @@ export default function Notifications() {
                             top: -2,
                             right: -2,
                             transform: 'translate(25%, -25%)',
-                            fontSize: '0.65rem',
+                            fontSize: '0.70em',
                             minWidth: 22,
                             height: 18,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.9)'
+                            boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.9)'
                         }}
                     >
                         {unreadCount > 9 ? '9+' : unreadCount}
@@ -181,7 +181,7 @@ export default function Notifications() {
                         }}
                     >
                         <div className="notifications-header" style={{ padding: '0.6rem 1rem', borderBottom: '1px solid #e6e6e6', background: 'linear-gradient(135deg,#f3f5f9,#eceff3)' }}>
-                            <h6 id="report-updates" className="mb-0" style={{ fontWeight: 600, color: '#00205B', letterSpacing: '0.4px' }}>Report updates</h6>
+                            <h6 id="report-updates" className="mb-0" style={{ fontWeight: 600, color: '#00205B', letterSpacing: '0.4px' }}>Report Updates</h6>
                         </div>
                         <div className="notifications-body" style={{ padding: '0.4rem 0.4rem 0.8rem', overflowY: 'auto' }}>
                             {loading && (

@@ -368,6 +368,8 @@ describe('Report routes integration tests', () => {
 
     it('should return 403 if user is Citizen', async () => {
       const res = await request(app).put(`/api/reports/${reportId}/category`).set('Authorization', `Bearer ${token}`).send({ categoryId });
+      console.log('Status ricevuto:', res.status);
+      console.log('Body:', res.body);
       expect(res.status).toBe(403);
     });
 

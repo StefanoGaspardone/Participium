@@ -78,7 +78,7 @@ const ConfirmCodePage = () => {
         e.preventDefault();
 
         const pasted = e.clipboardData.getData('Text').trim();
-        const digits = pasted.replace(/\D/g, '').slice(0, 6).split('');
+        const digits = pasted.replaceAll(/\D/g, '').slice(0, 6).split('');
         
         if(digits.length === 0) return;
         

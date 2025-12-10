@@ -9,7 +9,8 @@ pnpm-debug.log*
 logs/
 log/
 *.log
-# .env
+.env
+*.env
 .local
 .vscode/
 coverage/

@@ -4,7 +4,7 @@ import { getAssignedReports, updateReportStatus, getExternalMaintainers, assignR
 import type { Report, User } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
 import { ChevronLeft, ChevronRight, Loader2Icon } from 'lucide-react';
-import { Accordion, Badge, Alert, Button, Card, Row, Col } from 'react-bootstrap';
+import { Accordion, Badge, Alert, Button, Row, Col } from 'react-bootstrap';
 import ReportMiniMap from './ReportMiniMap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserCircle } from "react-icons/fa";
@@ -27,6 +27,7 @@ export default function TechnicalStaffHomepage() {
     const [show, setShow] = useState<boolean>(false);
     const [expanded, setExpanded] = useState<number | null>(null);
     const [activeReport, setActiveReport] = useState<Report | null>(null);
+    const [chatTargetUserId, setChatTargetUserId] = useState<number | null>(null);
     const [imageIndexByReport, setImageIndexByReport] = useState<Record<number, number>>({});
     const [addressByReport, setAddressByReport] = useState<Record<number, string>>({});
 
@@ -123,7 +124,7 @@ export default function TechnicalStaffHomepage() {
     const handleFetchMaintainers = async (report: Report) => {
         try {
             const categoryId = Number(report?.category?.id);
-            if (!categoryId || isNaN(categoryId)) return;
+            if (!categoryId || Number.isNaN(categoryId)) return;
             const maintainers = await getExternalMaintainers(categoryId);
             setMaintainersByReportId(maintainers);
         } catch (e) {
@@ -137,7 +138,7 @@ export default function TechnicalStaffHomepage() {
         if (!maintainerId) return;
         try {
             setAssigningReportId(reportId);
-            const report = await assignReportToExternalMaintainer(reportId, maintainerId);            
+            const report = await assignReportToExternalMaintainer(reportId, maintainerId);
             setReports(prev => prev.map(r => r.id === reportId ? report : r));
         } catch (e) {
             console.error('Failed to assign external maintainer', e);
@@ -182,7 +183,7 @@ export default function TechnicalStaffHomepage() {
                         {user?.office ? `${user.office} office` : 'Office'}
                     </motion.h1>
                     <motion.h2
-                        className="mb-4 text-center auth-title"
+                        className="text-center auth-title"
                         initial={{ opacity: 0, y: -12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
@@ -236,12 +237,17 @@ export default function TechnicalStaffHomepage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.08, duration: 0.4 }}
                                 >
-                                    <Card className="mb-3 auth-card">
-                                        <Accordion.Item eventKey={String(r.id)}>
+                                        <Accordion.Item eventKey={String(r.id)} className="mt-4">
                                             <Accordion.Header
                                                 onClick={() => handleRToggle(r.id)}
                                             >
-                                                <div onClick={() => handleFetchMaintainers(r)} className="d-flex w-100 align-items-center justify-content-between">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); handleFetchMaintainers(r); }}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleFetchMaintainers(r); } }}
+                                                    className="d-flex w-100 align-items-center justify-content-between"
+                                                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                                                >
                                                     <h4 id="report-title" className="mb-0 fw-bold" style={{ color: '#00205B', fontSize: '1.5rem' }}>{r.title}</h4>
                                                     <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem', marginRight: '0.5rem' }}>
                                                         <span
@@ -261,7 +267,7 @@ export default function TechnicalStaffHomepage() {
                                                         </span>
                                                         {new Date(r.createdAt).toLocaleString()}
                                                     </small>
-                                                </div>
+                                                </button>
                                             </Accordion.Header>
                                             <Accordion.Body>
                                                 {/* Top section: Images and Map side by side */}
@@ -289,7 +295,12 @@ export default function TechnicalStaffHomepage() {
                                                                         </motion.button>
                                                                     )}
 
-                                                                    <div onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer' }}>
+                                                                    <button
+                                                                        type="button"
+                                                                        aria-label="View report image in fullscreen"
+                                                                        onClick={(e) => { e.stopPropagation(); openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length)); }}
+                                                                        style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                                                                    >
                                                                         <AnimatePresence mode="wait">
                                                                             <motion.img
                                                                                 key={getCurrentImageIndex(r.id, r.images.length)}
@@ -300,10 +311,9 @@ export default function TechnicalStaffHomepage() {
                                                                                 exit={{ opacity: 0, x: -18 }}
                                                                                 transition={{ duration: 0.28 }}
                                                                                 style={{ width: '100%', maxWidth: '460px', height: '270px', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
-                                                                                onClick={() => openLightbox(r.images, getCurrentImageIndex(r.id, r.images.length))}
                                                                             />
                                                                         </AnimatePresence>
-                                                                    </div>
+                                                                    </button>
 
                                                                     {r.images.length > 1 && (
                                                                         <motion.button
@@ -361,29 +371,39 @@ export default function TechnicalStaffHomepage() {
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Update Status</h5>
                                                             {getAvailableActions(r.status).length > 0 ? (
                                                                 <div className="d-flex gap-2 flex-wrap">
-                                                                    {getAvailableActions(r.status).map(action => (
-                                                                        <Button
-                                                                            id={"switch-report-status" + r.title}
-                                                                            key={action.value}
-                                                                            variant={
-                                                                                action.value === 'Resolved' ? 'success' :
-                                                                                    action.value === 'InProgress' ? 'primary' :
-                                                                                        'warning'
-                                                                            }
-                                                                            size="lg"
-                                                                            disabled={updatingReportId === r.id}
-                                                                            onClick={() => handleStatusChange(r.id, action.value)}
-                                                                            className="auth-button-primary"
-                                                                            style={{
-                                                                                background: action.value === 'Resolved'
-                                                                                    ? 'linear-gradient(90deg, #28a745, #34ce57)'
-                                                                                    : action.value === 'InProgress'
-                                                                                        ? 'linear-gradient(90deg, #007bff, #0056b3)'
-                                                                                        : 'linear-gradient(90deg, #ffc107, #ff9800)',
-                                                                                border: 'none'
-                                                                            }}
-                                                                        >
-                                                                            {updatingReportId === r.id ? (
+                                                                    {getAvailableActions(r.status).map(action => {
+                                                                        let variant: string;
+                                                                        if (action.value === 'Resolved') {
+                                                                            variant = 'success';
+                                                                        } else if (action.value === 'InProgress') {
+                                                                            variant = 'primary';
+                                                                        } else {
+                                                                            variant = 'warning';
+                                                                        }
+                                                                    
+                                                                        let background: string;
+                                                                        if (action.value === 'Resolved') {
+                                                                            background = 'linear-gradient(90deg, #28a745, #34ce57)';
+                                                                        } else if (action.value === 'InProgress') {
+                                                                            background = 'linear-gradient(90deg, #007bff, #0056b3)';
+                                                                        } else {
+                                                                            background = 'linear-gradient(90deg, #ffc107, #ff9800)';
+                                                                        }
+                                                                    
+                                                                        return (
+                                                                            <Button
+                                                                                id={"switch-report-status" + r.title}
+                                                                                key={action.value}
+                                                                                variant={variant}
+                                                                                size="lg"
+                                                                                disabled={updatingReportId === r.id}
+                                                                                onClick={() => handleStatusChange(r.id, action.value)}
+                                                                                className="auth-button-primary"
+                                                                                style={{
+                                                                                    background,
+                                                                                    border: 'none'
+                                                                                }}
+                                                                            > {updatingReportId === r.id ? (
                                                                                 <>
                                                                                     <Loader2Icon
                                                                                         size={16}
@@ -391,9 +411,12 @@ export default function TechnicalStaffHomepage() {
                                                                                     />
                                                                                     Updating...
                                                                                 </>
-                                                                            ) : action.label}
-                                                                        </Button>
-                                                                    ))}
+                                                                            ) : (
+                                                                                <>{action.label}</>
+                                                                            )}
+                                                                            </Button>
+                                                                        );
+                                                                    })}
                                                                 </div>
                                                             ) : (
                                                                 <motion.div
@@ -407,24 +430,9 @@ export default function TechnicalStaffHomepage() {
                                                                 </motion.div>
                                                             )}
                                                         </div>
-
-                                                        {/* Send message button */}
-                                                        <div>
-                                                            <h5 style={{ color: '#00205B', fontWeight: 600 }}>Comunication</h5>
-
-                                                            <Button
-                                                                variant="link"
-                                                                className="me-2 p-0"
-                                                                onClick={() => { setActiveReport(r); setShow(true); }}
-                                                                aria-label={`open-chat-${r.id}`}
-                                                            >
-                                                                Click
-                                                            </Button>
-                                                            <span className="me-2" style={{ marginRight: '0.5rem', color: '#6c757d' }}> to open chat with the report submitter</span>
-                                                        </div>
                                                     </div>
                                                     <div className='col-6'>
-                                                        <div className="mb-4">
+                                                        <div className="mb-3">
                                                             <h5 style={{ color: '#00205B', fontWeight: 600 }}>Assign to an external maintainer</h5>
                                                             {r?.coAssignedTo ? (
                                                                 r?.coAssignedTo.id === 13 ? (
@@ -440,7 +448,7 @@ export default function TechnicalStaffHomepage() {
                                                                 )
                                                             ) : (
                                                                 <div>
-                                                                    <div className="d-flex align-items-center gap-2 mb-2">
+                                                                    <div className="d-flex align-items-center gap-2 mb-1">
                                                                         <select
                                                                             id={`assign-maintainer-select-${r.id}`}
                                                                             className="form-select"
@@ -463,7 +471,6 @@ export default function TechnicalStaffHomepage() {
                                                                             variant="primary"
                                                                             onClick={() => handleAssignMaintainer(r.id)}
                                                                             disabled={!selectedMaintainerByReportId[r.id] || assigningReportId === r.id}
-                                                                            className="auth-button-primary"
                                                                         >
                                                                             {assigningReportId === r.id ? (
                                                                                 <>
@@ -475,37 +482,40 @@ export default function TechnicalStaffHomepage() {
                                                                             )}
                                                                         </Button>
                                                                     </div>
-                                                                    <span className="ms-2 align-middle" style={{ marginRight: '0.5rem', color: '#6c757d' }}>or</span>
-                                                                    <Button
-                                                                        id={`assign-outside-button-${r.id}`}
-                                                                        variant="link"
-                                                                        className="p-0"
-                                                                        disabled={assigningReportId === r.id}
-                                                                        onClick={() => handleAssignMaintainer(r.id, 13)}
-                                                                    >
-                                                                        {assigningReportId === r.id ? (
-                                                                            <>
-                                                                                <Loader2Icon size={16} className="animate-spin me-1" />
-                                                                                Assigning...
-                                                                            </>
-                                                                        ) : (
-                                                                            'assign to maintainer out of Participium'
-                                                                        )}
-                                                                    </Button>
+                                                                    <motion.div className="mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
+                                                                        or{" "}
+                                                                        <span id={`assign-outside-button-${r.id}`}
+                                                                            onClick={() => handleAssignMaintainer(r.id, 13)}
+                                                                            className="auth-link-inline"
+                                                                        > assign to maintainer out of participium
+                                                                        </span>
+                                                                    </motion.div>
                                                                 </div>
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <h5 style={{ color: '#00205B', fontWeight: 600 }}>Comunication</h5>
+                                                            <motion.div className="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
+                                                                <span id="chat-redirect-issuer" onClick={() => { setChatTargetUserId(r.createdBy?.id ?? null); setActiveReport(r); setShow(true); }} className="auth-link-inline">Click</span>
+                                                                {" "}to open chat with the report submitter
+                                                            </motion.div>
+                                                            {r?.coAssignedTo && r?.coAssignedTo.id !== 13 && (
+                                                                <motion.div className="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }}>
+                                                                    <span id="chat-redirect-maintainer" onClick={() => { setChatTargetUserId(r.coAssignedTo?.id ?? null); setActiveReport(r); setShow(true); }} className="auth-link-inline">Click</span>
+                                                                    {" "}to open chat with the external maintainer
+                                                                </motion.div>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </Accordion.Body>
                                         </Accordion.Item>
-                                    </Card>
                                 </motion.div>
                             ))}
                         </Accordion>
                     )}
                 </div>
-                <Chats show={show} handleToggle={handleToggle} activeReport={activeReport} setActiveReport={setActiveReport} />
+                <Chats show={show} handleToggle={handleToggle} activeReport={activeReport} setActiveReport={setActiveReport} targetUserId={chatTargetUserId} />
             </div>
             <Lightbox
                 open={lightboxOpen}
@@ -513,7 +523,7 @@ export default function TechnicalStaffHomepage() {
                 slides={lightboxSlides}
                 index={lightboxIndex}
                 controller={{ closeOnBackdropClick: true }}
-                on={{ index: (newIndex: number) => setLightboxIndex(newIndex) as any }}
+                on={{ index: (newIndex: number) => setLightboxIndex(newIndex) } as any}
             />
         </>
     );
