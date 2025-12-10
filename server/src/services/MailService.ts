@@ -22,20 +22,19 @@ export class MailService {
         this.fromAddress = CONFIG.MAIL.MAIL_FROM_ADDRESS; 
         this.fromName = CONFIG.MAIL.MAIL_FROM_NAME;
 
-        const smtpHost = CONFIG.MAIL.SMTP_HOST;
-        const smtpPort = CONFIG.MAIL.SMTP_PORT;
         const smtpUser = CONFIG.MAIL.SMTP_USER;
-        const smtpPass = CONFIG.MAIL.SMTP_PASS;
-
-        if(!smtpPass) this.transporter = null;
+        const clientId = CONFIG.MAIL.OAUTH_CLIENT_ID;
+        const clientSecret = CONFIG.MAIL.OAUTH_CLIENT_SECRET;
+        const refreshToken = CONFIG.MAIL.OAUTH_REFRESH_TOKEN;
 
         this.transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: smtpPort,
-            secure: smtpPort === 465,
+            service: 'gmail',
             auth: {
+                type: 'OAuth2',
                 user: smtpUser,
-                pass: smtpPass,
+                clientId: clientId,
+                clientSecret: clientSecret,
+                refreshToken: refreshToken,
             },
             pool: true,
             maxConnections: 5,
