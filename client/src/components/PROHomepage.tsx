@@ -7,6 +7,7 @@ import { getReportsByStatus, getCategories, updateReportCategory, assignOrReject
 import type { Report, Category } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from "react-hot-toast";
 import { Loader2Icon, ChevronLeft, ChevronRight } from 'lucide-react';
 import Select, { components, type MenuProps, type SingleValue, type OptionProps } from 'react-select';
 import './AuthForms.css';
@@ -125,6 +126,7 @@ export default function PROHomepage() {
     try {
       setStatusUpdatingId(report.id);
       await assignOrRejectReport(report.id, 'Assigned');
+       toast.success(`Report successfully accepted!`);
       setReports(rs => rs.filter(r => r.id !== report.id));
       // nothing else to clear (rejection now handled via modal)
     } catch (e: any) {
@@ -145,6 +147,7 @@ export default function PROHomepage() {
     try {
       setStatusUpdatingId(rejectModalReport.id);
       await assignOrRejectReport(rejectModalReport.id, 'Rejected', reason);
+      toast.success(`Report successfully rejected!`);
       setReports(rs => rs.filter(r => r.id !== rejectModalReport.id));
       setRejectModalReport(null);
       setRejectModalReason('');
