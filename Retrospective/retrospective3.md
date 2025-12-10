@@ -72,6 +72,6 @@ sections:
 
 - One thing you are proud of as a Team!!
 
-  > We are Powerpuff Girls, we overcome all problems that arise without blaming anyone and help each other
+  > We are Powerpuff Girls! We overcome all problems that arise without blaming anyone and help each other!
   
     ![Powerpuff Girls](./powerpuff_girls.jpg)
