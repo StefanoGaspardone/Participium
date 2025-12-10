@@ -32,15 +32,6 @@ const getOtherUser = (chat: Chat, currentUserId?: number) => {
     return chat.tosm_user;
 };
 
-const getBadgeProps = (status: string | undefined) => {
-    const statusColor = status ? REPORT_STATUS_COLORS[status] : undefined;
-    if (!statusColor) return {};
-    if (statusColor.startsWith('#')) {
-        return { style: { backgroundColor: statusColor } } as { style: React.CSSProperties };
-    }
-    return { bg: statusColor } as { bg?: string };
-};
-
 const getSenderId = (rawSender: number | { id?: number } | undefined): number | undefined => {
     if (typeof rawSender === 'number') return rawSender;
     return rawSender?.id;
@@ -137,10 +128,16 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                     const isActive = selectedChat === chat.id;
 
                     const displayImage = otherUser?.image;
-                    const otherUserTypeLabel = otherUser?.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN";
+                    let otherUserTypeLabel = null;
+                    if (otherUser?.userType === "EXTERNAL_MAINTAINER") {
+                        otherUserTypeLabel = "EXTERNAL MAINTAINER";
+                    } else if (otherUser?.userType === "CITIZEN") {
+                        otherUserTypeLabel = "CITIZEN";
+                    }
+                    else if (otherUser?.userType === "TECHNICAL_STAFF_MEMBER") {
+                        otherUserTypeLabel = "TECHNICAL STAFF MEMBER";
+                    }
                     const otherUserDetails = otherUser ? `${otherUser.firstName} ${otherUser.lastName} - ${otherUserTypeLabel}` : '';
-
-                    const badgeProps = getBadgeProps(chat.report.status);
 
                     return (
                         <button
@@ -165,16 +162,16 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
 
                             <div className="flex-grow-1 min-width-0">
                                 <div className="d-flex align-items-center justify-content-between mb-1">
-                                    <div className="fw-semibold text-truncate">{chat.report.title}</div>
+                                    <div className="fw-semibold text-truncate">{otherUserDetails}</div>
                                     <small className="text-muted">#{chat.report.id}</small>
                                 </div>
 
                                 <div className="small text-truncate mb-1 other-user-details" >
-                                    {otherUserDetails}
+                                    {chat.report.title}
                                 </div>
 
                                 <div className="d-flex gap-2 align-items-center">
-                                    <Badge {...badgeProps}>
+                                    <Badge bg="none" style={{ backgroundColor: REPORT_STATUS_COLORS[chat.report.status] }}>
                                         {chat.report.status}
                                     </Badge>
                                     <Badge bg="secondary">{chat.report.category?.name}</Badge>
@@ -369,7 +366,15 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
     const currentSelectedChat = chats?.find(c => c.id === selectedChat);
     const otherUserInHeader = currentSelectedChat && user ? getOtherUser(currentSelectedChat, user.id) : undefined;
 
-    const userTypeLabel = otherUserInHeader?.userType === "EXTERNAL_MAINTAINER" ? "EXTERNAL MAINTAINER" : "CITIZEN";
+    let userTypeLabel = null;
+    if (otherUserInHeader?.userType === "EXTERNAL_MAINTAINER") {
+        userTypeLabel = "EXTERNAL MAINTAINER";
+    } else if (otherUserInHeader?.userType === "CITIZEN") {
+        userTypeLabel = "CITIZEN";
+    }
+    else if (otherUserInHeader?.userType === "TECHNICAL_STAFF_MEMBER") {
+        userTypeLabel = "TECHNICAL STAFF MEMBER";
+    }
     const otherUserDetailsInHeader = otherUserInHeader
         ? `${otherUserInHeader.firstName} ${otherUserInHeader.lastName} - ${userTypeLabel}`
         : "Loading...";
@@ -441,10 +446,10 @@ const Chats = ({ show, handleToggle, activeReport, setActiveReport, targetUserId
                                                 )}
                                                 <div className="flex-grow-1 min-width-0">
                                                     <div className="fw-semibold text-truncate">
-                                                        {activeReport?.title ?? "Chat"}
+                                                        {otherUserDetailsInHeader}
                                                     </div>
                                                     <div className="small text-muted text-truncate">
-                                                        {otherUserDetailsInHeader}
+                                                        {activeReport?.title ?? "Chat"}
                                                     </div>
                                                 </div>
                                             </div>
