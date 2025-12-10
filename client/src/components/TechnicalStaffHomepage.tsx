@@ -124,7 +124,7 @@ export default function TechnicalStaffHomepage() {
     const handleFetchMaintainers = async (report: Report) => {
         try {
             const categoryId = Number(report?.category?.id);
-            if (!categoryId || isNaN(categoryId)) return;
+            if (!categoryId || Number.isNaN(categoryId)) return;
             const maintainers = await getExternalMaintainers(categoryId);
             setMaintainersByReportId(maintainers);
         } catch (e) {
