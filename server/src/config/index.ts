@@ -109,10 +109,10 @@ export const CONFIG = {
     SESSION_JSON_PATH: path.join(__dirname, '../telegram/session_db.json'),
   },
   MAIL: {
+    SMTP_HOST: getSecret("SMTP_HOST"),
+    SMTP_PORT: getSecretNumber("SMTP_PORT"),
     SMTP_USER: getSecret("SMTP_USER"),
-    OAUTH_CLIENT_ID: getSecret("OAUTH_CLIENT_ID"),
-    OAUTH_CLIENT_SECRET: getSecret("OAUTH_CLIENT_SECRET"),
-    OAUTH_REFRESH_TOKEN: getSecret("OAUTH_REFRESH_TOKEN"),
+    SMTP_PASS: getSecret("SMTP_PASS"),
     MAIL_FROM_ADDRESS: getSecret("MAIL_FROM_ADDRESS"),
     MAIL_FROM_NAME: getSecret("MAIL_FROM_NAME"),
   }
