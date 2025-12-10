@@ -23,8 +23,9 @@ const reportPage = {
       return;
     }
     // react-select: focus input, open menu, then click option by generated id
+    // component uses id `select-category-<id>` for each option wrapper
     cy.get('[id="select-category"]').click();
-    cy.get(`[id="category-${cat}"]`, { timeout: 5000 }).click();
+    cy.get(`[id="select-category-${cat}"]`, { timeout: 5000 }).click();
   },
   clickOnMap: () => {
     cy.get('#map-container .leaflet-interactive', { timeout: 8000 }).first().click({ force: true });

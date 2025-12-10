@@ -23,28 +23,29 @@ const adminPage = {
    * @param choice is related to the role (it's valid only if 0 <= choice <= 3)
    */
   selectRole: (choice: number) => {
-    const roleIdByChoice: Record<number, string> = {
-      0: "municipal_administrator",
-      1: "public_relations_officer",
-      2: "technical_staff_member",
-      3: "external_maintainer",
-    };
-    if (choice < 0 || choice > 3) {
-      return;
-    }
-    const optionId = roleIdByChoice[choice];
+    // react-select no longer exposes stable option ids — select by visible label
+    const roleLabels = [
+      "Municipal Administrator",
+      "Municipal Public Relations Officer",
+      "Technical Office Staff Member",
+      "External Maintainer",
+    ];
+    if (choice < 0 || choice >= roleLabels.length) return;
+    const label = roleLabels[choice];
     cy.get('#open-roles').click();
-    cy.get(`#${optionId}`).click();
+    // menu options are rendered under .rs__menu; pick the one that contains the label
+    cy.get('.rs__menu').contains(label).click();
+    cy.get('.rs__menu').should('not.exist');
   },
   /**
    * @param choice is related to the office (it's valid only if 1 <= choice <= 5)
    */
   selectOffice: (choice: number) => {
-    if (choice < 1 || choice > 5) {
-      return;
-    }
+    if(choice < 1) return;
     cy.get('#open-offices').click();
-    cy.get(`#select-office${choice}`).click();
+    // select nth option (choice is 1-based index)
+    cy.get('.rs__menu .rs__option').eq(choice - 1).click();
+    cy.get('.rs__menu').should('not.exist');
   },
   /**
    * Select an existing company by id value
@@ -54,7 +55,9 @@ const adminPage = {
       return;
     }
     cy.get('#open-companies').click();
-    cy.get(`#select-company${choice}`).click();
+    // select by index (1-based)
+    cy.get('.rs__menu .rs__option').eq(choice - 1).click();
+    cy.get('.rs__menu').should('not.exist');
   },
   submitAccount: () => {
     cy.get('[id="create-account-button"]').focus().click();

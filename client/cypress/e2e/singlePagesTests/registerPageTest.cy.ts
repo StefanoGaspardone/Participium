@@ -2,13 +2,13 @@ import { REGISTERPAGE_URL, LOGINPAGE_URL, CONFIRMPAGE_URL } from '../../support/
 import { registerPage } from '../../pageObjects/registerPage';
 import { generateRandomString } from '../../pageObjects/utils';
 
-describe('3. Test suite for register page :', () => {
+describe('7. Test suite for register page :', () => {
 
 	beforeEach(() => {
 		cy.intercept('POST', '/api/users/me', { statusCode: 401, body: { message: 'Unauthorized' } }).as('me');
 	});
 	
-	it('3.1 Inserting correct fields should lead to a correct registration process and confirm code page', () => {
+	it('7.1 Inserting correct fields should lead to a correct registration process and confirm code page', () => {
 		cy.visit(REGISTERPAGE_URL);
 		const fn = generateRandomString(15);
 		const ln = generateRandomString(15);
@@ -34,7 +34,7 @@ describe('3. Test suite for register page :', () => {
 		cy.url().should('equal', CONFIRMPAGE_URL);
 	});
 
-	it('3.2 Inserting already used credentials should lead to wrong registration (error) and should NOT lead to login page', () => {
+	it('7.2 Inserting already used credentials should lead to wrong registration (error) and should NOT lead to login page', () => {
 		cy.visit(REGISTERPAGE_URL);
 		const fn = generateRandomString(15);
 		const ln = generateRandomString(15);
@@ -58,13 +58,13 @@ describe('3. Test suite for register page :', () => {
 		cy.url().should('equal', REGISTERPAGE_URL);
 	});
 
-	it('3.3 Clicking on Log in link should lead to login page', () => {
+	it('7.3 Clicking on Log in link should lead to login page', () => {
 		cy.visit(REGISTERPAGE_URL);
 		registerPage.clickLogin();
 		cy.url().should('equal', LOGINPAGE_URL);
 	})
 
-	it('3.4 Register works without optional fields', () => {
+	it('7.4 Register works without optional fields', () => {
 		cy.visit(REGISTERPAGE_URL);
 		const fn = generateRandomString(12);
 		const ln = generateRandomString(12);
