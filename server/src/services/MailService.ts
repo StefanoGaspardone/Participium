@@ -39,7 +39,6 @@ export class MailService {
             },
             pool: true,
             maxConnections: 5,
-            maxMessages: 100,
             rateLimit: 10,
         });
 
