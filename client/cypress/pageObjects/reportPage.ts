@@ -41,7 +41,7 @@ const reportPage = {
     if (qty < 1 || qty > 3) {
       return;
     }
-    cy.get('[id="image-input"]').selectFile("cypress\\e2e\\singlePagesTests\\toUploadImages\\toUp.png", {force: true});
+    cy.get('[id="image-input"]').selectFile("cypress/e2e/singlePagesTests/toUploadImages/toUp.png", {force: true});
   }, //
   submitForm: () => {
     cy.get('[id="submit-button"]').click();
