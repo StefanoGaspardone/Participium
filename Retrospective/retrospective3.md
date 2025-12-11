@@ -11,9 +11,9 @@ sections:
 
 ### Macro statistics
 
-- Number of stories committed vs done :
-- Total points committed vs done :
-- Nr of hours planned vs spent (as a team) :
+- Number of stories committed vs done : 4/4 
+- Total points committed vs done : 15/15
+- Nr of hours planned vs spent (as a team) : 80h/78h 52m
 
 **Remember** a story is done ONLY if it fits the Definition of Done:
 
@@ -28,47 +28,76 @@ sections:
 
 | Story | # Tasks | Points | Hours est. | Hours actual |
 | ----- | ------- | ------ | ---------- | ------------ |
-| _#0_  |         | -      |            |              |
-| n     |         |        |            |              |
+| _#0_  |    17   | -      |  58h 15m   |   53h 30m    |
+| Assign Reports to External Maintainers     |     12    |    5    |     6h 20m       |       7h 37m       |
+| Update Report Status as External Maintainer     |     7    |    2    |     2h 10m       |      1h 56m      |
+| Internal Information Exchange on Reports     |     7    |    5    |     6h 30m       |      9h 15m      |
+| Citizen Registration Confirm    |     11    |    3    |     6h 45m       |      6h 34m      |
+
+
 
 > place technical tasks corresponding to story `#0` and leave out story points (not applicable in this case)
 
 - Hours per task (average, standard deviation)
-- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1
+  
+|            | Mean | StDev |
+| ---------- |------|-------|
+| Estimation | 1.4814| - |
+| Actual     | 1.4604| -|
+
+- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1: 
 
 ## QUALITY MEASURES
 
 - Unit Testing:
-  - Total hours estimated
-  - Total hours spent
-  - Nr of automated unit test cases
-  - Coverage (if available)
+  - Total hours estimated: 3h 15m
+  - Total hours spent: 3h 20m
+  - Nr of automated unit test cases: 197
+  - Coverage (if available): 90.83%
 - Integration testing:
-  - Total hours estimated
-  - Total hours spent
+  - Total hours estimated: 3h 15m
+  - Total hours spent: 3h 55m
+  - Nr of automated integration test cases: 311
+  - Coverage (if available): 93.21%
 - E2E testing:
-  - Total hours estimated
-  - Total hours spent
+  - Total hours estimated: 3h 15m
+  - Total hours spent: 3h 30m
+  - Nr of automated integration test cases: 
+  - Coverage (if available): 85.62%
 - Code review:
-  - Total hours estimated
-  - Total hours spent
+  - Total hours estimated: 2h
+  - Total hours spent: 1h 22m
 - Technical Debt management:
-  - Strategy adopted
-  - Total hours estimated estimated at sprint planning
-  - Total hours spent
+  - Strategy adopted: 
+    - Team members will review SonarQube Cloud at every merge to the main branch and will decide on how to act (e.g., fix immediately, create a TD task, or accept the issue with justification).
+    - Team members will check the real-time analysis in the IDE before committing code to be aware of the issues they might introduce and decide on how to act.
+
+  - Total hours estimated estimated at sprint planning: 8h 55m
+  - Total hours spent: 8h 55m
 
 ## ASSESSMENT
 
 - What caused your errors in estimation (if any)?
+  
+ > Implementing internal communication lead to refactoring both tests and the architecture hence more time than expected.
 
 - What lessons did you learn (both positive and negative) in this sprint?
 
+ >  Negative: Refactoring took more time than expected.
+ >  Positive: We adopted quickly to the backlog changes and did not have many problems implementing the new features
+
 - Which improvement goals set in the previous retrospective were you able to achieve?
+  
+ > We improved UI testing, allocated more time for refactoring and had much better frontend. 
+  
 - Which ones you were not able to achieve? Why?
+
+ > We achieved all of them.
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
 
-> Propose one or two
+ > More populated map with actual data 
+ > The app should have more data to present  
 
 - One thing you are proud of as a Team!!
 
