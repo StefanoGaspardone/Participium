@@ -42,8 +42,8 @@ sections:
   
 |            | Mean  | StDev |
 | ---------- |------ |-------|
-| Estimation | 1.4814| 2.27 |
-| Actual     | 1.4604| 2.32|
+| Estimation | 1.4814| 2.47 |
+| Actual     | 1.4604| 2.26 |
 
 - Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1: 14.45%
 
