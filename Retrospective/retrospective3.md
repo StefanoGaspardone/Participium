@@ -29,10 +29,10 @@ sections:
 | Story | # Tasks | Points | Hours est. | Hours actual |
 | ----- | ------- | ------ | ---------- | ------------ |
 | _#0_  |    17   | -      |  58h 15m   |   53h 30m    |
-| Assign Reports to External Maintainers     |     12    |    5    |     6h 20m       |       7h 37m       |
-| Update Report Status as External Maintainer     |     7    |    2    |     2h 10m       |      1h 56m      |
-| Internal Information Exchange on Reports     |     7    |    5    |     6h 30m       |      9h 15m      |
-| Citizen Registration Confirm    |     11    |    3    |     6h 45m       |      6h 34m      |
+| PT24 - Assign Reports to External Maintainers     |     12    |    5    |     6h 20m       |       7h 37m       |
+| PT25 - Update Report Status as External Maintainer     |     7    |    2    |     2h 10m       |      1h 56m      |
+| PT26 - Internal Information Exchange on Reports     |     7    |    5    |     6h 30m       |      9h 15m      |
+| PT27 - Citizen Registration Confirm    |     11    |    3    |     6h 45m       |      6h 34m      |
 
 
 
@@ -62,15 +62,15 @@ sections:
 - E2E testing:
   - Total hours estimated: 3h 15m
   - Total hours spent: 3h 30m
-  - Nr of automated integration test cases: 
+  - Nr of automated integration test cases: 197
   - Coverage (if available): 85.62%
 - Code review:
   - Total hours estimated: 2h
   - Total hours spent: 1h 22m
 - Technical Debt management:
   - Strategy adopted: 
-    - Team members will review SonarQube Cloud at every merge to the main branch and will decide on how to act (e.g., fix immediately, create a TD task, or accept the issue with justification).
-    - Team members will check the real-time analysis in the IDE before committing code to be aware of the issues they might introduce and decide on how to act.
+    > Team members review SonarQube Cloud at every merge to the main branch and decide on how to act (e.g., fix immediately, create a TD task, or accept the issue with justification).
+    > Team members check the real-time analysis in the IDE before committing code to be aware of the issues they might introduce and decide on how to act.
 
   - Total hours estimated estimated at sprint planning: 8h 55m
   - Total hours spent: 8h 55m
@@ -101,6 +101,6 @@ sections:
 
 - One thing you are proud of as a Team!!
 
-  > We are Powerpuff Girls! We overcome all problems that arise without blaming anyone and help each other!
+ > We are Powerpuff Girls! We overcome all problems that arise without blaming anyone and help each other!
   
     ![Powerpuff Girls](./powerpuff_girls.jpg)
