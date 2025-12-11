@@ -70,6 +70,7 @@ sections:
 - Technical Debt management:
   - Strategy adopted: 
     > Team members review SonarQube Cloud at every merge to the main branch and decide on how to act (e.g., fix immediately, create a TD task, or accept the issue with justification).
+    
     > Team members check the real-time analysis in the IDE before committing code to be aware of the issues they might introduce and decide on how to act.
 
   - Total hours estimated estimated at sprint planning: 8h 55m
@@ -79,28 +80,29 @@ sections:
 
 - What caused your errors in estimation (if any)?
   
- > Implementing internal communication lead to refactoring both tests and the architecture hence more time than expected.
+  > Implementing internal communication lead to refactoring both tests and the architecture hence more time than expected.
 
 - What lessons did you learn (both positive and negative) in this sprint?
 
- >  Negative: Refactoring took more time than expected.
- >  Positive: We adopted quickly to the backlog changes and did not have many problems implementing the new features
+  >  Negative: Refactoring took more time than expected.
+  
+  >  Positive: We adopted quickly to the backlog changes and did not have many problems implementing the new features
 
 - Which improvement goals set in the previous retrospective were you able to achieve?
   
- > We improved UI testing, allocated more time for refactoring and had much better frontend. 
+  > We improved UI testing, allocated more time for refactoring and had much better frontend. 
   
 - Which ones you were not able to achieve? Why?
 
- > We achieved all of them.
+  > We achieved all of them.
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
-
- > More populated map with actual data 
- > The app should have more data to present  
+  
+  > More populated map with actual data
+  > The app should have more data to present  
 
 - One thing you are proud of as a Team!!
 
- > We are Powerpuff Girls! We overcome all problems that arise without blaming anyone and help each other!
+  > We are Powerpuff Girls! We overcome all problems that arise without blaming anyone and help each other!
   
     ![Powerpuff Girls](./powerpuff_girls.jpg)
