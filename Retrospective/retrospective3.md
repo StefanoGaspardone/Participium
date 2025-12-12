@@ -45,9 +45,11 @@ sections:
 | Estimation | 1.4814| 2.47 |
 | Actual     | 1.4604| 2.26 |
 
-- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1: 0.01436 or 1.44%
+- Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1: 
 
-- Absolute relative task estimation error: sum( abs( spent-task-i / estimation-task-i - 1))/n
+  $$\frac{\sum_i estimation_{task_i}}{\sum_i spent_{task_i}} - 1$$ = 0.01436 (1.44%)
+ 
+- Absolute relative task estimation error: sum( abs( spent-task-i / estimation-task-i - 1))/n:
 
   $$\frac{1}{n}\sum_i^n \left| \frac{spent_{task_i}}{estimation_task_i}-1 \right| $$ =  0.2395 (23.95%)
 
