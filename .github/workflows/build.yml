@@ -43,6 +43,11 @@ jobs:
       - name: Install client dependencies
         working-directory: ./client
         run: npm install
+
+      - name: Generate temporary .env
+        working-directory: ./server
+        run: echo "${{ secrets.FULL_ENV_FILE }}" > .env
+        shell: bash
       
       - name: Run server tests with coverage
         working-directory: ./server
