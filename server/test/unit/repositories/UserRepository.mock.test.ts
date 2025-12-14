@@ -6,35 +6,35 @@ const TEST_PASSWORD = "testpass123"; // NOSONAR
 const TEST_PASSWORD_HASH = "$2a$10$hashedpassword123"; // NOSONAR
 
 describe("UserRepository (mock)", () => {
-  // it("signUpUser should call underlying repo.save and return value", async () => {
-  //   // Mock AppDataSource.getRepository to return an object that has save/find/findOneBy
-  //   const fakeRepo: any = {
-  //     save: jest.fn().mockImplementation(async (u: any) => ({ ...u, id: 1 })),
-  //     find: jest.fn().mockResolvedValue([]),
-  //     findOneBy: jest.fn().mockResolvedValue(null),
-  //   };
+  it("signUpUser should call underlying repo.save and return value", async () => {
+    // Mock AppDataSource.getRepository to return an object that has save/find/findOneBy
+    const fakeRepo: any = {
+      save: jest.fn().mockImplementation(async (u: any) => ({ ...u, id: 1 })),
+      find: jest.fn().mockResolvedValue([]),
+      findOneBy: jest.fn().mockResolvedValue(null),
+    };
 
-  //   // Spy on module AppDataSource.getRepository used by the repository class
-  //   const database = require("@database");
-  //   jest
-  //     .spyOn(database.AppDataSource, "getRepository")
-  //     .mockImplementation(() => fakeRepo);
+    // Spy on module AppDataSource.getRepository used by the repository class
+    const database = require("@database");
+    jest
+      .spyOn(database.AppDataSource, "getRepository")
+      .mockImplementation(() => fakeRepo);
 
-  //   const repo = new UserRepository();
+    const repo = new UserRepository();
 
-  //   const u = new UserDAO();
-  //   u.firstName = "Mock";
-  //   u.lastName = "User";
-  //   u.email = "mock@example.com";
-  //   u.username = "mock";
-  //   u.userType = UserType.CITIZEN;
-  //   u.passwordHash = TEST_PASSWORD_HASH;
-  //   u.createdAt = new Date();
+    const u = new UserDAO();
+    u.firstName = "Mock";
+    u.lastName = "User";
+    u.email = "mock@example.com";
+    u.username = "mock";
+    u.userType = UserType.CITIZEN;
+    u.passwordHash = TEST_PASSWORD_HASH;
+    u.createdAt = new Date();
 
-  //   const saved = await repo.createNewUser(u);
-  //   expect(fakeRepo.save).toHaveBeenCalled();
-  //   expect(saved.id).toBeDefined();
-  // });
+    const saved = await repo.createNewUser(u);
+    expect(fakeRepo.save).toHaveBeenCalled();
+    expect(saved.id).toBeDefined();
+  });
 
   it("findAllUsers should call underlying repo.find", async () => {
     const fakeRepo: any = {

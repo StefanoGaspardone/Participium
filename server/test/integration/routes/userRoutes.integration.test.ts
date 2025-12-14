@@ -65,18 +65,18 @@ describe('User routes integration tests', () => {
     expect(Array.isArray(res.body.users)).toBe(true);
   });
 
-  // it('POST /api/users/signup => 201', async () => {
-  //   const newUser = {
-  //     email: 'self_route1@example.com',
-  //     password: TEST_PASSWORD_GENERIC,
-  //     firstName: 'Route',
-  //     lastName: 'Test',
-  //     username: 'selfroute1',
-  //     emailNotificationsEnabled: true,
-  //   };
-  //   const res = await request(app).post('/api/users/signup').send(newUser);
-  //   expect(res.status).toBe(201);
-  // });
+  it('POST /api/users/signup => 201', async () => {
+    const newUser = {
+      email: 'self_route1@example.com',
+      password: TEST_PASSWORD_GENERIC,
+      firstName: 'Route',
+      lastName: 'Test',
+      username: 'selfroute1',
+      emailNotificationsEnabled: true,
+    };
+    const res = await request(app).post('/api/users/signup').send(newUser);
+    expect(res.status).toBe(201);
+  });
 
   it('POST /api/users/login => 200 and returns token', async () => {
     const credentials = { username: 'self_user', password: TEST_PASSWORD_USER };
@@ -86,14 +86,14 @@ describe('User routes integration tests', () => {
     expect(typeof res.body.token).toBe('string');
   });
 
-  // it('POST /api/users/signup => 400 when missing mandatory fields', async () => {
-  //   // send only email to trigger missing fields check in controller
-  //   const payload = { email: 'incomplete@example.com' };
-  //   const res = await request(app).post('/api/users/signup').send(payload);
-  //   expect(res.status).toBe(400);
-  //   expect(res.body).toHaveProperty('message');
-  //   expect(String(res.body.message).toLowerCase()).toMatch(/missing|required/);
-  // });
+  it('POST /api/users/signup => 400 when missing mandatory fields', async () => {
+    // send only email to trigger missing fields check in controller
+    const payload = { email: 'incomplete@example.com' };
+    const res = await request(app).post('/api/users/signup').send(payload);
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message');
+    expect(String(res.body.message).toLowerCase()).toMatch(/missing|required/);
+  });
 
   it('POST /api/users/login => 400 when missing mandatory fields', async () => {
     // missing password should return BadRequest

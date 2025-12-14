@@ -7,45 +7,45 @@ const TEST_PASSWORD = "testpass123"; // NOSONAR
 const TEST_PASSWORD_HASH = "$2a$10$hashedpassword123"; // NOSONAR
 
 describe("UserService (mock)", () => {
-  // it("signUpUser should hash password and call repo.signUpUser", async () => {
-  //   const service = new UserService();
+  it("signUpUser should hash password and call repo.signUpUser", async () => {
+    const service = new UserService();
 
-  //   const signUpMock = jest
-  //     .fn()
-  //     .mockImplementation(async (u: any) => ({ ...u, id: 2 }));
-  //   const findAllMock = jest.fn().mockResolvedValue([]);
-  //   const loginMock = jest.fn().mockResolvedValue(null);
-  //   const findByIdMock = jest.fn().mockResolvedValue({ id: 2, isActive: false, save: jest.fn() });
+    const signUpMock = jest
+      .fn()
+      .mockImplementation(async (u: any) => ({ ...u, id: 2 }));
+    const findAllMock = jest.fn().mockResolvedValue([]);
+    const loginMock = jest.fn().mockResolvedValue(null);
+    const findByIdMock = jest.fn().mockResolvedValue({ id: 2, isActive: false, save: jest.fn() });
 
-  //   // inject fake repo
-  //   // @ts-ignore
-  //   service["userRepo"] = {
-  //     createNewUser : signUpMock,
-  //     findAllUsers: findAllMock,
-  //     login: loginMock,
-  //     findUserById: findByIdMock,
-  //   };
+    // inject fake repo
+    // @ts-ignore
+    service["userRepo"] = {
+      createNewUser : signUpMock,
+      findAllUsers: findAllMock,
+      login: loginMock,
+      findUserById: findByIdMock,
+    };
 
-  //   // Mock the private createCodeConfirmationForUser method
-  //   // @ts-ignore
-  //   service["createCodeConfirmationForUser"] = jest.fn().mockResolvedValue({});
+    // Mock the private createCodeConfirmationForUser method
+    // @ts-ignore
+    service["createCodeConfirmationForUser"] = jest.fn().mockResolvedValue({});
 
-  //   const payload = {
-  //     firstName: "Mock",
-  //     lastName: "Svc",
-  //     email: "svc@mock",
-  //     username: "svc",
-  //     password: TEST_PASSWORD,
-  //     emailNotificationsEnabled: false,
-  //   } as NewUserDTO;
+    const payload = {
+      firstName: "Mock",
+      lastName: "Svc",
+      email: "svc@mock",
+      username: "svc",
+      password: TEST_PASSWORD,
+      emailNotificationsEnabled: false,
+    } as NewUserDTO;
 
-  //   await service.signUpUser(payload);
-  //   expect(signUpMock).toHaveBeenCalled();
-  //   // the object passed to signUpMock should contain a passwordHash (not plain password)
-  //   const passed = signUpMock.mock.calls[0][0] as UserDAO;
-  //   expect(passed.passwordHash).toBeDefined();
-  //   expect(passed.passwordHash).not.toBe(TEST_PASSWORD);
-  // });
+    await service.signUpUser(payload);
+    expect(signUpMock).toHaveBeenCalled();
+    // the object passed to signUpMock should contain a passwordHash (not plain password)
+    const passed = signUpMock.mock.calls[0][0] as UserDAO;
+    expect(passed.passwordHash).toBeDefined();
+    expect(passed.passwordHash).not.toBe(TEST_PASSWORD);
+  });
 
   it("login should delegate to repo.login", async () => {
     const service = new UserService();
@@ -101,32 +101,32 @@ describe("UserService (mock)", () => {
     await expect(service.login("a@b", TEST_PASSWORD)).rejects.toThrow("repo failure");
   });
 
-  // it("signUp throws error if repo.signUp throws error", async () => {
-  //   const service = new UserService();
+  it("signUp throws error if repo.signUp throws error", async () => {
+    const service = new UserService();
 
-  //   const signUpMock = jest.fn().mockRejectedValue(new Error("repo failure"));
-  //   const findAllMock = jest.fn().mockResolvedValue([]);
-  //   const loginMock = jest.fn().mockResolvedValue(null);
+    const signUpMock = jest.fn().mockRejectedValue(new Error("repo failure"));
+    const findAllMock = jest.fn().mockResolvedValue([]);
+    const loginMock = jest.fn().mockResolvedValue(null);
 
-  //   // inject fake repo
-  //   // @ts-ignore
-  //   service["userRepo"] = {
-  //     createNewUser: signUpMock,
-  //     findAllUsers: findAllMock,
-  //     login: loginMock,
-  //   };
+    // inject fake repo
+    // @ts-ignore
+    service["userRepo"] = {
+      createNewUser: signUpMock,
+      findAllUsers: findAllMock,
+      login: loginMock,
+    };
 
-  //   const payload = {
-  //     firstName: "Mock",
-  //     lastName: "Svc",
-  //     email: "svc@mock",
-  //     username: "svc",
-  //     password: TEST_PASSWORD,
-  //     emailNotificationsEnabled: true,
-  //   } as NewUserDTO;
+    const payload = {
+      firstName: "Mock",
+      lastName: "Svc",
+      email: "svc@mock",
+      username: "svc",
+      password: TEST_PASSWORD,
+      emailNotificationsEnabled: true,
+    } as NewUserDTO;
 
-  //   await expect(service.signUpUser(payload)).rejects.toThrow("repo failure");
-  // });
+    await expect(service.signUpUser(payload)).rejects.toThrow("repo failure");
+  });
 });
 
 

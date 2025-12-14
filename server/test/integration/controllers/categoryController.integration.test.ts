@@ -72,24 +72,24 @@ describe('CategoryController integration tests', () => {
     categoryController.categoryService = originalService;
   });
 
-//   it('findAllCategories => returns empty array when no categories exist', async () => {
-//     // remove all data from DB for this test
-//     await emptyTestData();
+  it('findAllCategories => returns empty array when no categories exist', async () => {
+    // remove all data from DB for this test
+    await emptyTestData();
 
-//     const req: any = {};
-//     const res: any = {
-//       status: jest.fn().mockReturnThis(),
-//       json: jest.fn().mockReturnThis(),
-//     };
-//     const next = jest.fn();
+    const req: any = {};
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
 
-//     await categoryController.findAllCategories(req, res, next);
+    await categoryController.findAllCategories(req, res, next);
 
-//     expect(next).not.toHaveBeenCalled();
-//     expect(res.status).toHaveBeenCalledWith(200);
-//     const body = res.json.mock.calls[0][0];
-//     expect(body).toHaveProperty('categories');
-//     expect(Array.isArray(body.categories)).toBe(true);
-//     expect(body.categories.length).toBe(0);
-//   });
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    const body = res.json.mock.calls[0][0];
+    expect(body).toHaveProperty('categories');
+    expect(Array.isArray(body.categories)).toBe(true);
+    expect(body.categories.length).toBe(0);
+  });
 });

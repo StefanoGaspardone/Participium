@@ -14,6 +14,9 @@ const TEST_PASSWORD_EXT = 'extpass'; //NOSONAR
 
 let userController: any;
 
+// Some integration tests interact with DB and can be slower than Jest default
+jest.setTimeout(30000);
+
 describe('UserController integration tests', () => {
   beforeAll(async () => {
     const AppDataSource = await initializeTestDatasource();
@@ -62,133 +65,133 @@ describe('UserController integration tests', () => {
     await closeTestDataSource();
   });
 
-  // it('signUpUser => creates user and responds 201', async () => {
-  //   const req: any = {
-  //     body: {
-  //       email: 'test1@example.com',
-  //       password: 'password', //NOSONAR
-  //       firstName: 'test1',
-  //       lastName: 'Test',
-  //       username: 'test1',
-  //       image: null,
-  //       telegramUsername: null,
-  //       emailNotificationsEnabled: false,
-  //     },
-  //   };
+  it('signUpUser => creates user and responds 201', async () => {
+    const req: any = {
+      body: {
+        email: 'test1@example.com',
+        password: 'password', //NOSONAR
+        firstName: 'test1',
+        lastName: 'Test',
+        username: 'test1',
+        image: null,
+        telegramUsername: null,
+        emailNotificationsEnabled: false,
+      },
+    };
 
-  //   const res: any = {
-  //     status: jest.fn().mockReturnThis(),
-  //     json: jest.fn().mockReturnThis(),
-  //     send: jest.fn().mockReturnThis(),
-  //   };
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
 
-  //   const next = jest.fn();
+    const next = jest.fn();
 
-  //   await userController.signUpUser(req, res, next);
+    await userController.signUpUser(req, res, next);
 
-  //   expect(next).not.toHaveBeenCalled();
-  //   expect(res.status).toHaveBeenCalledWith(201);
-  //   expect(res.send).toHaveBeenCalled();
-  // });
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.send).toHaveBeenCalled();
+  });
 
-  // it('signUpUser => missing fields should call next with BadRequestError', async () => {
-  //   const req: any = { body: { email: 'a@b' } };
-  //   const res: any = { status: jest.fn(), json: jest.fn() };
-  //   const next = jest.fn();
+  it('signUpUser => missing fields should call next with BadRequestError', async () => {
+    const req: any = { body: { email: 'a@b' } };
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
 
-  //   await userController.signUpUser(req, res, next);
+    await userController.signUpUser(req, res, next);
 
-  //   expect(next).toHaveBeenCalled();
-  //   const err = next.mock.calls[0][0];
-  //   expect(err).toBeDefined();
-  //   expect(err.name).toBe('BadRequestError');
-  // });
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+  });
 
-  // it('signUpUser => accepts emailNotificationsEnabled: false', async () => {
-  //   const req: any = {
-  //     body: {
-  //       email: 'falsetest@example.com',
-  //       password: 'password', //NOSONAR
-  //       firstName: 'False',
-  //       lastName: 'Test',
-  //       username: 'falsetest',
-  //       emailNotificationsEnabled: false, // Explicitly test false value
-  //     },
-  //   };
+  it('signUpUser => accepts emailNotificationsEnabled: false', async () => {
+    const req: any = {
+      body: {
+        email: 'falsetest@example.com',
+        password: 'password', //NOSONAR
+        firstName: 'False',
+        lastName: 'Test',
+        username: 'falsetest',
+        emailNotificationsEnabled: false, // Explicitly test false value
+      },
+    };
 
-  //   const res: any = {
-  //     status: jest.fn().mockReturnThis(),
-  //     json: jest.fn().mockReturnThis(),
-  //     send: jest.fn().mockReturnThis(),
-  //   };
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
 
-  //   const next = jest.fn();
+    const next = jest.fn();
 
-  //   await userController.signUpUser(req, res, next);
+    await userController.signUpUser(req, res, next);
 
-  //   expect(next).not.toHaveBeenCalled();
-  //   expect(res.status).toHaveBeenCalledWith(201);
-  //   expect(res.send).toHaveBeenCalled();
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.send).toHaveBeenCalled();
 
-  //   // Verify the value was actually saved correctly in the database
-  //   const { AppDataSource } = await import('@database');
-  //   const userRepo = AppDataSource.getRepository(UserDAO);
-  //   const savedUser = await userRepo.findOne({ where: { email: 'falsetest@example.com' } });
+    // Verify the value was actually saved correctly in the database
+    const { AppDataSource } = await import('@database');
+    const userRepo = AppDataSource.getRepository(UserDAO);
+    const savedUser = await userRepo.findOne({ where: { email: 'falsetest@example.com' } });
     
-  //   expect(savedUser).toBeDefined();
-  //   expect(savedUser?.emailNotificationsEnabled).toBe(false);
-  // });
+    expect(savedUser).toBeDefined();
+    expect(savedUser?.emailNotificationsEnabled).toBe(false);
+  });
 
-  // it('signUpUser => missing emailNotificationsEnabled should throw BadRequestError', async () => {
-  //   const req: any = {
-  //     body: {
-  //       email: 'missing@example.com',
-  //       password: 'password', //NOSONAR
-  //       firstName: 'Missing',
-  //       lastName: 'Field',
-  //       username: 'missingfield',
-  //       // emailNotificationsEnabled is missing
-  //     },
-  //   };
+  it('signUpUser => missing emailNotificationsEnabled should throw BadRequestError', async () => {
+    const req: any = {
+      body: {
+        email: 'missing@example.com',
+        password: 'password', //NOSONAR
+        firstName: 'Missing',
+        lastName: 'Field',
+        username: 'missingfield',
+        // emailNotificationsEnabled is missing
+      },
+    };
 
-  //   const res: any = { status: jest.fn(), json: jest.fn() };
-  //   const next = jest.fn();
+    const res: any = { status: jest.fn(), json: jest.fn() };
+    const next = jest.fn();
 
-  //   await userController.signUpUser(req, res, next);
+    await userController.signUpUser(req, res, next);
 
-  //   expect(next).toHaveBeenCalled();
-  //   const err = next.mock.calls[0][0];
-  //   expect(err).toBeDefined();
-  //   expect(err.name).toBe('BadRequestError');
-  //   expect(err.message).toMatch(/emailNotificationsEnabled/i);
-  // });
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('BadRequestError');
+    expect(err.message).toMatch(/emailNotificationsEnabled/i);
+  });
 
-  // it('signUpUser => conflict when email already exists should call next with ConflictError', async () => {
-  //   const req: any = {
-  //     body: {
-  //       email: 'user@gmail.com', // created in beforeAll
-  //       password: 'password', //NOSONAR
-  //       firstName: 'Dup',
-  //       lastName: 'User',
-  //       username: 'dupuser',
-  //       emailNotificationsEnabled: false,
-  //     },
-  //   };
+  it('signUpUser => conflict when email already exists should call next with ConflictError', async () => {
+    const req: any = {
+      body: {
+        email: 'user@gmail.com', // created in beforeAll
+        password: 'password', //NOSONAR
+        firstName: 'Dup',
+        lastName: 'User',
+        username: 'dupuser',
+        emailNotificationsEnabled: false,
+      },
+    };
 
-  //   const res: any = {
-  //     status: jest.fn().mockReturnThis(),
-  //     json: jest.fn().mockReturnThis(),
-  //   };
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
 
-  //   const next = jest.fn();
+    const next = jest.fn();
 
-  //   await userController.signUpUser(req, res, next);
+    await userController.signUpUser(req, res, next);
 
-  //   expect(next).toHaveBeenCalled();
-  //   const err = next.mock.calls[0][0];
-  //   expect(err).toBeDefined();
-  //   expect(err.name).toBe('ConflictError');
-  // });
+    expect(next).toHaveBeenCalled();
+    const err = next.mock.calls[0][0];
+    expect(err).toBeDefined();
+    expect(err.name).toBe('ConflictError');
+  });
 
   it('loginUser => valid credentials returns token', async () => {
     const req: any = { body: { username: 'user', password: 'user' } };

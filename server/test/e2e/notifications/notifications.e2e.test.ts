@@ -10,6 +10,8 @@ import { CategoryDAO } from "@daos/CategoryDAO";
 import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 
 describe("Notifications e2e tests", () => {
+  // e2e DB operations can be slow; increase jest timeout
+  jest.setTimeout(30000);
   let citizenToken: string;
   let testReportId: number;
   let testUserId: number;
