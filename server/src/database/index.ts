@@ -2,14 +2,13 @@ import { CONFIG } from "@config";
 import { logError, logInfo } from "@utils/logger";
 import { DataSource } from "typeorm";
 
-const databaseUrl = process.env.DATABASE_URL;
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: process.env.DB_HOST || CONFIG.DATABASE.HOST || "localhost",
-  port: Number(process.env.DB_PORT) || CONFIG.DATABASE.PORT,
-  username: process.env.DB_USERNAME || CONFIG.DATABASE.USERNAME,
-  password: process.env.DB_PASSWORD || CONFIG.DATABASE.PASSWORD,
-  database: process.env.DB_NAME || CONFIG.DATABASE.NAME,
+  host: CONFIG.DATABASE.HOST || "localhost",
+  port: CONFIG.DATABASE.PORT,
+  username: CONFIG.DATABASE.USERNAME,
+  password: CONFIG.DATABASE.PASSWORD,
+  database: CONFIG.DATABASE.NAME,
   synchronize: true,
   entities: CONFIG.DATABASE.ENTITIES,
   logging: false

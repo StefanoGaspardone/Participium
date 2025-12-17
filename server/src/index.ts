@@ -15,7 +15,8 @@ const startServer = async () => {
         server = app.listen(CONFIG.APP_PORT, async () => {
             logInfo(`[APP INIT] Server listening on http://localhost:${CONFIG.APP_PORT}`);
             logInfo(`[APP INIT] Swagger UI available at http://localhost:${CONFIG.APP_PORT}${CONFIG.ROUTES.SWAGGER}`);
-            botInstance.initializeBot();
+            await botInstance.initializeBot();
+            logInfo('[APP INIT] Server is fully up and running.');
         });
     } catch(error) {
         logError('[APP INIT] Error in app initialization:', error);
