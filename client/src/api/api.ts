@@ -306,8 +306,6 @@ export const updateReportStatus = async (reportId: number, status: "InProgress" 
   return data.report as Report;
 };
 
-
-// Reports assigned to the logged technical staff member
 export const getAssignedReports = async (): Promise<Report[]> => {
   const res = await fetch(`${BASE_URL}/reports/assigned`, {
     method: 'GET',
