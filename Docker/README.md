@@ -14,22 +14,21 @@ You now have to insert the file provided to you (`docker-compose.prod.yaml` and 
 Now that everything you need is in the right place, you have to execute the following commands INSIDE of the `working` folder :
 
 Linux/MacOS environments :
-
+```bash
     docker compose -f ./docker-compose.prod.yaml --env-file ./prod.env up -d
-
+```
 Windows environments :
-
+```bash
     docker compose -f .\docker-compose.prod.yaml --env-file .\prod.env up -d
-
+```
 > [!WARNING]
-> The application will be actually working ONLY when the server has printed the line 
-    
-    [<date and hour>] INFO: [EMAIL SETUP] SMTP transporter for smtp.gmail.com is ready. Emails will be sent from: pparticipium@gmail.com
 
-> you can check it by inspecting the logs of the server executing the command :
-
+The application will be actually up and running ONLY when the server has printed the line  
+`[<date and hour>] [APP INIT] Server is fully up and running.`  
+you can check it by inspecting the logs of the server executing the command :
+```bash
     docker logs -f participium_server
-
+```
 ## Stop the application
 
 If you want to stop the application, you have to execute the following commands in the `working` folder :
