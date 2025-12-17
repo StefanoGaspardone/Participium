@@ -6,6 +6,7 @@ import { logError, logInfo, logWarn } from '@utils/logger';
 import { Auth } from '@telegram/commands/auth';
 import fs from 'fs';
 import { NewReport } from './commands/new_report';
+import { HelpAssistance } from './commands/help_assistance';
 
 export interface AuthSessionState {
     awaitingPassword?: boolean;
@@ -58,6 +59,7 @@ export class TelegramBot {
         const handlers: BotHandler[] = [
             new Auth(),
             new NewReport(),
+            new HelpAssistance(),
         ];
 
         handlers.forEach(handler => {
