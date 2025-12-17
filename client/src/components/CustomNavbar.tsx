@@ -103,7 +103,7 @@ export default function CustomNavbar() {
 
           <div className="navbar-right-section">
             <div className="navbar-desktop-actions d-none d-lg-flex align-items-center">
-              {isLoggedIn && user?.userType === "CITIZEN" && <Notifications />}
+              {isLoggedIn && ["CITIZEN", "TECHNICAL_STAFF_MEMBER", "EXTERNAL_MAINTAINER"].includes(user?.userType || "") && <Notifications />}
               {isLoggedIn && (
                 <div ref={profileRef} className="ms-3" style={{ position: 'relative' }}>
                   <motion.div
@@ -282,7 +282,7 @@ export default function CustomNavbar() {
 
             {/* Notifiche e profilo compatte per mobile */}
             <div className="navbar-mobile-actions d-flex d-lg-none align-items-center">
-              {isLoggedIn && user?.userType === "CITIZEN" && (
+              {isLoggedIn && ["CITIZEN", "TECHNICAL_STAFF_MEMBER", "EXTERNAL_MAINTAINER"].includes(user?.userType || "") && (
                 <div className="navbar-mobile-notification">
                   <Notifications />
                 </div>

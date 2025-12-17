@@ -105,6 +105,16 @@ export default function Notifications() {
         visible: { opacity: 1, scale: 1, y: 0 }
     };
 
+    const senderRoleLabel = (role?: string | null) => {
+        if (!role) return 'user';
+        switch (role) {
+            case 'CITIZEN': return 'Citizen';
+            case 'TECHNICAL_STAFF_MEMBER': return 'Technical Staff';
+            case 'EXTERNAL_MAINTAINER': return 'External Maintainer';
+            default: return role;
+        }
+    };
+
     return (
         <div ref={containerRef} className="notifications-dropdown" style={{ position: 'relative', zIndex: 10000 }}>
             <motion.div
@@ -231,15 +241,31 @@ export default function Notifications() {
                                                 <div className="notification-title" style={{ fontWeight: 600, fontSize: '0.9rem', lineHeight: 1.2 }}>
                                                     {notification.report.title}
                                                 </div>
-                                                <div className="notification-status" style={{ fontSize: '0.75rem', color: '#444' }}>
-                                                    <span className="status-label" style={{ fontWeight: 500 }}>Status:</span>{' '}
-                                                    <span className="status-old" style={{ textDecoration: 'line-through', opacity: 0.6, color: REPORT_STATUS_COLORS[notification.previousStatus] || '#6B7280' }}>{notification.previousStatus}</span>
-                                                    {' → '}
-                                                    <span className="status-new" style={{ fontWeight: 600, color: REPORT_STATUS_COLORS[notification.newStatus] || '#6B7280' }}>{notification.newStatus}</span>
-                                                </div>
-                                                <div className="notification-time" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.6 }}>
-                                                    {formatDate(notification.createdAt)}
-                                                </div>
+                                                {notification.type === 'MESSAGE' || notification.message ? (
+                                                    <>
+                                                        <div className="notification-status" style={{ fontSize: '0.75rem', color: '#444' }}>
+                                                            <span className="status-label" style={{ fontWeight: 500 }}>New message from <strong>{senderRoleLabel(notification.message?.senderRole)}</strong></span>
+                                                            <div style={{ fontSize: '0.8rem', color: '#333', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                {notification.message?.text ?? ''}
+                                                            </div>
+                                                        </div>
+                                                        <div className="notification-time" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.6 }}>
+                                                            {formatDate(notification.createdAt)}
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="notification-status" style={{ fontSize: '0.75rem', color: '#444' }}>
+                                                            <span className="status-label" style={{ fontWeight: 500 }}>Status:</span>{' '}
+                                                            <span className="status-old" style={{ textDecoration: 'line-through', opacity: 0.6, color: REPORT_STATUS_COLORS[notification.previousStatus as string] || '#6B7280' }}>{notification.previousStatus}</span>
+                                                            {' → '}
+                                                            <span className="status-new" style={{ fontWeight: 600, color: REPORT_STATUS_COLORS[notification.newStatus as string] || '#6B7280' }}>{notification.newStatus}</span>
+                                                        </div>
+                                                        <div className="notification-time" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.6 }}>
+                                                            {formatDate(notification.createdAt)}
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                             {!notification.seen && (
                                                 <motion.div

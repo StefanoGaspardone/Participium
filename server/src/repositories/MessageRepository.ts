@@ -33,6 +33,11 @@ export class MessageRepository {
     return await this.repository.find({ where: { chat: { id: chatId } }, relations: ["sender", "receiver", "chat", "chat.tosm_user", "chat.second_user", "chat.report", "chat.report.category", "chat.report.createdBy", "chat.report.assignedTo", "chat.report.coAssignedTo", ] });
   };
 
+  findMessageById = async (id: number): Promise<MessageDAO | null> => {
+    if (id === undefined || id === null) throw new Error('findMessageById: id required');
+    return await this.repository.findOne({ where: { id }, relations: ["sender", "receiver", "chat", "chat.report", "chat.report.category"] });
+  }
+
 }
 
 export const messageRepository = new MessageRepository();

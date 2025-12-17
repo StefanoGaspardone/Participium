@@ -355,14 +355,22 @@ export const updateUser = async (
 
 export interface Notification {
   id: number;
-  previousStatus: string;
-  newStatus: string;
+  previousStatus?: string | null;
+  newStatus?: string | null;
   seen: boolean;
   createdAt: string;
   report: {
     id: number;
     title: string;
   };
+  type?: string | null;
+  message?: {
+    id: number;
+    text: string;
+    sentAt: string;
+    senderId?: number;
+    senderRole?: string;
+  } | null;
 }
 type NotificationsResponse = {
   notifications: Notification[];
