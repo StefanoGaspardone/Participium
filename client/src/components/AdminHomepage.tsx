@@ -1,21 +1,42 @@
 import { useEffect, useState } from "react";
-import { Container, Card, Form, Button, Alert, Row, Col } from "react-bootstrap";
+import {
+  Container,
+  Card,
+  Form,
+  Button,
+  Alert,
+  Row,
+  Col,
+  Badge,
+} from "react-bootstrap";
 import { Loader2Icon } from "lucide-react";
-import { getOffices, createEmployee, getAllCompanies, createCompany, getCategories } from "../api/api";
+import {
+  getOffices,
+  createEmployee,
+  getAllCompanies,
+  createCompany,
+  getCategories,
+} from "../api/api";
 import CustomNavbar from "./CustomNavbar";
 import type { Office, Company, Category } from "../models/models";
 import { useAppContext } from "../contexts/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
 import "./AuthForms.css";
 import { toast } from "react-hot-toast";
-import Select, { components, type MenuProps, type SingleValue, type MultiValue, type OptionProps } from "react-select";
+import Select, {
+  components,
+  type MenuProps,
+  type SingleValue,
+  type MultiValue,
+  type OptionProps,
+} from "react-select";
 
 type SelectOptionProps = OptionProps<any, false> & {
   idPrefix: string;
 };
 
 export const SelectOption = (props: SelectOptionProps) => {
-  const id = `${props.idPrefix}${String(props.data?.value ?? '')}`;
+  const id = `${props.idPrefix}${String(props.data?.value ?? "")}`;
   return (
     <div id={id}>
       <components.Option {...props} />
@@ -23,16 +44,32 @@ export const SelectOption = (props: SelectOptionProps) => {
   );
 };
 
-export const RoleOption = (props: OptionProps<any, false> & { roleIdByValue: Record<string, string> }) => {
-  return <SelectOption {...props} idPrefix={props.roleIdByValue[props.data.value] ?? 'select-role'} />;
+const ROLE_ID_BY_VALUE: Record<string, string> = {
+  MUNICIPAL_ADMINISTRATOR: "municipal_administrator",
+  PUBLIC_RELATIONS_OFFICER: "public_relations_officer",
+  TECHNICAL_STAFF_MEMBER: "technical_staff_member",
+  EXTERNAL_MAINTAINER: "external_maintainer",
 };
 
-export const OfficeOption = (props: OptionProps<any, false> & { idPrefix?: string }) => {
-  return <SelectOption {...props} idPrefix={props.idPrefix ?? 'select-office'} />;
+export const RoleOption = (props: OptionProps<any, false>) => {
+  const idPrefix = ROLE_ID_BY_VALUE[props.data.value] ?? "select-role";
+  return <SelectOption {...props} idPrefix={idPrefix} />;
 };
 
-export const CompanyOption = (props: OptionProps<any, false> & { idPrefix?: string }) => {
-  return <SelectOption {...props} idPrefix={props.idPrefix ?? 'select-company'} />;
+export const OfficeOption = (
+  props: OptionProps<any, false> & { idPrefix?: string }
+) => {
+  return (
+    <SelectOption {...props} idPrefix={props.idPrefix ?? "select-office"} />
+  );
+};
+
+export const CompanyOption = (
+  props: OptionProps<any, false> & { idPrefix?: string }
+) => {
+  return (
+    <SelectOption {...props} idPrefix={props.idPrefix ?? "select-company"} />
+  );
 };
 
 const AnimatedMenu = (props: MenuProps<any, false>) => (
@@ -63,7 +100,9 @@ export default function AdminHomepage() {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [showNewCompanyForm, setShowNewCompanyForm] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState("");
-  const [newCompanyCategories, setNewCompanyCategories] = useState<Category[]>([]);
+  const [newCompanyCategories, setNewCompanyCategories] = useState<Category[]>(
+    []
+  );
   const [isCreatingCompany, setIsCreatingCompany] = useState(false);
 
   const [form, setForm] = useState({
@@ -78,23 +117,39 @@ export default function AdminHomepage() {
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Technical Offices Management (mocked for frontend)
+  type TSM = { id: number; name: string; officeIds: number[] };
+  const [tsms, setTsms] = useState<TSM[]>([]);
+  const [selectedTsmId, setSelectedTsmId] = useState<number | null>(null);
+  const [tsmOfficeIds, setTsmOfficeIds] = useState<number[]>([]);
+  const [isSavingTsm, setIsSavingTsm] = useState(false);
+
+  const [selectedSection, setSelectedSection] = useState<"users" | "offices">(
+    "users"
+  );
+
   const roleOptions = [
     { value: "MUNICIPAL_ADMINISTRATOR", label: "Municipal Administrator" },
-    { value: "PUBLIC_RELATIONS_OFFICER", label: "Municipal Public Relations Officer" },
+    {
+      value: "PUBLIC_RELATIONS_OFFICER",
+      label: "Municipal Public Relations Officer",
+    },
     { value: "TECHNICAL_STAFF_MEMBER", label: "Technical Office Staff Member" },
     { value: "EXTERNAL_MAINTAINER", label: "External Maintainer" },
   ];
 
-  const roleIdByValue: Record<string, string> = {
-    MUNICIPAL_ADMINISTRATOR: "municipal_administrator",
-    PUBLIC_RELATIONS_OFFICER: "public_relations_officer",
-    TECHNICAL_STAFF_MEMBER: "technical_staff_member",
-    EXTERNAL_MAINTAINER: "external_maintainer",
-  };
-
-  const officeOptions = offices.map((o) => ({ value: String(o.id), label: o.name }));
-  const companyOptions = companies.map((c) => ({ value: String(c.id), label: c.name }));
-  const categoryOptions = categories.map((cat) => ({ value: String(cat.id), label: cat.name }));
+  const officeOptions = offices.map((o) => ({
+    value: String(o.id),
+    label: o.name,
+  }));
+  const companyOptions = companies.map((c) => ({
+    value: String(c.id),
+    label: c.name,
+  }));
+  const categoryOptions = categories.map((cat) => ({
+    value: String(cat.id),
+    label: cat.name,
+  }));
 
   useEffect(() => {
     const fetchOffices = async () => {
@@ -135,6 +190,30 @@ export default function AdminHomepage() {
     fetchCategories();
   }, []);
 
+  // Initialize mocked Technical Staff Members (TSMs) once offices are available
+  useEffect(() => {
+    if (!loadingOffices && offices.length > 0 && tsms.length === 0) {
+      const mockTsms: TSM[] = [
+        {
+          id: 1,
+          name: "Luigi Bianchi",
+          officeIds: offices.length > 0 ? [offices[0].id] : [],
+        },
+        {
+          id: 2,
+          name: "Giovanni Verdi",
+          officeIds: offices.length > 1 ? [offices[1].id] : [],
+        },
+        {
+          id: 3,
+          name: "Anna Neri",
+          officeIds: offices.length > 2 ? [offices[2].id] : [],
+        },
+      ];
+      setTsms(mockTsms);
+    }
+  }, [loadingOffices, offices, tsms.length]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -155,11 +234,17 @@ export default function AdminHomepage() {
     }
     setIsCreatingCompany(true);
     try {
-      await createCompany({ id: 0, name: newCompanyName.trim(), categories: newCompanyCategories });
+      await createCompany({
+        id: 0,
+        name: newCompanyName.trim(),
+        categories: newCompanyCategories,
+      });
       toast.success("Company created successfully!");
       const res = await getAllCompanies();
       setCompanies(res || []);
-      const newCompany = res.find((c: Company) => c.name === newCompanyName.trim());
+      const newCompany = res.find(
+        (c: Company) => c.name === newCompanyName.trim()
+      );
       if (newCompany) {
         setForm((prev) => ({ ...prev, companyId: String(newCompany.id) }));
       }
@@ -211,10 +296,42 @@ export default function AdminHomepage() {
         const msg = String(err) || "Failed to create employee.";
         toast.error(msg);
       }
-    }
-    finally {
+    } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handlers for Technical Offices Management (mocked behavior)
+  const handleSelectTsm = (id: number | null) => {
+    setSelectedTsmId(id);
+    const t = tsms.find((s) => s.id === id);
+    setTsmOfficeIds(t ? [...t.officeIds] : []);
+  };
+
+  const handleAddOffice = (officeId: number) => {
+    if (!selectedTsmId) return;
+    setTsmOfficeIds((prev) => {
+      if (prev.includes(officeId)) return prev;
+      return [...prev, officeId];
+    });
+  };
+
+  const handleRemoveOffice = (officeId: number) => {
+    setTsmOfficeIds((prev) => prev.filter((id) => id !== officeId));
+  };
+
+  const handleSaveTsmOffices = async () => {
+    if (!selectedTsmId) return;
+    setIsSavingTsm(true);
+    // mock save delay
+    await new Promise((r) => setTimeout(r, 700));
+    setTsms((prev) =>
+      prev.map((t) =>
+        t.id === selectedTsmId ? { ...t, officeIds: tsmOfficeIds } : t
+      )
+    );
+    toast.success("Technical staff offices updated (mock).");
+    setIsSavingTsm(false);
   };
 
   // form validity: all required fields must be non-empty (trimmed)
@@ -244,265 +361,581 @@ export default function AdminHomepage() {
   return (
     <>
       <CustomNavbar />
-      <Container className="my-5">
+      <Container className="my-4">
         <Row className="justify-content-md-center">
-          <Col md={9} lg={7}>
-            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: 'easeOut' }}>
+          <Col md={10} lg={10} xl={10}>
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
+            >
+              <motion.h2
+                className="text-center mb-4 auth-title"
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                Welcome, Admin {user?.firstName ?? ""} {user?.lastName ?? ""}
+              </motion.h2>
+
+              <Row className="mb-3 align-items-center flex-nowrap">
+                <Col
+                  xs={6}
+                  md={selectedSection === "users" ? 8 : 4}
+                  className={
+                    selectedSection === "users"
+                      ? "mb-2 mb-md-0 d-flex justify-content-center justify-content-md-center"
+                      : "mb-2 mb-md-0 d-flex justify-content-center justify-content-md-start"
+                  }
+                >
+                  <button
+                    id="section-users-button"
+                    className={`auth-link-inline section-btn ${
+                      selectedSection === "users" ? "selected" : "muted"
+                    }`}
+                    onClick={() => setSelectedSection("users")}
+                    aria-pressed={selectedSection === "users"}
+                  >
+                    Municipality Users Management
+                  </button>
+                </Col>
+                <Col
+                  xs={6}
+                  md={selectedSection === "offices" ? 8 : 4}
+                  className={
+                    selectedSection === "offices"
+                      ? "d-flex justify-content-center justify-content-md-center"
+                      : "d-flex justify-content-center justify-content-md-end"
+                  }
+                >
+                  <button
+                    id="section-offices-button"
+                    className={`auth-link-inline section-btn ${
+                      selectedSection === "offices" ? "selected" : "muted"
+                    } `}
+                    onClick={() => setSelectedSection("offices")}
+                    aria-pressed={selectedSection === "offices"}
+                  >
+                    Technical Offices Management
+                  </button>
+                </Col>
+              </Row>
+
               <Card className="auth-card">
                 <Card.Body>
-                  <motion.h2 className="text-center mb-4 auth-title" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                    Welcome, Admin {user?.firstName ?? ""} {user?.lastName ?? ""}
-                  </motion.h2>
-                  <h4 className="mb-3 text-center">Create Employee Account</h4>
+                  {selectedSection === "users" && (
+                    <>
+                      <h4 className="mb-3 text-center">
+                        Municipality Users Management
+                      </h4>
 
-                  <Form onSubmit={handleSubmit} className="d-flex flex-column auth-grid-gap">
-                    <Row>
-                      <Col md={6}>
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }}>
-                          <Form.Group className="mb-3 underline-anim">
-                            <Form.Label>First Name</Form.Label>
-                            <Form.Control
-                              id="first-name"
-                              type="text"
-                              name="firstName"
-                              placeholder="Mario"
-                              value={form.firstName}
-                              onChange={handleChange}
-                              required
-                              className="auth-input"
-                            />
-                          </Form.Group>
-                        </motion.div>
-                      </Col>
-                      <Col md={6}>
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.17, duration: 0.4 }}>
-                          <Form.Group className="mb-3 underline-anim">
-                            <Form.Label>Last Name</Form.Label>
-                            <Form.Control
-                              id="last-name"
-                              type="text"
-                              name="lastName"
-                              placeholder="Rossi"
-                              value={form.lastName}
-                              onChange={handleChange}
-                              required
-                              className="auth-input"
-                            />
-                          </Form.Group>
-                        </motion.div>
-                      </Col>
-                    </Row>
-
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.4 }}>
-                      <Form.Group className="mb-3 underline-anim">
-                        <Form.Label>Username</Form.Label>
-                        <Form.Control
-                          id="username"
-                          type="text"
-                          name="username"
-                          placeholder="mario.rossi"
-                          value={form.username}
-                          onChange={handleChange}
-                          required
-                          className="auth-input"
-                        />
-                      </Form.Group>
-                    </motion.div>
-
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27, duration: 0.4 }}>
-                      <Form.Group className="mb-3 underline-anim">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          id="email"
-                          type="email"
-                          name="email"
-                          placeholder="mario.rossi@example.com"
-                          value={form.email}
-                          onChange={handleChange}
-                          required
-                          className="auth-input"
-                        />
-                      </Form.Group>
-                    </motion.div>
-
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32, duration: 0.4 }}>
-                      <Form.Group className="mb-3 underline-anim">
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control
-                          id="password"
-                          type="password"
-                          name="password"
-                          placeholder="Password123!"
-                          value={form.password}
-                          onChange={handleChange}
-                          required
-                          className="auth-input"
-                        />
-                      </Form.Group>
-                    </motion.div>
-
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.37, duration: 0.4 }}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Role</Form.Label>
-                        <Select
-                          inputId="open-roles"
-                          instanceId="open-roles"
-                          options={roleOptions}
-                          value={roleOptions.find((o) => o.value === form.userType) ?? null}
-                          onChange={(opt: SingleValue<{ value: string; label: string }>) =>
-                            setForm((prev) => ({ ...prev, userType: opt?.value ?? "" }))
-                          }
-                          isDisabled={isSubmitting}
-                          placeholder="Select a role"
-                          components={{ Menu: AnimatedMenu, Option: (selectProps) => <RoleOption {...selectProps} roleIdByValue={roleIdByValue} /> }}
-                          classNamePrefix="rs"
-                        />
-                      </Form.Group>
-                    </motion.div>
-
-                    {form.userType === "TECHNICAL_STAFF_MEMBER" && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.4 }}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Office Category</Form.Label>
-                          <Select
-                            inputId="open-offices"
-                            instanceId="open-offices"
-                            options={officeOptions}
-                            value={officeOptions.find((o) => o.value === form.officeId) ?? null}
-                            onChange={(opt: SingleValue<{ value: string; label: string }>) =>
-                              setForm((prev) => ({ ...prev, officeId: opt?.value ?? "" }))
-                            }
-                            isDisabled={loadingOffices || isSubmitting}
-                            placeholder="Select a technical office"
-                            components={{ Menu: AnimatedMenu, Option: OfficeOption }}
-                            classNamePrefix="rs"
-                          />
-                        </Form.Group>
-                      </motion.div>
-                    )}
-
-                    {form.userType === "EXTERNAL_MAINTAINER" && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.4 }}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Company</Form.Label>
-                          <Select
-                            inputId="open-companies"
-                            instanceId="open-companies"
-                            options={companyOptions}
-                            value={companyOptions.find((c) => c.value === form.companyId) ?? null}
-                            onChange={(opt: SingleValue<{ value: string; label: string }>) =>
-                              setForm((prev) => ({ ...prev, companyId: opt?.value ?? "" }))
-                            }
-                            isDisabled={loadingCompanies || isSubmitting}
-                            placeholder="Select a company"
-                            components={{ Menu: AnimatedMenu, Option: CompanyOption }}
-                            classNamePrefix="rs"
-                          />
-                        </Form.Group>
-                        <div className="d-flex flex-column gap-2 mb-3">
-                          {!showNewCompanyForm ? (
-                            <Button
-                              id="add-new-company-button"
-                              variant="outline-secondary"
-                              size="sm"
-                              onClick={() => setShowNewCompanyForm(true)}
-                              disabled={isSubmitting}
+                      <Form
+                        onSubmit={handleSubmit}
+                        className="d-flex flex-column auth-grid-gap"
+                      >
+                        <Row>
+                          <Col md={6}>
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.12, duration: 0.4 }}
                             >
-                              + Add New Company
-                            </Button>
-                          ) : (
-                            <div className="border rounded p-3" style={{ backgroundColor: '#f8f9fa' }}>
-                              <Form.Group className="mb-3">
-                                <Form.Label>Company Name</Form.Label>
+                              <Form.Group className="mb-3 underline-anim">
+                                <Form.Label>First Name</Form.Label>
                                 <Form.Control
-                                  id="new-company-name"
+                                  id="first-name"
                                   type="text"
-                                  placeholder="Enter company name"
-                                  value={newCompanyName}
-                                  onChange={(e) => setNewCompanyName(e.target.value)}
-                                  disabled={isCreatingCompany}
+                                  name="firstName"
+                                  placeholder="Mario"
+                                  value={form.firstName}
+                                  onChange={handleChange}
+                                  required
                                   className="auth-input"
                                 />
                               </Form.Group>
-                              <Form.Group className="mb-3">
-                                <Form.Label>Categories</Form.Label>
-                                <Select<{ value: string; label: string }, true>
-                                  inputId="new-company-categories"
-                                  instanceId="new-company-categories"
-                                  options={categoryOptions}
-                                  value={categoryOptions.filter((opt) => newCompanyCategories.some((cat) => String(cat.id) === opt.value))}
-                                  onChange = {(opts: MultiValue<{ value: string; label: string }>) => {
-                                    const selectedCategories = opts.map((opt) => {
-                                      const cat = categories.find((c) => String(c.id) === opt.value);
-                                      return cat!;
-                                    });
-                                    setNewCompanyCategories(selectedCategories);
-                                  }}
-                                  isMulti
-                                  isDisabled={loadingCategories || isCreatingCompany}
-                                  placeholder="Select categories"
-                                  classNamePrefix="rs"
+                            </motion.div>
+                          </Col>
+                          <Col md={6}>
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.17, duration: 0.4 }}
+                            >
+                              <Form.Group className="mb-3 underline-anim">
+                                <Form.Label>Last Name</Form.Label>
+                                <Form.Control
+                                  id="last-name"
+                                  type="text"
+                                  name="lastName"
+                                  placeholder="Rossi"
+                                  value={form.lastName}
+                                  onChange={handleChange}
+                                  required
+                                  className="auth-input"
                                 />
                               </Form.Group>
-                              <div className="d-flex gap-2">
-                                <Button
-                                  id="create-company-button"
-                                  variant="success"
-                                  size="sm"
-                                  onClick={handleCreateCompany}
-                                  disabled={isCreatingCompany || !newCompanyName.trim() || newCompanyCategories.length === 0}
+                            </motion.div>
+                          </Col>
+                        </Row>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.22, duration: 0.4 }}
+                        >
+                          <Form.Group className="mb-3 underline-anim">
+                            <Form.Label>Username</Form.Label>
+                            <Form.Control
+                              id="username"
+                              type="text"
+                              name="username"
+                              placeholder="mario.rossi"
+                              value={form.username}
+                              onChange={handleChange}
+                              required
+                              className="auth-input"
+                            />
+                          </Form.Group>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.27, duration: 0.4 }}
+                        >
+                          <Form.Group className="mb-3 underline-anim">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                              id="email"
+                              type="email"
+                              name="email"
+                              placeholder="mario.rossi@example.com"
+                              value={form.email}
+                              onChange={handleChange}
+                              required
+                              className="auth-input"
+                            />
+                          </Form.Group>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.32, duration: 0.4 }}
+                        >
+                          <Form.Group className="mb-3 underline-anim">
+                            <Form.Label>Password</Form.Label>
+                            <Form.Control
+                              id="password"
+                              type="password"
+                              name="password"
+                              placeholder="Password123!"
+                              value={form.password}
+                              onChange={handleChange}
+                              required
+                              className="auth-input"
+                            />
+                          </Form.Group>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.37, duration: 0.4 }}
+                        >
+                          <Form.Group className="mb-3">
+                            <Form.Label>Role</Form.Label>
+                            <Select
+                              inputId="open-roles"
+                              instanceId="open-roles"
+                              options={roleOptions}
+                              value={
+                                roleOptions.find(
+                                  (o) => o.value === form.userType
+                                ) ?? null
+                              }
+                              onChange={(
+                                opt: SingleValue<{
+                                  value: string;
+                                  label: string;
+                                }>
+                              ) =>
+                                setForm((prev) => ({
+                                  ...prev,
+                                  userType: opt?.value ?? "",
+                                }))
+                              }
+                              isDisabled={isSubmitting}
+                              placeholder="Select a role"
+                              components={{
+                                Menu: AnimatedMenu,
+                                Option: RoleOption,
+                              }}
+                              classNamePrefix="rs"
+                            />
+                          </Form.Group>
+                        </motion.div>
+
+                        {form.userType === "TECHNICAL_STAFF_MEMBER" && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.42, duration: 0.4 }}
+                          >
+                            <Form.Group className="mb-3">
+                              <Form.Label>Office Category</Form.Label>
+                              <Select
+                                inputId="open-offices"
+                                instanceId="open-offices"
+                                options={officeOptions}
+                                value={
+                                  officeOptions.find(
+                                    (o) => o.value === form.officeId
+                                  ) ?? null
+                                }
+                                onChange={(
+                                  opt: SingleValue<{
+                                    value: string;
+                                    label: string;
+                                  }>
+                                ) =>
+                                  setForm((prev) => ({
+                                    ...prev,
+                                    officeId: opt?.value ?? "",
+                                  }))
+                                }
+                                isDisabled={loadingOffices || isSubmitting}
+                                placeholder="Select a technical office"
+                                components={{
+                                  Menu: AnimatedMenu,
+                                  Option: OfficeOption,
+                                }}
+                                classNamePrefix="rs"
+                              />
+                            </Form.Group>
+                          </motion.div>
+                        )}
+
+                        {form.userType === "EXTERNAL_MAINTAINER" && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.42, duration: 0.4 }}
+                          >
+                            <Form.Group className="mb-3">
+                              <Form.Label>Company</Form.Label>
+                              <Select
+                                inputId="open-companies"
+                                instanceId="open-companies"
+                                options={companyOptions}
+                                value={
+                                  companyOptions.find(
+                                    (c) => c.value === form.companyId
+                                  ) ?? null
+                                }
+                                onChange={(
+                                  opt: SingleValue<{
+                                    value: string;
+                                    label: string;
+                                  }>
+                                ) =>
+                                  setForm((prev) => ({
+                                    ...prev,
+                                    companyId: opt?.value ?? "",
+                                  }))
+                                }
+                                isDisabled={loadingCompanies || isSubmitting}
+                                placeholder="Select a company"
+                                components={{
+                                  Menu: AnimatedMenu,
+                                  Option: CompanyOption,
+                                }}
+                                classNamePrefix="rs"
+                              />
+                            </Form.Group>
+                            <div className="d-flex flex-column gap-2 mb-3">
+                              {showNewCompanyForm ? (
+                                <div
+                                  className="border rounded p-3"
+                                  style={{ backgroundColor: "#f8f9fa" }}
                                 >
-                                  {isCreatingCompany ? (
-                                    <>
-                                      <Loader2Icon size={14} className="spin" />
-                                      <span className="ms-1">Creating...</span>
-                                    </>
-                                  ) : (
-                                    "Create Company"
-                                  )}
-                                </Button>
+                                  <Form.Group className="mb-3">
+                                    <Form.Label>Company Name</Form.Label>
+                                    <Form.Control
+                                      id="new-company-name"
+                                      type="text"
+                                      placeholder="Enter company name"
+                                      value={newCompanyName}
+                                      onChange={(e) =>
+                                        setNewCompanyName(e.target.value)
+                                      }
+                                      disabled={isCreatingCompany}
+                                      className="auth-input"
+                                    />
+                                  </Form.Group>
+                                  <Form.Group className="mb-3">
+                                    <Form.Label>Categories</Form.Label>
+                                    <Select<
+                                      { value: string; label: string },
+                                      true
+                                    >
+                                      inputId="new-company-categories"
+                                      instanceId="new-company-categories"
+                                      options={categoryOptions}
+                                      value={categoryOptions.filter((opt) =>
+                                        newCompanyCategories.some(
+                                          (cat) => String(cat.id) === opt.value
+                                        )
+                                      )}
+                                      onChange={(
+                                        opts: MultiValue<{
+                                          value: string;
+                                          label: string;
+                                        }>
+                                      ) => {
+                                        const selectedCategories = opts.map(
+                                          (opt) => {
+                                            const cat = categories.find(
+                                              (c) => String(c.id) === opt.value
+                                            );
+                                            return cat!;
+                                          }
+                                        );
+                                        setNewCompanyCategories(
+                                          selectedCategories
+                                        );
+                                      }}
+                                      isMulti
+                                      isDisabled={
+                                        loadingCategories || isCreatingCompany
+                                      }
+                                      placeholder="Select categories"
+                                      classNamePrefix="rs"
+                                    />
+                                  </Form.Group>
+                                  <div className="d-flex gap-2">
+                                    <Button
+                                      id="create-company-button"
+                                      variant="success"
+                                      size="sm"
+                                      onClick={handleCreateCompany}
+                                      disabled={
+                                        isCreatingCompany ||
+                                        !newCompanyName.trim() ||
+                                        newCompanyCategories.length === 0
+                                      }
+                                    >
+                                      {isCreatingCompany ? (
+                                        <>
+                                          <Loader2Icon
+                                            size={14}
+                                            className="spin"
+                                          />
+                                          <span className="ms-1">
+                                            Creating...
+                                          </span>
+                                        </>
+                                      ) : (
+                                        "Create Company"
+                                      )}
+                                    </Button>
+                                    <Button
+                                      id="cancel-company-button"
+                                      variant="outline-secondary"
+                                      size="sm"
+                                      onClick={() => {
+                                        setShowNewCompanyForm(false);
+                                        setNewCompanyName("");
+                                        setNewCompanyCategories([]);
+                                      }}
+                                      disabled={isCreatingCompany}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
                                 <Button
-                                  id="cancel-company-button"
+                                  id="add-new-company-button"
                                   variant="outline-secondary"
                                   size="sm"
-                                  onClick={() => {
-                                    setShowNewCompanyForm(false);
-                                    setNewCompanyName("");
-                                    setNewCompanyCategories([]);
-                                  }}
-                                  disabled={isCreatingCompany}
+                                  onClick={() => setShowNewCompanyForm(true)}
+                                  disabled={isSubmitting}
                                 >
-                                  Cancel
+                                  + Add New Company
                                 </Button>
-                              </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.45 }}>
-                      <Button
-                        id="create-account-button"
-                        variant="primary"
-                        type="submit"
-                        className={`w-100 mt-2 auth-button-primary`}
-                        disabled={!isFormValid || isSubmitting}
-                        aria-disabled={!isFormValid || isSubmitting}
-                        aria-busy={isSubmitting}
-                        title={!isFormValid ? "Fill all required fields to enable" : isSubmitting ? "Creating account..." : "Create account"}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2Icon size={18} className="spin" aria-hidden="true" />
-                            <span>Creating…</span>
-                          </>
-                        ) : (
-                          "Create Account"
+                          </motion.div>
                         )}
-                      </Button>
-                    </motion.div>
-                  </Form>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.55, duration: 0.45 }}
+                        >
+                          <Button
+                            id="create-account-button"
+                            variant="primary"
+                            type="submit"
+                            className={`w-100 mt-2 auth-button-primary`}
+                            disabled={!isFormValid || isSubmitting}
+                            aria-disabled={!isFormValid || isSubmitting}
+                            aria-busy={isSubmitting}
+                            title={
+                              !isFormValid
+                                ? "Fill all required fields to enable"
+                                : isSubmitting
+                                ? "Creating account..."
+                                : "Create account"
+                            }
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <Loader2Icon
+                                  size={18}
+                                  className="spin"
+                                  aria-hidden="true"
+                                />
+                                <span>Creating…</span>
+                              </>
+                            ) : (
+                              "Create Account"
+                            )}
+                          </Button>
+                        </motion.div>
+                      </Form>
+                    </>
+                  )}
+
+                  {selectedSection === "offices" && (
+                    <div className="mt-2">
+                      <h4 className="mb-3 text-center">
+                        Technical Offices Management
+                      </h4>
+                      <Form className="d-flex flex-column auth-grid-gap">
+                        <Form.Group className="mb-3">
+                          <Form.Label>Technical Staff Member</Form.Label>
+                          <Select
+                            inputId="select-tsm"
+                            instanceId="select-tsm"
+                            options={tsms.map((t) => ({
+                              value: String(t.id),
+                              label: t.name,
+                            }))}
+                            value={
+                              selectedTsmId
+                                ? {
+                                    value: String(selectedTsmId),
+                                    label:
+                                      tsms.find((t) => t.id === selectedTsmId)
+                                        ?.name ?? "",
+                                  }
+                                : null
+                            }
+                            onChange={(
+                              opt: SingleValue<{ value: string; label: string }>
+                            ) => {
+                              const id = opt ? Number(opt.value) : null;
+                              handleSelectTsm(id);
+                            }}
+                            isDisabled={tsms.length === 0}
+                            placeholder="Select a TSM"
+                            components={{ Menu: AnimatedMenu }}
+                            classNamePrefix="rs"
+                          />
+                        </Form.Group>
+
+                        {selectedTsmId && (
+                          <>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Assigned Offices</Form.Label>
+                              <div>
+                                {tsmOfficeIds.length === 0 ? (
+                                  <div className="text-muted">
+                                    No offices assigned.
+                                  </div>
+                                ) : (
+                                  tsmOfficeIds.map((oid) => {
+                                    const office = offices.find(
+                                      (o) => o.id === oid
+                                    );
+                                    return (
+                                      <Badge
+                                        key={oid}
+                                        pill
+                                        bg="secondary"
+                                        className="me-2 mb-2"
+                                        id={`tsm-office-${oid}`}
+                                      >
+                                        {office ? office.name : `Office ${oid}`}
+                                        <Button
+                                          variant="link"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleRemoveOffice(oid)
+                                          }
+                                          id={`remove-office-${oid}`}
+                                          className="ms-2 p-0 text-light"
+                                        >
+                                          ×
+                                        </Button>
+                                      </Badge>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            </Form.Group>
+
+                            <Form.Group className="mb-3">
+                              <Form.Label>Add Office</Form.Label>
+                              <Select
+                                inputId="select-add-office"
+                                instanceId="select-add-office"
+                                options={officeOptions.filter(
+                                  (o) => !tsmOfficeIds.includes(Number(o.value))
+                                )}
+                                value={null}
+                                onChange={(
+                                  opt: SingleValue<{
+                                    value: string;
+                                    label: string;
+                                  }>
+                                ) => {
+                                  if (opt) handleAddOffice(Number(opt.value));
+                                }}
+                                isDisabled={offices.length === 0}
+                                placeholder="Select office to add"
+                                components={{
+                                  Menu: AnimatedMenu,
+                                  Option: OfficeOption,
+                                }}
+                                classNamePrefix="rs"
+                              />
+                            </Form.Group>
+
+                            <div className="d-flex justify-content-end gap-2">
+                              <Button
+                                id="save-tsm-offices"
+                                variant="success"
+                                onClick={handleSaveTsmOffices}
+                                disabled={isSavingTsm}
+                              >
+                                {isSavingTsm ? (
+                                  <>
+                                    <Loader2Icon size={14} className="spin" />{" "}
+                                    Saving...
+                                  </>
+                                ) : (
+                                  "Save Changes"
+                                )}
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </Form>
+                    </div>
+                  )}
                 </Card.Body>
               </Card>
             </motion.div>
