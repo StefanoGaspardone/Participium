@@ -258,6 +258,26 @@ export class ReportController {
             next(error);
         }
     }
+
+    getMyReports = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const reports = await reportService.listReportsByUserId(req.token?.user?.id as number);
+            return res.status(200).json({ reports });
+        } catch(error) {
+            next(error);
+        }
+    }
+
+    getReportById = async (req: AuthRequest & { params: { id: number } }, res: Response, next: NextFunction) => {
+        try {
+            const reportId = Number(req.params.id);
+
+            const report = await this.reportService.findByIdAndUserId(reportId, req.token?.user?.id as number);
+            return res.status(200).json({ report });
+        } catch(error) {
+            next(error);
+        }
+    }
 }
 
 export const reportController = new ReportController();

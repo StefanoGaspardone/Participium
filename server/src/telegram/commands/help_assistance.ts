@@ -19,15 +19,15 @@ export class HelpAssistance {
             return await ctx.reply("🏙️ Welcome to the Participium Bot! 🏛️\n\nHello! I am your direct link to the City of Torino.\nMy goal is to help you keep our beautiful city safe, functional, and clean.\nUse me to report issues in public spaces, from potholes to faulty streetlights.\nBelow you will find a list of all available commands to interact with the service:\n\n"
                 +
                 "📋 Available Commands\n\n" +
-                "🆕 /newreport \nStart the procedure to submit a new issue. You can report potholes 🕳️, broken streetlights 💡, damaged sidewalks 🧱, or any other public maintenance problem.\n\n" +
+                "🆕 /new_report \nStart the procedure to submit a new issue. You can report potholes 🕳️, broken streetlights 💡, damaged sidewalks 🧱, or any other public maintenance problem.\n\n" +
                 "❓ /help \nDisplay this message. Use it whenever you need to remember the commands or understand how the app works.\n\n" +
                 "📧 /contact \nGet all the official contact information for the City Council and the technical support team of this app.\n\n" +
                 "🤔 /faq \nRead a list of Frequently Asked Questions to quickly find answers about the reporting process and resolution times.\n\n" +
-                "🗂️ /myreports \nView a list of all reports you have submitted, along with their current status (e.g., Pending, In Progress, Resolved).\n\n" +
-                "🔍 /reportstatus [ID] \nGet detailed information about a specific report. Note: Replace [ID] with your report number (e.g., /reportstatus 123). This only works for reports submitted by you.\n\n" +
+                "🗂️ /my_reports \nView a list of all reports you have submitted, along with their current status (e.g., Pending, In Progress, Resolved).\n\n" +
+                "🔍 /report_status [ID] \nGet detailed information about a specific report. Note: Replace [ID] with your report number (e.g., /report_status 123). This only works for reports submitted by you.\n\n" +
                 "🛠️ How it works ?\n" +
                 "     1. Take a photo of the problem 📸.\n" +
-                "     2. Use /newreport and follow the instructions.\n" +
+                "     2. Use /new_report and follow the instructions.\n" +
                 "     3. Our technical departments will take care of the problem as soon as possible! 👷‍♂️\n" +
                 "Thank you for helping us make Torino a better place to live! ✨");
         } catch (error) {

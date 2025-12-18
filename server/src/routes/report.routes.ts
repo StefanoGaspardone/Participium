@@ -7,6 +7,8 @@ const router = Router();
 
 router.post('/', authMiddleware([UserType.CITIZEN]), reportController.createReport);
 router.post('/telegram', reportController.createReportFromTelegram);
+router.get('/mine', authMiddleware([UserType.CITIZEN]), reportController.getMyReports);
+router.get('/:id', authMiddleware([UserType.CITIZEN]), reportController.getReportById);
 router.get('/', reportController.getReportsByStatus);
 router.put(
     '/:id/category',

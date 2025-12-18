@@ -7,11 +7,13 @@ import { Auth } from '@telegram/commands/auth';
 import fs from 'fs';
 import { NewReport } from './commands/new_report';
 import { HelpAssistance } from './commands/help_assistance';
+import { Reports } from './commands/reports';
 
 export interface AuthSessionState {
     awaitingPassword?: boolean;
     user?: UserDTO | null;
     valid?: boolean;
+    token: string | null;
 }
 
 export interface SessionData {
@@ -50,7 +52,7 @@ export class TelegramBot {
         this.bot.use(session.middleware());
 
         this.bot.use(async (ctx, next) => {
-            if(!ctx.session.auth) ctx.session.auth = { awaitingPassword: false, user: null, valid: false };
+            if(!ctx.session.auth) ctx.session.auth = { awaitingPassword: false, user: null, valid: false, token: null };
             return next();
         });
     }
@@ -60,6 +62,7 @@ export class TelegramBot {
             new Auth(),
             new NewReport(),
             new HelpAssistance(),
+            new Reports(),
         ];
 
         handlers.forEach(handler => {
