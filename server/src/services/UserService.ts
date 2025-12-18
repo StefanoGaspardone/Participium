@@ -83,19 +83,22 @@ export class UserService {
             user.email = payload.email;
             user.username = payload.username;
             user.userType = payload.userType;
-            if(payload.userType == UserType.TECHNICAL_STAFF_MEMBER && payload.officeId){
-                const office = await this.officeRepo.findOfficeById(payload.officeId);
-                if(!office){
-                    throw new BadRequestError("office not found.");
+            user.offices = [];
+            if(payload.userType == UserType.TECHNICAL_STAFF_MEMBER && payload.officeIds){
+                for (const officeId of payload.officeIds) {
+                    const office = await this.officeRepo.findOfficeById(officeId);
+                    if(!office){
+                        throw new BadRequestError(`Office with id ${officeId} not found.`);
+                    }
+                    user.offices.push(office);
                 }
-                user.office = office;
             }else if(payload.userType == UserType.MUNICIPAL_ADMINISTRATOR || payload.userType == UserType.PUBLIC_RELATIONS_OFFICER){
                 const office = await this.officeRepo.findOrganizationOffice();
                 console.log(office);
                 if(!office){
                     throw new BadRequestError("Organization office not found.");
                 }
-                user.office = office;
+                user.offices.push(office);
             }else if(payload.userType === UserType.EXTERNAL_MAINTAINER && payload.companyId){
                 const company = await this.companyRepository.findCompanyById(payload.companyId);
                 if(!company){

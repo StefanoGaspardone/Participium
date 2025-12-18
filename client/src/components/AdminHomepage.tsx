@@ -73,7 +73,7 @@ export default function AdminHomepage() {
     email: "",
     password: "",
     userType: "",
-    officeId: "",
+    officeIds: [] as string[], // Mantieni come array di stringhe
     companyId: "",
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -186,7 +186,7 @@ export default function AdminHomepage() {
         password: form.password.trim(),
         userType: form.userType,
         ...(form.userType === "TECHNICAL_STAFF_MEMBER" && {
-          officeId: Number(form.officeId),
+          officeIds: form.officeIds.map(Number),
         }),
         ...(form.userType === "EXTERNAL_MAINTAINER" && {
           companyId: Number(form.companyId),
@@ -201,7 +201,7 @@ export default function AdminHomepage() {
         email: "",
         password: "",
         userType: "",
-        officeId: "",
+        officeIds: [],
         companyId: "",
       });
     } catch (err: unknown) {
@@ -225,7 +225,7 @@ export default function AdminHomepage() {
     form.email.trim() !== "" &&
     form.password.trim() !== "" &&
     form.userType !== "" &&
-    (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeId !== "") &&
+    (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeIds.length !== 0) &&
     (form.userType !== "EXTERNAL_MAINTAINER" || form.companyId !== "");
 
   if (user?.userType !== "ADMINISTRATOR") {
@@ -363,20 +363,39 @@ export default function AdminHomepage() {
                     {form.userType === "TECHNICAL_STAFF_MEMBER" && (
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.4 }}>
                         <Form.Group className="mb-3">
-                          <Form.Label>Office Category</Form.Label>
-                          <Select
-                            inputId="open-offices"
-                            instanceId="open-offices"
-                            options={officeOptions}
-                            value={officeOptions.find((o) => o.value === form.officeId) ?? null}
-                            onChange={(opt: SingleValue<{ value: string; label: string }>) =>
-                              setForm((prev) => ({ ...prev, officeId: opt?.value ?? "" }))
-                            }
-                            isDisabled={loadingOffices || isSubmitting}
-                            placeholder="Select a technical office"
-                            components={{ Menu: AnimatedMenu, Option: OfficeOption }}
-                            classNamePrefix="rs"
-                          />
+                          <Form.Label>Office Categories <small className="text-muted">(select one or more categories)</small></Form.Label>
+                          {loadingOffices ? (
+                            <div className="text-center py-3">
+                              <Loader2Icon size={20} className="spin" />
+                            </div>
+                          ) : (
+                            <div className="border rounded p-3" style={{ backgroundColor: '#f8f9fa', maxHeight: '250px', overflowY: 'auto' }}>
+                              {offices.length === 0 ? (
+                                <p className="text-muted mb-0">No categories found</p>
+                              ) : (
+                                offices.map((office) => (
+                                  <Form.Check
+                                    key={office.id}
+                                    type="checkbox"
+                                    id={`office-${office.id}`}
+                                    label={office.name}
+                                    checked={form.officeIds.includes(String(office.id))}
+                                    onChange={(e) => {
+                                      const officeId = String(office.id);
+                                      setForm((prev) => ({
+                                        ...prev,
+                                        officeIds: e.target.checked
+                                          ? [...prev.officeIds, officeId]
+                                          : prev.officeIds.filter((id) => id !== officeId),
+                                      }));
+                                    }}
+                                    disabled={isSubmitting}
+                                    className="mb-2"
+                                  />
+                                ))
+                              )}
+                            </div>
+                          )}
                         </Form.Group>
                       </motion.div>
                     )}
@@ -425,24 +444,40 @@ export default function AdminHomepage() {
                                 />
                               </Form.Group>
                               <Form.Group className="mb-3">
-                                <Form.Label>Categories</Form.Label>
-                                <Select<{ value: string; label: string }, true>
-                                  inputId="new-company-categories"
-                                  instanceId="new-company-categories"
-                                  options={categoryOptions}
-                                  value={categoryOptions.filter((opt) => newCompanyCategories.some((cat) => String(cat.id) === opt.value))}
-                                  onChange = {(opts: MultiValue<{ value: string; label: string }>) => {
-                                    const selectedCategories = opts.map((opt) => {
-                                      const cat = categories.find((c) => String(c.id) === opt.value);
-                                      return cat!;
-                                    });
-                                    setNewCompanyCategories(selectedCategories);
-                                  }}
-                                  isMulti
-                                  isDisabled={loadingCategories || isCreatingCompany}
-                                  placeholder="Select categories"
-                                  classNamePrefix="rs"
-                                />
+                                <Form.Label>Categories <small className="text-muted">(seleziona una o più categorie)</small></Form.Label>
+                                {loadingCategories ? (
+                                  <div className="text-center py-3">
+                                    <Loader2Icon size={20} className="spin" />
+                                  </div>
+                                ) : (
+                                  <div className="border rounded p-3" style={{ backgroundColor: '#f8f9fa', maxHeight: '200px', overflowY: 'auto' }}>
+                                    {categories.length === 0 ? (
+                                      <p className="text-muted mb-0">Nessuna categoria disponibile</p>
+                                    ) : (
+                                      categories.map((category) => (
+                                        <Form.Check
+                                          key={category.id}
+                                          type="checkbox"
+                                          id={`category-${category.id}`}
+                                          label={category.name}
+                                          checked={newCompanyCategories.some((cat) => cat.id === category.id)}
+                                          onChange={(e) => {
+                                            setNewCompanyCategories((prev) =>
+                                              e.target.checked
+                                                ? [...prev, category]
+                                                : prev.filter((cat) => cat.id !== category.id)
+                                            );
+                                          }}
+                                          disabled={isCreatingCompany}
+                                          className="mb-2"
+                                        />
+                                      ))
+                                    )}
+                                  </div>
+                                )}
+                                <Form.Text className="text-muted">
+                                  Seleziona una o più categorie spuntando le caselle.
+                                </Form.Text>
                               </Form.Group>
                               <div className="d-flex gap-2">
                                 <Button

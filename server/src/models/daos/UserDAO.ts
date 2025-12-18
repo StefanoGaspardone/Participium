@@ -1,6 +1,18 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, } from 'typeorm';
+import {
+  Column, CreateDateColumn, Entity, JoinColumn,
+  ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn,
+} from 'typeorm';
 import { OfficeDAO } from '@daos/OfficeDAO';
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsString, IsUrl, ValidateIf, Validator } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  IsUrl,
+  ValidateIf,
+} from 'class-validator';
 import { ReportDAO } from '@daos/ReportDAO';
 import { NotificationDAO } from "@daos/NotificationsDAO";
 import { CodeConfirmationDAO } from '@daos/CodeConfirmationDAO';
@@ -61,13 +73,13 @@ export class UserDAO {
   @Column({ type: "boolean", default: false })
   emailNotificationsEnabled: boolean;
 
-  @ManyToOne(() => OfficeDAO, (office) => office.users, { nullable: true })
-  @JoinColumn({ name: "office_id" })
+  @ManyToMany(() => OfficeDAO, (office) => office.users)
   @ValidateIf((o) => o.userType === UserType.TECHNICAL_STAFF_MEMBER)
-  @IsNotEmpty({
-    message: "Office cannot be empty for a technical staff member",
+  @ArrayNotEmpty({
+    message: "At least one office should be assigned to a technical staff member",
   })
-  office: OfficeDAO;
+  offices: OfficeDAO[];
+
 
   @OneToMany(() => ReportDAO, (report) => report.createdBy)
   @ValidateIf((o) => o.userType === UserType.CITIZEN)

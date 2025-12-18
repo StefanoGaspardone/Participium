@@ -128,9 +128,9 @@ export class UserController {
       }
       if (
         req.body.userType == UserType.TECHNICAL_STAFF_MEMBER &&
-        !req.body.officeId
+          (!req.body.officeIds || !Array.isArray(req.body.officeIds) || req.body.officeIds.length === 0)
       ) {
-        throw new BadRequestError("Missing office id");
+        throw new BadRequestError("Missing office ids array or it's empty");
       }
       if (
           req.body.userType == UserType.EXTERNAL_MAINTAINER &&
@@ -148,9 +148,9 @@ export class UserController {
       payload.lastName = req.body.lastName;
       payload.username = req.body.username;
       payload.userType = req.body.userType;
-      payload.officeId = req.body.officeId;
+      payload.officeIds = req.body.officeIds;
       payload.companyId = req.body.companyId;
-      const user = await this.userService.createMunicipalityUser(req.body);
+      const user = await this.userService.createMunicipalityUser(payload);
       res.status(201).json({ message: "Municipality user created" });
     } catch (error) {
       if (

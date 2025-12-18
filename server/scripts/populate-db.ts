@@ -18,16 +18,16 @@ const OFFICES: string[] = [
     'General Services Division',
 ];
 
-const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number; company?:number }> = [
+const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; offices?: number[]; company?:number }> = [
     { username: 'admin', email: 'admin@gmail.com', firstName: 'Stefano', lastName: 'Lo Russo', password: 'admin', userType: UserType.ADMINISTRATOR },
     { username: 'user', email: 'user@gmail.com', firstName: 'Francesco', lastName: 'Totti', password: 'user', userType: UserType.CITIZEN },
     { username: 'giack.team5', email: 'giack@five.se', firstName: 'Giacomo', lastName: 'Pirlo', password: 'password', userType: UserType.CITIZEN},
-    { username: 'tsm1', email: 'tsm1@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 1},
-    { username: 'tsm2', email: 'tsm2@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 2},
-    { username: 'tsm3', email: 'tsm3@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 3},
-    { username: 'tsm4', email: 'tsm4@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 4},
-    { username: 'tsm5', email: 'tsm5@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 5},
-    { username: 'tsm6', email: 'tsm6@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, office: 6},
+    { username: 'tsm1', email: 'tsm1@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, offices: [1,2]},
+    { username: 'tsm2', email: 'tsm2@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, offices: [2,3]},
+    { username: 'tsm3', email: 'tsm3@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, offices: [3]},
+    { username: 'tsm4', email: 'tsm4@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, offices: [4]},
+    { username: 'tsm5', email: 'tsm5@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, offices: [5]},
+    { username: 'tsm6', email: 'tsm6@part.se', firstName:'Carmine', lastName:'Conte', password:'password', userType: UserType.TECHNICAL_STAFF_MEMBER, offices: [6]},
     { username: 'munadm', email: 'munadm@part.se', firstName: 'Giorgio', lastName: 'Turio', password: 'password', userType: UserType.MUNICIPAL_ADMINISTRATOR},
     { username: 'pro', email: 'pro@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.PUBLIC_RELATIONS_OFFICER},
     { username: 'em1', email: 'em1@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.EXTERNAL_MAINTAINER, company: 1},
@@ -46,10 +46,10 @@ const CATEGORIES: Array<{ name: string; office: string }> = [
     { name: 'Other', office: 'General Services Division' },
 ];
 
-async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; office?: number; company?:number }>) {
+async function upsertUsers(users: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; offices?: number[]; company?:number }>) {
     const repo = AppDataSource.getRepository(UserDAO);
 
-    for(const { username, email, password, firstName, lastName, userType, office, company } of users) {
+    for(const { username, email, password, firstName, lastName, userType, offices, company } of users) {
         const trimmedUsername = username.trim();
         const trimmedEmail = email.trim();
         if (!trimmedUsername || !trimmedEmail) continue;
@@ -60,21 +60,25 @@ async function upsertUsers(users: Array<{ username:string; email:string; passwor
         let user = await repo.findOne({ where: { username: trimmedUsername } });
         if(user) {
             logInfo(`[populate-db] User already exists: ${trimmedUsername} (id=${user.id})`);
-        } else if(!office && !company) {
+        } else if(!offices && !company) {
             user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType });
             user = await repo.save(user);
             logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
-        } else if(office && !company) {
+        } else if(offices && !company) {
+            const officesEntity = [];
             const officeRepo = AppDataSource.getRepository(OfficeDAO);
-            const officeEntity = await officeRepo.findOne({ where: { id: office } });
-            if(!officeEntity) {
-                logError(`[populate-db] Skipping user '${trimmedUsername}': office id='${office}' not found in OFFICES.`);
-                continue;
+            for(const office of offices){
+                const officeEntity = await officeRepo.findOne({ where: { id: office } });
+                if(officeEntity) {
+                    officesEntity.push(officeEntity);
+                } else {
+                    logError(`[populate-db] Skipping user '${trimmedUsername}': office id='${office}' not found in OFFICES.`);
+                }
             }
-            user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType,  office: officeEntity });
+            user = repo.create({ username: trimmedUsername, email: trimmedEmail, passwordHash, firstName, lastName, userType,  offices: officesEntity });
             user = await repo.save(user);
             logInfo(`[populate-db] Inserted user: ${trimmedUsername} (id=${user.id})`);
-        } else if(company && !office) {
+        } else if(company && !offices) {
             const companyRepo = AppDataSource.getRepository('CompanyDAO');
             const companyEntity = await companyRepo.findOne({ where: { id: company } });
             if(!companyEntity) {

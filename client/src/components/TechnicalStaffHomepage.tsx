@@ -180,10 +180,46 @@ export default function TechnicalStaffHomepage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        {user?.office ? `${user.office} office` : 'Office'}
+                        {'Technical staff member dashboard'}
                     </motion.h1>
+
+                    {user?.offices && user.offices.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2, duration: 0.4 }}
+                            className="mb-4"
+                        >
+                            <motion.h3
+                                className="auth-title"
+                                initial={{ opacity: 0, y: -12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                            >{user.offices.length === 1? "My office" : "My offices"}</motion.h3>
+
+                                <div className="d-flex flex-wrap gap-2">
+                                    {user.offices.map(office => (
+                                        <Badge
+                                            key={office}
+                                            bg="primary"
+                                            style={{
+                                                fontSize: '0.95rem',
+                                                padding: '0.6rem 1.2rem',
+                                                background: 'linear-gradient(90deg, #265ea8 0%, #1e4a7f 100%)',
+                                                fontWeight: 500,
+                                                borderRadius: '8px',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                            }}
+                                        >
+                                            {office}
+                                        </Badge>
+                                    ))}
+                                </div>
+                        </motion.div>
+                    )}
+
                     <motion.h2
-                        className="text-center auth-title"
+                        className=" auth-title"
                         initial={{ opacity: 0, y: -12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
