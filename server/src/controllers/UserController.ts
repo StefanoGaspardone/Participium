@@ -268,6 +268,15 @@ export class UserController {
       next(error);
     }
   }
+
+  findTsm = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+      const tsm = await this.userService.findTechnicalStaffMembers();
+        res.status(200).json({ tsm });
+    }catch (error) {
+        next(error);
+    }
+  }
 }
 
 interface tokenDatas extends JwtPayload {

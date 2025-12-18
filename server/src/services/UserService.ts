@@ -209,6 +209,11 @@ export class UserService {
 
         await this.createCodeConfirmationForUser(user.id);
     }
+
+    findTechnicalStaffMembers = async () : Promise<UserDTO[]> => {
+        const staffMembers =  await this.userRepo.findTechnicalStaffMembers();
+        return staffMembers.map(MapUserDAOtoDTO);
+    }
 }
 
 export const userService = new UserService();

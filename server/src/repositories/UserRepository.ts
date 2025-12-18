@@ -83,6 +83,10 @@ export class UserRepository {
       .where('user.userType = :type', { type: UserType.EXTERNAL_MAINTAINER })
       .getMany();
   };
+
+  findTechnicalStaffMembers = async (): Promise<UserDAO[]> => {
+    return this.repo.find({ where: { userType: UserType.TECHNICAL_STAFF_MEMBER }, relations: ['offices'] });
+  }
 }
 
 export const userRepository = new UserRepository();
