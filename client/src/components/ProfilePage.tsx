@@ -292,7 +292,7 @@ export default function ProfilePage() {
                                             />
                                         </div>
                                         <div className="profile-form-group">
-                                            <label className="profile-form-label" htmlFor="telegramUsername">Telegram Username</label>
+                                            <label className="profile-form-label" htmlFor="telegramUsername">Telegram Username — <a href="https://t.me/ParticipiumSE05Bot" target="_blank" rel="noopener noreferrer">Go to bot</a> </label>
                                             <input
                                                 type="text"
                                                 id="telegramUsername"

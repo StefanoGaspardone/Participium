@@ -4,6 +4,7 @@ import CustomNavbar from "./CustomNavbar";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
+import { BsTelegram } from "react-icons/bs";
 import { motion } from "framer-motion";
 import { useAppContext } from "../contexts/AppContext";
 import type { Coord, Report } from "../models/models";
@@ -146,6 +147,7 @@ export default function HomePage({ selected, setSelected }: Props) {
                         <li>📷 Upload a report with <strong>photo</strong>, <strong>location</strong>, and <strong>category</strong></li>
                         <li>🔄 Track the status: <strong>Assigned → In Progress → Resolved</strong></li>
                         <li>🔔 Receive notifications on updates</li>
+                        <li> <BsTelegram /> Link your Telegram account in Profile settings to report and track issues via our  <a href="https://t.me/ParticipiumSE05Bot" target="_blank" rel="noopener noreferrer">bot</a> </li>
                       </ul>
                     </motion.div>
                   </Col>
