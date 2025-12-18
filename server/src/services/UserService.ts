@@ -214,6 +214,24 @@ export class UserService {
         const staffMembers =  await this.userRepo.findTechnicalStaffMembers();
         return staffMembers.map(MapUserDAOtoDTO);
     }
+
+    updateTsm = async (tsmId: number, officeIds: number[]): Promise<UserDTO> => {
+        const tsm = await this.userRepo.findUserById(tsmId);
+        if(!tsm) throw new NotFoundError(`Technical staff member with id ${tsmId} not found`);
+        if(tsm.userType !== UserType.TECHNICAL_STAFF_MEMBER) throw new BadRequestError(`User with id ${tsmId} is not a technical staff member`);
+
+        tsm.offices = [];
+        for (const officeId of officeIds) {
+            const office = await this.officeRepo.findOfficeById(officeId);
+            if(!office){
+                throw new BadRequestError(`Office with id ${officeId} not found.`);
+            }
+            tsm.offices.push(office);
+        }
+
+        const updatedTsm = await this.userRepo.updateUser(tsm);
+        return MapUserDAOtoDTO(updatedTsm);
+    }
 }
 
 export const userService = new UserService();
