@@ -1556,5 +1556,305 @@ describe('UserController.resendCode integration tests', () => {
       userController.userService = originalService;
     });
   });
+
+  describe('findTsm', () => {
+    let tsmId1: number;
+    let tsmId2: number;
+
+    beforeAll(async () => {
+      const { AppDataSource } = await import('@database');
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      const office1 = officeRepo.create({ name: 'TSM Office 1' });
+      const savedOffice1 = await officeRepo.save(office1);
+
+      const office2 = officeRepo.create({ name: 'TSM Office 2' });
+      const savedOffice2 = await officeRepo.save(office2);
+
+      const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, 10);
+      const tsm1 = userRepo.create({
+        username: 'tsm1',
+        email: 'tsm1@test.com',
+        passwordHash: hash,
+        firstName: 'TSM',
+        lastName: 'One',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        offices: [savedOffice1],
+        emailNotificationsEnabled: false,
+      });
+      const savedTsm1 = await userRepo.save(tsm1);
+      tsmId1 = savedTsm1.id;
+
+      const tsm2 = userRepo.create({
+        username: 'tsm2',
+        email: 'tsm2@test.com',
+        passwordHash: hash,
+        firstName: 'TSM',
+        lastName: 'Two',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        offices: [savedOffice1, savedOffice2],
+        emailNotificationsEnabled: false,
+      });
+      const savedTsm2 = await userRepo.save(tsm2);
+      tsmId2 = savedTsm2.id;
+    });
+
+    it('should return all TSM users with their offices', async () => {
+      const req: any = {};
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findTsm(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+      const body = res.json.mock.calls[0][0];
+      expect(body).toHaveProperty('tsm');
+      expect(Array.isArray(body.tsm)).toBe(true);
+      expect(body.tsm.length).toBeGreaterThanOrEqual(2);
+
+      const tsm1 = body.tsm.find((t: any) => t.id === tsmId1);
+      const tsm2 = body.tsm.find((t: any) => t.id === tsmId2);
+      
+      expect(tsm1).toBeDefined();
+      expect(tsm1.offices).toEqual(['TSM Office 1']);
+      
+      expect(tsm2).toBeDefined();
+      expect(tsm2.offices).toEqual(['TSM Office 1', 'TSM Office 2']);
+    });
+
+    it('should call next on service error', async () => {
+      const originalService = userController.userService;
+      userController.userService = { 
+        findTechnicalStaffMembers: jest.fn().mockRejectedValue(new Error('Database error')) 
+      } as any;
+
+      const req: any = {};
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.findTsm(req, res, next);
+
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('Database error');
+
+      userController.userService = originalService;
+    });
+  });
+
+  describe('updateTsm', () => {
+    let tsmId: number;
+    let officeId1: number;
+    let officeId2: number;
+    let officeId3: number;
+
+    beforeAll(async () => {
+      const { AppDataSource } = await import('@database');
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      // Create test offices
+      const office1 = officeRepo.create({ name: 'Update Office 1' });
+      const savedOffice1 = await officeRepo.save(office1);
+      officeId1 = savedOffice1.id;
+
+      const office2 = officeRepo.create({ name: 'Update Office 2' });
+      const savedOffice2 = await officeRepo.save(office2);
+      officeId2 = savedOffice2.id;
+
+      const office3 = officeRepo.create({ name: 'Update Office 3' });
+      const savedOffice3 = await officeRepo.save(office3);
+      officeId3 = savedOffice3.id;
+
+      // Create TSM user
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
+      const tsm = userRepo.create({
+        username: 'tsm_update',
+        email: 'tsm_update@test.com',
+        passwordHash: hash,
+        firstName: 'TSM',
+        lastName: 'Update',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        offices: [savedOffice1],
+        emailNotificationsEnabled: false,
+      });
+      const savedTsm = await userRepo.save(tsm);
+      tsmId = savedTsm.id;
+    });
+
+    it('should update TSM offices successfully', async () => {
+      const req: any = {
+        params: { id: tsmId.toString() },
+        body: { officeIds: [officeId2, officeId3] },
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.updateTsm(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+      const body = res.json.mock.calls[0][0];
+      expect(body).toHaveProperty('message');
+      expect(body).toHaveProperty('updatedTsm');
+      expect(body.updatedTsm.offices).toEqual(['Update Office 2', 'Update Office 3']);
+    });
+
+    it('should call next with BadRequestError when id is invalid', async () => {
+      const req: any = {
+        params: { id: 'invalid' },
+        body: { officeIds: [officeId1] },
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.updateTsm(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('BadRequestError');
+      expect(error.message).toMatch(/valid number/i);
+    });
+
+    it('should call next with BadRequestError when officeIds is missing', async () => {
+      const req: any = {
+        params: { id: tsmId.toString() },
+        body: {},
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.updateTsm(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('BadRequestError');
+      expect(error.message).toMatch(/officeIds/i);
+    });
+
+    it('should call next with BadRequestError when officeIds is not an array', async () => {
+      const req: any = {
+        params: { id: tsmId.toString() },
+        body: { officeIds: 'not-an-array' },
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.updateTsm(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('BadRequestError');
+      expect(error.message).toMatch(/array/i);
+    });
+
+    it('should call next with BadRequestError when officeIds is empty array', async () => {
+      const req: any = {
+        params: { id: tsmId.toString() },
+        body: { officeIds: [] },
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.updateTsm(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('BadRequestError');
+      expect(error.message).toMatch(/not empty/i);
+    });
+
+    it('should call next with NotFoundError when TSM does not exist', async () => {
+      const req: any = {
+        params: { id: '99999' },
+        body: { officeIds: [officeId1] },
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.updateTsm(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('NotFoundError');
+    });
+
+    it('should call next with BadRequestError when office does not exist', async () => {
+      const req: any = {
+        params: { id: tsmId.toString() },
+        body: { officeIds: [99999] },
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.updateTsm(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.name).toBe('BadRequestError');
+      expect(error.message).toMatch(/office.*not found/i);
+    });
+
+    it('should call next on service error', async () => {
+      const originalService = userController.userService;
+      userController.userService = { 
+        updateTsm: jest.fn().mockRejectedValue(new Error('Database error')) 
+      } as any;
+
+      const req: any = {
+        params: { id: tsmId.toString() },
+        body: { officeIds: [officeId1] },
+      };
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+      const next = jest.fn();
+
+      await userController.updateTsm(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('Database error');
+
+      userController.userService = originalService;
+    });
+  });
 });
 
