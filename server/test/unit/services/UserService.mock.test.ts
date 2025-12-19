@@ -771,6 +771,11 @@ describe("UserService.updateTsm (mock)", () => {
         }),
     };
 
+    // @ts-ignore
+    service["reportRepo"] = {
+      findReportsAssignedTo: jest.fn().mockResolvedValue([]),
+    };
+
     const result = await service.updateTsm(1, [1, 2]);
 
     expect(findByIdMock).toHaveBeenCalledWith(1);
@@ -847,6 +852,11 @@ describe("UserService.updateTsm (mock)", () => {
       findOfficeById: jest.fn().mockResolvedValue(null),
     };
 
+    // @ts-ignore
+    service["reportRepo"] = {
+      findReportsAssignedTo: jest.fn().mockResolvedValue([]),
+    };
+
     await expect(service.updateTsm(1, [999])).rejects.toThrow(
       "Office with id 999 not found."
     );
@@ -888,6 +898,11 @@ describe("UserService.updateTsm (mock)", () => {
           if (id === 3) return fakeOffice3;
           return null;
         }),
+    };
+
+    // @ts-ignore
+    service["reportRepo"] = {
+      findReportsAssignedTo: jest.fn().mockResolvedValue([]),
     };
 
     const result = await service.updateTsm(1, [3]); // Update to only Office C

@@ -219,7 +219,7 @@ describe('ReportController integration tests', () => {
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Report status updated',
+      message: expect.stringContaining('Report assigned to'),
       report: expect.objectContaining({ status: ReportStatus.Assigned })
     }));
   });
