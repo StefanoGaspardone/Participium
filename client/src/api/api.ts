@@ -1,5 +1,5 @@
-import type { Category, Chat, Company, Message, Office, Report, User } from "../models/models";
-import { toApiError } from "../models/models";
+import type {Category, Chat, Company, Message, Office, Report, User} from "../models/models";
+import {toApiError} from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
 
@@ -271,8 +271,11 @@ export const updateReportCategory = async (reportId: number, categoryId: number)
   const data = await res.json();
   return data.report as Report;
 };
-
-export const assignOrRejectReport = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<Report> => {
+export interface AssignOrRejectResponse {
+  report: Report,
+    message: string
+}
+export const assignOrRejectReport = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<AssignOrRejectResponse> => {
   const body: any = { status };
   if (status === 'Rejected') body.rejectedDescription = rejectedDescription;
   const res = await fetch(`${BASE_URL}/reports/${reportId}/status/public`, {
@@ -284,8 +287,7 @@ export const assignOrRejectReport = async (reportId: number, status: 'Assigned' 
     body: JSON.stringify(body)
   });
   if (!res.ok) throw await toApiError(res);
-  const data = await res.json();
-  return data.report as Report;
+  return await res.json();
 };
 
 interface StatusUpdatePayload {

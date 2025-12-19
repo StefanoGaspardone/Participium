@@ -283,8 +283,6 @@ export class UserController {
       const tsmId = Number.parseInt(req.params.id, 10);
       if (Number.isNaN(tsmId)) throw new BadRequestError('Id must be a valid number');
 
-      console.log(req.body)
-      console.log("length: " + req.body.officeIds.length);
       if(!req.body.officeIds || !Array.isArray(req.body.officeIds) || req.body.officeIds.length === 0) {
         throw new BadRequestError('officeIds must be a not empty array of numbers');
       }
