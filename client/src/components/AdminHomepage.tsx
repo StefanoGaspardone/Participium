@@ -112,7 +112,7 @@ export default function AdminHomepage() {
     email: "",
     password: "",
     userType: "",
-    officeId: "",
+    officeIds: [] as string[], // Mantieni come array di stringhe
     companyId: "",
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -271,7 +271,7 @@ export default function AdminHomepage() {
         password: form.password.trim(),
         userType: form.userType,
         ...(form.userType === "TECHNICAL_STAFF_MEMBER" && {
-          officeId: Number(form.officeId),
+          officeIds: form.officeIds.map(Number),
         }),
         ...(form.userType === "EXTERNAL_MAINTAINER" && {
           companyId: Number(form.companyId),
@@ -286,7 +286,7 @@ export default function AdminHomepage() {
         email: "",
         password: "",
         userType: "",
-        officeId: "",
+        officeIds: [],
         companyId: "",
       });
     } catch (err: unknown) {
@@ -342,7 +342,7 @@ export default function AdminHomepage() {
     form.email.trim() !== "" &&
     form.password.trim() !== "" &&
     form.userType !== "" &&
-    (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeId !== "") &&
+    (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeIds.length !== 0) &&
     (form.userType !== "EXTERNAL_MAINTAINER" || form.companyId !== "");
 
   if (user?.userType !== "ADMINISTRATOR") {

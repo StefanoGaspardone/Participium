@@ -83,19 +83,22 @@ export class UserService {
             user.email = payload.email;
             user.username = payload.username;
             user.userType = payload.userType;
-            if(payload.userType == UserType.TECHNICAL_STAFF_MEMBER && payload.officeId){
-                const office = await this.officeRepo.findOfficeById(payload.officeId);
-                if(!office){
-                    throw new BadRequestError("office not found.");
+            user.offices = [];
+            if(payload.userType == UserType.TECHNICAL_STAFF_MEMBER && payload.officeIds){
+                for (const officeId of payload.officeIds) {
+                    const office = await this.officeRepo.findOfficeById(officeId);
+                    if(!office){
+                        throw new BadRequestError(`Office with id ${officeId} not found.`);
+                    }
+                    user.offices.push(office);
                 }
-                user.office = office;
             }else if(payload.userType == UserType.MUNICIPAL_ADMINISTRATOR || payload.userType == UserType.PUBLIC_RELATIONS_OFFICER){
                 const office = await this.officeRepo.findOrganizationOffice();
                 console.log(office);
                 if(!office){
                     throw new BadRequestError("Organization office not found.");
                 }
-                user.office = office;
+                user.offices.push(office);
             }else if(payload.userType === UserType.EXTERNAL_MAINTAINER && payload.companyId){
                 const company = await this.companyRepository.findCompanyById(payload.companyId);
                 if(!company){
@@ -205,6 +208,29 @@ export class UserService {
         if(user.isActive) throw new BadRequestError('User is already active');
 
         await this.createCodeConfirmationForUser(user.id);
+    }
+
+    findTechnicalStaffMembers = async () : Promise<UserDTO[]> => {
+        const staffMembers =  await this.userRepo.findTechnicalStaffMembers();
+        return staffMembers.map(MapUserDAOtoDTO);
+    }
+
+    updateTsm = async (tsmId: number, officeIds: number[]): Promise<UserDTO> => {
+        const tsm = await this.userRepo.findUserById(tsmId);
+        if(!tsm) throw new NotFoundError(`Technical staff member with id ${tsmId} not found`);
+        if(tsm.userType !== UserType.TECHNICAL_STAFF_MEMBER) throw new BadRequestError(`User with id ${tsmId} is not a technical staff member`);
+
+        tsm.offices = [];
+        for (const officeId of officeIds) {
+            const office = await this.officeRepo.findOfficeById(officeId);
+            if(!office){
+                throw new BadRequestError(`Office with id ${officeId} not found.`);
+            }
+            tsm.offices.push(office);
+        }
+
+        const updatedTsm = await this.userRepo.updateUser(tsm);
+        return MapUserDAOtoDTO(updatedTsm);
     }
 }
 

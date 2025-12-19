@@ -11,7 +11,7 @@ export interface UserDTO {
     telegramUsername?: string | null;
     userType: string;
     emailNotificationsEnabled?: boolean;
-    office?: string | null;
+    offices?: string[] | null;
     company?: string | null;
     isActive: boolean;
     createdAt: Date;
@@ -28,7 +28,7 @@ export const MapUserDAOtoDTO = (user: UserDAO): UserDTO => {
         telegramUsername: user.telegramUsername,
         userType: user.userType,
         emailNotificationsEnabled: user.emailNotificationsEnabled,
-        office: user.office? user.office.name : null,
+        offices: user.offices? user.offices.map(o => o.name) : null,
         company: user.company? mapCompanyDAOtoDTO(user.company) : null,
         createdAt: new Date(user.createdAt),
         isActive: user.isActive,
@@ -55,7 +55,7 @@ export interface NewMunicipalityUserDTO {
     username: string;
     password: string;
     userType: UserType;
-    officeId?: number;
+    officeIds?: number[];
     companyId?: number;
     image?: string;
 }

@@ -15,7 +15,7 @@ export class NewReport {
         bot.on('callback_query', requireAppUser, this.handleCallbackQuery);
     }
 
-    private startReportFlow = async (ctx: CustomContext) => {
+    private readonly startReportFlow = async (ctx: CustomContext) => {
         ctx.session.report = {
             step: 'location', 
             data: { },
@@ -32,19 +32,18 @@ export class NewReport {
 
             if(!categories.length) return ctx.reply('Unable to create report: no categories found.');
             
-            return ctx.reply( // TODO for anonymous
-                // '*STEP 1/6: Submit Location*\nPlease attach the location (must be within the Muncipality of Turin).', { parse_mode: 'Markdown' }
-                '*STEP 1/5: Submit Location*\nPlease attach the location (must be within the Muncipality of Turin).', { parse_mode: 'Markdown' }
+            return ctx.reply(
+                '*STEP 1/6: Submit Location*\nPlease attach the location (must be within the Muncipality of Turin).', { parse_mode: 'Markdown' }
             );
 
-        } catch(error) {
+        } catch {
             return ctx.reply('*Error* during initial loading. Please try again later.', { parse_mode: 'Markdown' });
         }
     }
 
-    private handleLocation = async (ctx: CustomContext) => {
+    private readonly handleLocation = async (ctx: CustomContext) => {
         const reportState = ctx.session.report;
-        if(!reportState || reportState.step !== 'location') return;
+        if(reportState?.step !== 'location') return;
      
         const msg = ctx.message;
         if(!msg || !('location' in msg)) return;
@@ -58,16 +57,15 @@ export class NewReport {
             reportState.data.longitude = longitude;
             reportState.step = 'title';
             
-            return ctx.reply( // TODO for anonymous
-                // '*Step 2/6: Enter Title* \nNow enter a short *title* for your report.', { parse_mode: 'Markdown' }
-                '*Step 2/5: Enter Title* \nNow enter a short *title* for your report.', { parse_mode: 'Markdown' }
+            return ctx.reply(
+                '*Step 2/6: Enter Title* \nNow enter a short *title* for your report.', { parse_mode: 'Markdown' }
             );
         } else {
             return ctx.reply('*Attention!*\nThe selected location is outside the Turin city limits. Choose a location *within* the city.', { parse_mode: 'Markdown' });
         }
     }
 
-    private handleText = async (ctx: CustomContext) => {
+    private readonly handleText = async (ctx: CustomContext) => {
         if(ctx.session.auth?.awaitingPassword) return;
 
         const msg: any = ctx.message;
@@ -83,9 +81,8 @@ export class NewReport {
         if(reportState.step === 'title') {
             reportState.data.title = text.substring(0, 50);
             reportState.step = 'description';
-            return ctx.reply( // TODO anonymous
-                // '*STEP 3/6: Enter Description*\nProvide a detailed *description*.', { parse_mode: 'Markdown' }
-                '*STEP 3/5: Enter Description*\nProvide a detailed *description*.', { parse_mode: 'Markdown' }
+            return ctx.reply(
+                '*STEP 3/6: Enter Description*\nProvide a detailed *description*.', { parse_mode: 'Markdown' }
             );
         }
 
@@ -96,9 +93,8 @@ export class NewReport {
             const categories = reportState.categories as Array<{id:number; name:string}>;
             const categoryButtons = categories.map((c: {id:number; name:string}) => Markup.button.callback(c.name, `category_${c.id}`));
             
-            return ctx.reply( // TODO for anonymous
-                // '*STEP 4/6: Choose Category*\nSelect the most appropriate *category*:',
-                '*STEP 4/5: Choose Category*\nSelect the most appropriate *category*:',
+            return ctx.reply(
+                '*STEP 4/6: Choose Category*\nSelect the most appropriate *category*:',
                 {
                 parse_mode: 'Markdown',
                 ...Markup.inlineKeyboard(categoryButtons, { columns: 2 })
@@ -106,15 +102,15 @@ export class NewReport {
         }
     }
 
-    private handlePhoto = async (ctx: CustomContext) => {
+    private readonly handlePhoto = async (ctx: CustomContext) => {
         const reportState = ctx.session.report;
-        if(!reportState || reportState.step !== 'awaiting_photos') return;
+        if(reportState?.step !== 'awaiting_photos') return;
 
         const msg: any = ctx.message;
         if(!msg) return;
         if(!('photo' in msg)) return;
         
-        const photos: any[] = (msg as any).photo;
+        const photos: any[] = msg.photo;
         if(!Array.isArray(photos) || photos.length === 0) return;
 
         reportState.data.images = reportState.data.images || [];
@@ -122,7 +118,7 @@ export class NewReport {
             return ctx.reply('You have reached the maximum limit of *3 images*. Click /done to continue.', { parse_mode: 'Markdown' });
         }
 
-        const fileId: string = photos[photos.length - 1].file_id;
+        const fileId: string = photos.at(-1).file_id;
         let processingMessageId: number | undefined;
         try {
             const processingMessage = await ctx.reply('Uploading image...');
@@ -162,72 +158,76 @@ export class NewReport {
             if(processingMessageId) { try { await ctx.deleteMessage(processingMessageId); } catch {} }
             
             return ctx.reply(`Image ${count} loaded! Send more photos *(max 3)* or click /done.`, { parse_mode: 'Markdown' });
-        } catch(err) {
-            if(processingMessageId) { try { return ctx.deleteMessage(processingMessageId); } catch {} }
+        } catch {
+            if(processingMessageId) { 
+                try { 
+                    return ctx.deleteMessage(processingMessageId); 
+                } catch {
+                    // swallow catch
+                } 
+            }
             return ctx.reply('Image upload error. You can retry or click /done to continue.', { parse_mode: 'Markdown' });
         }
     }
 
-    private handleDone = async (ctx: CustomContext) => {
+    private readonly handleDone = async (ctx: CustomContext) => {
         const reportState = ctx.session.report;
 
-        if(!reportState || reportState.step !== 'awaiting_photos') return ctx.reply('The command is invalid at this stage. Are you running a report? Use /new_report.');
+        if(reportState?.step !== 'awaiting_photos') return ctx.reply('The command is invalid at this stage. Are you running a report? Use /new_report.');
         if(!reportState.data.images || reportState.data.images.length === 0) return ctx.reply('You must submit *at least 1 photo* before completing the report. Submit an image.', { parse_mode: 'Markdown' });
-
-        return this.uploadReport(ctx);
         
-        // TODO for anonymous
-        // reportState.step = 'anonymous';
-        // return ctx.reply(
-        //     '*STEP 6/6: Anonymous Report?*\nDo you want this report to be sent anonymously? Select YES or NO to finish.', {
-        //         parse_mode: 'Markdown',
-        //         ...Markup.removeKeyboard(),
-        //         ...Markup.inlineKeyboard([
-        //             Markup.button.callback('Yes', 'anon_true'),
-        //             Markup.button.callback('No', 'anon_false')
-        //         ], { columns: 2 }),
-        //     }
-        // );
+        reportState.step = 'anonymous';
+        return ctx.reply(
+            '*STEP 6/6: Anonymous Report?*\nDo you want this report to be sent anonymously? Select YES or NO to finish.', {
+                parse_mode: 'Markdown',
+                ...Markup.removeKeyboard(),
+                ...Markup.inlineKeyboard([
+                    Markup.button.callback('Yes', 'anon_true'),
+                    Markup.button.callback('No', 'anon_false')
+                ], { columns: 2 }),
+            }
+        );
     }
 
-    private handleCallbackQuery = async (ctx: CustomContext) => {
+    private readonly handleCallbackQuery = async (ctx: CustomContext, next: () => Promise<any>) => {
         const cb = ctx.callbackQuery;
-        
-        if(!cb || !('data' in cb) || typeof (cb as any).data !== 'string') return;
-        
+
+        if(!cb || !('data' in cb) || typeof (cb as any).data !== 'string') return await next();
+
         const callbackData: string = (cb as any).data;
         const reportState = ctx.session.report;
         const currentStep = reportState?.step;
 
-        if(!callbackData || !reportState) return;
-        
+        if(!callbackData || !reportState) return await next();
+
         if(currentStep === 'category' && callbackData.startsWith('category_')) {
-            const categoryId = parseInt(callbackData.substring(9));
-            
+            const categoryId = Number.parseInt(callbackData.substring(9));
+
             reportState.data.categoryId = categoryId;
             reportState.step = 'awaiting_photos';
             reportState.data.images = [];
-            
-            return ctx.reply( // TODO for anonymous
-                // '*STEP 5/6: Submit Images*\nPlease submit *1-3 photos* for the report. Once submitted, click /done to continue.', {
-                '*STEP 5/5: Submit Images*\nPlease submit *1-3 photos* for the report. Once submitted, click /done to continue.', {
+
+            return ctx.reply(
+                '*STEP 5/6: Submit Images*\nPlease submit *1-3 photos* for the report. Once submitted, click /done to continue.', {
                     parse_mode: 'Markdown',
                    ...Markup.keyboard([['/done']]).resize()
                 }
             );
         }
-        
+
         if(currentStep === 'anonymous' && (callbackData === 'anon_true' || callbackData === 'anon_false')) {
             const isAnonymous = callbackData === 'anon_true';
-         
+
             reportState.data.anonymous = isAnonymous;
             reportState.step = 'complete';
-            
+
             return this.uploadReport(ctx);
         }
+
+        return await next();
     }
 
-    private uploadReport = async(ctx: CustomContext) => {
+    private readonly uploadReport = async(ctx: CustomContext) => {
         const reportState = ctx.session.report;
         if(!reportState) return;
 
@@ -259,7 +259,7 @@ export class NewReport {
             return ctx.reply(`*Report uploaded!*\nReport ID: *${reportId}*.\nThank you for your contribution.`, { 
                 disable_notification: true, parse_mode: 'Markdown'
             });
-        } catch(error) {
+        } catch {
             ctx.session.report = { step: 'start', data: {} };
             return ctx.reply('*Upload Error*\nThere was a problem finalizing the report. Please try again later.', {  parse_mode: 'Markdown'});
         }

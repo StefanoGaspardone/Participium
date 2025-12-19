@@ -18,7 +18,7 @@ export interface User {
   telegramUsername?: string | null;
   userType: string;
   emailNotificationsEnabled: boolean;
-  office?: string | null;
+  offices?: string[] | null;
   createdAt: Date;
   isActive: boolean;
   company?: Company | null;

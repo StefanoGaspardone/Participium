@@ -27,8 +27,8 @@ const getSecret = (secretName: string): string => {
     const secretValue = fs.readFileSync(secretPath, 'utf-8').trim();
     return secretValue;
   } catch (error) {
-    console.error(`Unable to retrieve secret: ${secretName} from ${secretPath}.`);
-    throw new Error(`Unable to retrieve secret: ${secretName} from ${secretPath}.`)
+    console.error(error + "\n" + `Unable to retrieve secret: ${secretName} from ${secretPath}.`);
+    throw error;
   }
 }
 
@@ -43,7 +43,7 @@ const getSecretNumber = (secretName: string): number => {
   if (process.env.NODE_ENV !== "production") {
     // this is what is returned in development :
     if (process.env[secretName])
-      return parseInt(process.env[secretName]);
+      return Number.parseInt(process.env[secretName]);
     else {
       throw new Error(`Unable to retrieve secret: ${secretName}.`);
     }
@@ -53,10 +53,10 @@ const getSecretNumber = (secretName: string): number => {
     // we arrive here ONLY in production :
     // we get the value from the secret file
     const secretValue = fs.readFileSync(secretPath, 'utf-8').trim();
-    return parseInt(secretValue);
+    return Number.parseInt(secretValue);
   } catch (error) {
-    console.error(`Unable to retrieve secret: ${secretName} from ${secretPath}.`);
-    throw new Error(`Unable to retrieve secret: ${secretName} from ${secretPath}.`);
+    console.error(error + "\n" + `Unable to retrieve secret: ${secretName} from ${secretPath}.`);
+    throw error;
   }
 }
 

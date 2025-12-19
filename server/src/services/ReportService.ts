@@ -7,8 +7,8 @@ import {categoryRepository, CategoryRepository} from '@repositories/CategoryRepo
 import {reportRepository, ReportRepository} from '@repositories/ReportRepository';
 import {userRepository, UserRepository} from '@repositories/UserRepository';
 import {NewNotificationDTO} from "@dtos/NotificationDTO";
-import {notificationRepository} from "@repositories/NotificationRepository";
 import {notificationService, NotificationService} from "@services/NotificationService";
+import { InsufficientRightsError } from '@errors/InsufficientRightsError';
 
 export class ReportService {
 
@@ -50,6 +50,20 @@ export class ReportService {
     listReportsByStatus = async (status: ReportStatus): Promise<ReportDTO[]> => {
         const reports = await this.reportRepo.findReportsByStatus(status);
         return reports.map(createReportDTO);
+    }
+
+    listReportsByUserId = async (userId: number): Promise<ReportDTO[]> => {
+        const reports = await this.reportRepo.findReportsByUserId(userId);
+        return reports.map(createReportDTO);
+    }
+
+    findByIdAndUserId = async (reportId: number, userId: number): Promise<ReportDTO> => {
+        const report = await this.reportRepo.findReportById(reportId);
+        
+        if(!report) throw new NotFoundError(`Report ${reportId} not found`);
+        if(report.createdBy.id !== userId) throw new InsufficientRightsError(`Report ${reportId} does not belong to user ${userId}`);
+
+        return createReportDTO(report);
     }
 
     updateReportCategory = async (reportId: number, categoryId: number): Promise<ReportDTO> => {
