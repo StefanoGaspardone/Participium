@@ -397,6 +397,29 @@
     opacity: 0;
 }
 
+/* TSM assigned offices badges */
+.tsm-badge {
+    padding: 0.35rem 0.6rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 999px;
+}
+.tsm-badge .tsm-badge-label {
+    line-height: 1;
+}
+.tsm-badge .remove-office-btn {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
 .section-btn:hover::after,
 .section-btn:focus::after,
 .section-btn:focus-visible::after {

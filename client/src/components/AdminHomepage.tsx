@@ -9,13 +9,16 @@ import {
   Col,
   Badge,
 } from "react-bootstrap";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, XIcon } from "lucide-react";
 import {
   getOffices,
   createEmployee,
   getAllCompanies,
   createCompany,
   getCategories,
+  getTechnicalStaffMembers,
+  getTsmOffices,
+  updateTsmOffices,
 } from "../api/api";
 import CustomNavbar from "./CustomNavbar";
 import type { Office, Company, Category } from "../models/models";
@@ -112,16 +115,18 @@ export default function AdminHomepage() {
     email: "",
     password: "",
     userType: "",
-    officeIds: [] as string[], // Mantieni come array di stringhe
+    officeIds: [] as string[],
     companyId: "",
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Technical Offices Management (mocked for frontend)
-  type TSM = { id: number; name: string; officeIds: number[] };
+  // Technical Offices Management
+  type TSM = { id: number; name: string };
   const [tsms, setTsms] = useState<TSM[]>([]);
+  const [loadingTsms, setLoadingTsms] = useState<boolean>(true);
   const [selectedTsmId, setSelectedTsmId] = useState<number | null>(null);
   const [tsmOfficeIds, setTsmOfficeIds] = useState<number[]>([]);
+  const [loadingTsmOffices, setLoadingTsmOffices] = useState<boolean>(false);
   const [isSavingTsm, setIsSavingTsm] = useState(false);
 
   const [selectedSection, setSelectedSection] = useState<"users" | "offices">(
@@ -190,29 +195,31 @@ export default function AdminHomepage() {
     fetchCategories();
   }, []);
 
-  // Initialize mocked Technical Staff Members (TSMs) once offices are available
+  // Fetch technical staff members from API
   useEffect(() => {
-    if (!loadingOffices && offices.length > 0 && tsms.length === 0) {
-      const mockTsms: TSM[] = [
-        {
-          id: 1,
-          name: "Luigi Bianchi",
-          officeIds: offices.length > 0 ? [offices[0].id] : [],
-        },
-        {
-          id: 2,
-          name: "Giovanni Verdi",
-          officeIds: offices.length > 1 ? [offices[1].id] : [],
-        },
-        {
-          id: 3,
-          name: "Anna Neri",
-          officeIds: offices.length > 2 ? [offices[2].id] : [],
-        },
-      ];
-      setTsms(mockTsms);
-    }
-  }, [loadingOffices, offices, tsms.length]);
+    const fetchTsms = async () => {
+      setLoadingTsms(true);
+      try {
+        const res = await getTechnicalStaffMembers();
+        setTsms(
+          Array.isArray(res)
+            ? res.map((t: any) => ({
+                id: Number(t.id),
+                name: `${String(t.firstName ?? "")} ${String(
+                  t.lastName ?? ""
+                )} (${String(t.username ?? "")})`.trim(),
+              }))
+            : []
+        );
+      } catch (e) {
+        console.error("Failed to load technical staff members", e);
+        toast.error("Unable to load technical staff members.");
+      } finally {
+        setLoadingTsms(false);
+      }
+    };
+    fetchTsms();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -301,11 +308,54 @@ export default function AdminHomepage() {
     }
   };
 
-  // Handlers for Technical Offices Management (mocked behavior)
-  const handleSelectTsm = (id: number | null) => {
+  // Handlers for Technical Offices Management
+  const handleSelectTsm = async (id: number | null) => {
     setSelectedTsmId(id);
-    const t = tsms.find((s) => s.id === id);
-    setTsmOfficeIds(t ? [...t.officeIds] : []);
+    setTsmOfficeIds([]);
+    if (!id) return;
+
+    setLoadingTsmOffices(true);
+    try {
+      const fnSingle = getTsmOffices;
+      let officesRes: any[] = [];
+
+      if (typeof fnSingle === "function") {
+        officesRes = await fnSingle(id);
+      } else {
+        // fallback to fetching all TSMs and finding the selected one
+        const fnAll = getTechnicalStaffMembers;
+        if (typeof fnAll !== "function") {
+          toast.error("TSM offices API not implemented yet.");
+          return;
+        }
+        const all = await fnAll();
+        const t = Array.isArray(all)
+          ? all.find((s: any) => Number(s.id) === Number(id))
+          : null;
+        officesRes = t?.offices ?? [];
+      }
+
+      const ids = Array.isArray(officesRes)
+        ? officesRes
+            .map((x: any) => {
+              if (typeof x === "number") return x;
+              if (typeof x === "string") {
+                const found = offices.find((o) => o.name === x);
+                return found ? found.id : Number.NaN;
+              }
+              if (x?.id !== undefined) return Number(x.id);
+              return Number.NaN;
+            })
+            .filter((n: number) => !Number.isNaN(n))
+        : [];
+
+      setTsmOfficeIds(ids);
+    } catch (e) {
+      console.error("Failed to fetch TSM offices", e);
+      toast.error("Unable to load TSM offices.");
+    } finally {
+      setLoadingTsmOffices(false);
+    }
   };
 
   const handleAddOffice = (officeId: number) => {
@@ -322,30 +372,101 @@ export default function AdminHomepage() {
 
   const handleSaveTsmOffices = async () => {
     if (!selectedTsmId) return;
+
+    // Enforce at least one assigned office
+    if (tsmOfficeIds.length === 0) {
+      toast.error("A Technical Staff Member must be assigned at least one office.");
+      return;
+    }
+
+    const fn = updateTsmOffices;
+    if (typeof fn !== "function") {
+      toast.error("Update TSM offices API not implemented yet.");
+      return;
+    }
+
     setIsSavingTsm(true);
-    // mock save delay
-    await new Promise((r) => setTimeout(r, 700));
-    setTsms((prev) =>
-      prev.map((t) =>
-        t.id === selectedTsmId ? { ...t, officeIds: tsmOfficeIds } : t
-      )
-    );
-    toast.success("Technical staff offices updated (mock).");
-    setIsSavingTsm(false);
+    try {
+      await fn(selectedTsmId, tsmOfficeIds);
+      toast.success("Technical staff offices updated.");
+      await handleSelectTsm(selectedTsmId);
+    } catch (e) {
+      console.error("Failed to update TSM offices", e);
+      toast.error("Failed to update TSM offices.");
+    } finally {
+      setIsSavingTsm(false);
+    }
   };
 
   // form validity: all required fields must be non-empty (trimmed)
-  const isFormValid =
-    form.firstName.trim() !== "" &&
-    form.lastName.trim() !== "" &&
-    form.username.trim() !== "" &&
-    form.email.trim() !== "" &&
-    form.password.trim() !== "" &&
-    form.userType !== "" &&
-    (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeIds.length !== 0) &&
-    (form.userType !== "EXTERNAL_MAINTAINER" || form.companyId !== "");
-
-  if (user?.userType !== "ADMINISTRATOR") {
+    const isFormValid =
+      form.firstName.trim() !== "" &&
+      form.lastName.trim() !== "" &&
+      form.username.trim() !== "" &&
+      form.email.trim() !== "" &&
+      form.password.trim() !== "" &&
+      form.userType !== "" &&
+      (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeIds.length !== 0) &&
+      (form.userType !== "EXTERNAL_MAINTAINER" || form.companyId !== "");
+  
+    // Extract nested ternary into an independent statement to build the assigned offices content
+    let assignedOfficesContent: React.ReactNode;
+    if (loadingTsmOffices) {
+      assignedOfficesContent = (
+        <div className="text-muted">
+          Loading assigned offices...
+        </div>
+      );
+    } else if (tsmOfficeIds.length === 0) {
+      assignedOfficesContent = (
+        <div className="text-muted">
+          No offices assigned.
+        </div>
+      );
+    } else {
+      assignedOfficesContent = tsmOfficeIds.map((oid) => {
+        const office = offices.find((o) => o.id === oid);
+        return (
+          <motion.div
+            key={oid}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18 }}
+            className="d-inline-block me-2 mb-2"
+          >
+            <Badge
+              pill
+              bg="secondary"
+              className="tsm-badge d-inline-flex align-items-center"
+              id={`tsm-office-${oid}`}
+            >
+              <span className="tsm-badge-label">{office ? office.name : `Office ${oid}`}</span>
+              <Button
+                variant="light"
+                size="sm"
+                onClick={() => handleRemoveOffice(oid)}
+                id={`remove-office-${oid}`}
+                className="ms-2 p-0 remove-office-btn d-inline-flex align-items-center justify-content-center"
+                aria-label={`Remove office ${office ? office.name : oid}`}
+                style={{ width: 22, height: 22, borderRadius: 999 }}
+              >
+                <XIcon size={12} />
+              </Button>
+            </Badge>
+          </motion.div>
+        );
+      });
+    }
+  
+    // Compute the save button title to avoid a nested ternary in JSX
+    let saveButtonTitle = "Save changes";
+    if (tsmOfficeIds.length === 0) {
+      saveButtonTitle = "Assign at least one office to enable";
+    } else if (isSavingTsm) {
+      saveButtonTitle = "Saving...";
+    }
+  
+    if (user?.userType !== "ADMINISTRATOR") {
     return (
       <>
         <CustomNavbar />
@@ -583,33 +704,30 @@ export default function AdminHomepage() {
                             transition={{ delay: 0.42, duration: 0.4 }}
                           >
                             <Form.Group className="mb-3">
-                              <Form.Label>Office Category</Form.Label>
-                              <Select
+                              <Form.Label>Assigned Offices</Form.Label>
+                              <Select<{ value: string; label: string }, true>
                                 inputId="open-offices"
                                 instanceId="open-offices"
                                 options={officeOptions}
-                                value={
-                                  officeOptions.find(
-                                    (o) => o.value === form.officeId
-                                  ) ?? null
-                                }
-                                onChange={(
-                                  opt: SingleValue<{
-                                    value: string;
-                                    label: string;
-                                  }>
-                                ) =>
+                                value={officeOptions.filter((o) =>
+                                  form.officeIds.includes(o.value)
+                                )}
+                                onChange={(opts: MultiValue<{
+                                  value: string;
+                                  label: string;
+                                }>) =>
                                   setForm((prev) => ({
                                     ...prev,
-                                    officeId: opt?.value ?? "",
+                                    officeIds: opts.map((o) => o.value),
                                   }))
                                 }
                                 isDisabled={loadingOffices || isSubmitting}
-                                placeholder="Select a technical office"
+                                placeholder="Select one or more offices"
                                 components={{
-                                  Menu: AnimatedMenu,
-                                  Option: OfficeOption,
+                                  Menu: AnimatedMenu as any,
+                                  Option: OfficeOption as any,
                                 }}
+                                isMulti
                                 classNamePrefix="rs"
                               />
                             </Form.Group>
@@ -810,116 +928,136 @@ export default function AdminHomepage() {
 
                   {selectedSection === "offices" && (
                     <div className="mt-2">
-                      <h4 className="mb-3 text-center">
+                      <motion.h4
+                        className="mb-3 text-center"
+                        initial={{ opacity: 0, y: -12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                      >
                         Technical Offices Management
-                      </h4>
+                      </motion.h4>
                       <Form className="d-flex flex-column auth-grid-gap">
-                        <Form.Group className="mb-3">
-                          <Form.Label>Technical Staff Member</Form.Label>
-                          <Select
-                            inputId="select-tsm"
-                            instanceId="select-tsm"
-                            options={tsms.map((t) => ({
-                              value: String(t.id),
-                              label: t.name,
-                            }))}
-                            value={
-                              selectedTsmId
-                                ? {
-                                    value: String(selectedTsmId),
-                                    label:
-                                      tsms.find((t) => t.id === selectedTsmId)
-                                        ?.name ?? "",
-                                  }
-                                : null
-                            }
-                            onChange={(
-                              opt: SingleValue<{ value: string; label: string }>
-                            ) => {
-                              const id = opt ? Number(opt.value) : null;
-                              handleSelectTsm(id);
-                            }}
-                            isDisabled={tsms.length === 0}
-                            placeholder="Select a TSM"
-                            components={{ Menu: AnimatedMenu }}
-                            classNamePrefix="rs"
-                          />
-                        </Form.Group>
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.12, duration: 0.4 }}
+                        >
+                          <Form.Group className="mb-3">
+                            <Form.Label>Technical Staff Member</Form.Label>
+                            <Select
+                              inputId="select-tsm"
+                              instanceId="select-tsm"
+                              options={tsms.map((t) => ({
+                                value: String(t.id),
+                                label: t.name,
+                              }))}
+                              value={
+                                selectedTsmId
+                                  ? {
+                                      value: String(selectedTsmId),
+                                      label:
+                                        tsms.find((t) => t.id === selectedTsmId)
+                                          ?.name ?? "",
+                                    }
+                                  : null
+                              }
+                              onChange={(
+                                opt: SingleValue<{ value: string; label: string }>
+                              ) => {
+                                const id = opt ? Number(opt.value) : null;
+                                handleSelectTsm(id);
+                              }}
+                              isDisabled={loadingTsms || tsms.length === 0}
+                              placeholder={
+                                loadingTsms ? "Loading TSMs..." : "Select a TSM"
+                              }
+                              components={{ Menu: AnimatedMenu }}
+                              classNamePrefix="rs"
+                            />
+                          </Form.Group>
+                        </motion.div>
 
                         {selectedTsmId && (
                           <>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Assigned Offices</Form.Label>
-                              <div>
-                                {tsmOfficeIds.length === 0 ? (
-                                  <div className="text-muted">
-                                    No offices assigned.
-                                  </div>
-                                ) : (
-                                  tsmOfficeIds.map((oid) => {
-                                    const office = offices.find(
-                                      (o) => o.id === oid
-                                    );
-                                    return (
-                                      <Badge
-                                        key={oid}
-                                        pill
-                                        bg="secondary"
-                                        className="me-2 mb-2"
-                                        id={`tsm-office-${oid}`}
-                                      >
-                                        {office ? office.name : `Office ${oid}`}
-                                        <Button
-                                          variant="link"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleRemoveOffice(oid)
-                                          }
-                                          id={`remove-office-${oid}`}
-                                          className="ms-2 p-0 text-light"
-                                        >
-                                          ×
-                                        </Button>
-                                      </Badge>
-                                    );
-                                  })
-                                )}
-                              </div>
-                            </Form.Group>
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.22, duration: 0.4 }}
+                            >
+                              <Form.Group className="mb-3">
+                                <Form.Label>Assigned Offices</Form.Label>
+                                <div>
+                                  {assignedOfficesContent}
+                                </div>
+                              </Form.Group>
+                            </motion.div>
 
-                            <Form.Group className="mb-3">
-                              <Form.Label>Add Office</Form.Label>
-                              <Select
-                                inputId="select-add-office"
-                                instanceId="select-add-office"
-                                options={officeOptions.filter(
-                                  (o) => !tsmOfficeIds.includes(Number(o.value))
-                                )}
-                                value={null}
-                                onChange={(
-                                  opt: SingleValue<{
-                                    value: string;
-                                    label: string;
-                                  }>
-                                ) => {
-                                  if (opt) handleAddOffice(Number(opt.value));
-                                }}
-                                isDisabled={offices.length === 0}
-                                placeholder="Select office to add"
-                                components={{
-                                  Menu: AnimatedMenu,
-                                  Option: OfficeOption,
-                                }}
-                                classNamePrefix="rs"
-                              />
-                            </Form.Group>
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.32, duration: 0.4 }}
+                            >
+                              <Form.Group className="mb-3">
+                                <Form.Label>Add Office</Form.Label>
+                                <Select
+                                  inputId="select-add-office"
+                                  instanceId="select-add-office"
+                                  options={officeOptions.filter(
+                                    (o) => !tsmOfficeIds.includes(Number(o.value))
+                                  )}
+                                  value={null}
+                                  onChange={(
+                                    opt: SingleValue<{
+                                      value: string;
+                                      label: string;
+                                    }>
+                                  ) => {
+                                    if (opt) handleAddOffice(Number(opt.value));
+                                  }}
+                                  isDisabled={
+                                    offices.length === 0 ||
+                                    loadingTsmOffices ||
+                                    !selectedTsmId
+                                  }
+                                  placeholder={
+                                    loadingTsmOffices
+                                      ? "Loading offices..."
+                                      : "Select office to add"
+                                  }
+                                  components={{
+                                    Menu: AnimatedMenu,
+                                    Option: OfficeOption,
+                                  }}
+                                  classNamePrefix="rs"
+                                />
+                              </Form.Group>
+                            </motion.div>
 
-                            <div className="d-flex justify-content-end gap-2">
+                            {selectedTsmId !== null && !loadingTsmOffices && tsmOfficeIds.length === 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.42, duration: 0.3 }}
+                              >
+                                <div className="text-danger small mb-2">
+                                  A Technical Staff Member must be assigned at least one office.
+                                </div>
+                              </motion.div>
+                            )}
+
+                            <motion.div
+                              initial={{ opacity: 0, y: 12 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.55, duration: 0.45 }}
+                              className="d-flex justify-content-end gap-2"
+                            >
                               <Button
                                 id="save-tsm-offices"
                                 variant="success"
                                 onClick={handleSaveTsmOffices}
-                                disabled={isSavingTsm}
+                                disabled={isSavingTsm || tsmOfficeIds.length === 0}
+                                aria-disabled={isSavingTsm || tsmOfficeIds.length === 0}
+                                title={saveButtonTitle}
                               >
                                 {isSavingTsm ? (
                                   <>
@@ -930,7 +1068,7 @@ export default function AdminHomepage() {
                                   "Save Changes"
                                 )}
                               </Button>
-                            </div>
+                            </motion.div>
                           </>
                         )}
                       </Form>
