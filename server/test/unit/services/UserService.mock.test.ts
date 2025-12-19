@@ -158,7 +158,7 @@ describe("UserService.createMunicipalityUser (mock)", () => {
       username: "mun",
       password: TEST_PASSWORD,
       userType: (await import("@daos/UserDAO")).UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: 2,
+      officeIds: [2],
     } as any;
 
     const saved = await service.createMunicipalityUser(payload);
@@ -168,9 +168,9 @@ describe("UserService.createMunicipalityUser (mock)", () => {
     // password should be hashed
     expect(passed.passwordHash).toBeDefined();
     expect(passed.passwordHash).not.toBe(TEST_PASSWORD);
-    // office should be assigned
-    expect(passed.office).toBeDefined();
-    expect(passed.office).toEqual(fakeOffice);
+    // offices should be assigned
+    expect(passed.offices).toBeDefined();
+    expect(passed.offices).toEqual([fakeOffice]);
     expect(saved.id).toBeDefined();
   });
 
@@ -199,10 +199,10 @@ describe("UserService.createMunicipalityUser (mock)", () => {
       username: "mun2",
       password: TEST_PASSWORD,
       userType: (await import("@daos/UserDAO")).UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: 999,
+      officeIds: [999],
     } as any;
 
-    await expect(service.createMunicipalityUser(payload)).rejects.toThrow("office not found.");
+    await expect(service.createMunicipalityUser(payload)).rejects.toThrow("Office with id 999 not found.");
     // ensure createNewUser was not called
     expect(createMock).not.toHaveBeenCalled();
   });
@@ -468,7 +468,7 @@ describe("UserService.createMunicipalityUser - Additional Cases (mock)", () => {
     } as any);
 
     expect(createMock).toHaveBeenCalled();
-    expect(createMock.mock.calls[0][0].office).toEqual(fakeOrgOffice);
+    expect(createMock.mock.calls[0][0].offices).toEqual([fakeOrgOffice]);
 
     createMock.mockClear();
 
@@ -483,7 +483,7 @@ describe("UserService.createMunicipalityUser - Additional Cases (mock)", () => {
     } as any);
 
     expect(createMock).toHaveBeenCalled();
-    expect(createMock.mock.calls[0][0].office).toEqual(fakeOrgOffice);
+    expect(createMock.mock.calls[0][0].offices).toEqual([fakeOrgOffice]);
   });
 
   it("should throw BadRequestError when Organization office does not exist", async () => {

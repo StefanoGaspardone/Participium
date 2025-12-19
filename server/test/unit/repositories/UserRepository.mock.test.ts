@@ -68,7 +68,7 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["offices", "company", "company.categories"] });
     expect(ok).not.toBeNull();
   });
 
@@ -87,7 +87,7 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["offices", "company", "company.categories"] });
     expect(ok).toBeNull();
   });
 
@@ -104,7 +104,7 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["offices", "company", "company.categories"] });
     expect(ok).toBeNull();
   });
 });
@@ -131,7 +131,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     const repo = new UserRepository();
     const user = await repo.findUserById(5);
 
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { id: 5 }, "relations": ["office",  "company",  "company.categories"], });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { id: 5 }, "relations": ["offices",  "company",  "company.categories"], });
     expect(user).toEqual(fakeUser);
   });
 
@@ -250,6 +250,7 @@ describe("UserRepository.findUserByTelegramUsername (mock)", () => {
 
 describe("UserRepository.findLeastLoadedStaffForOffice (mock)", () => {
   const createFakeQueryBuilder = (entities: any[]) => ({
+    innerJoin: jest.fn().mockReturnThis(),
     leftJoin: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),

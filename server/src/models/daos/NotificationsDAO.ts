@@ -25,7 +25,7 @@ export class NotificationDAO {
     @Column({ type: 'varchar', nullable: true})
     newStatus?: ReportStatus;
 
-    @Column({ type: 'enum', enum: NotificationType })
+    @Column({ type: 'enum', enum: NotificationType, nullable: true })
     @IsEnum(NotificationType)
     type: NotificationType;
 

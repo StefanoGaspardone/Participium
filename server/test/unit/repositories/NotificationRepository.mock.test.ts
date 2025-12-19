@@ -43,7 +43,7 @@ describe('NotificationRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledTimes(1);
     expect(fakeRepo.find).toHaveBeenCalledWith({
-      relations: ['user', 'report', 'report.category', 'report.createdBy']
+      relations: ['user', 'report', 'report.category', 'report.createdBy', 'message', 'message.sender']
     });
     expect(result).toHaveLength(2);
     expect(result).toEqual(mockNotifications);
@@ -118,7 +118,7 @@ describe('NotificationRepository (mock)', () => {
     expect(fakeRepo.findOne).toHaveBeenCalledTimes(1);
     expect(fakeRepo.findOne).toHaveBeenCalledWith({
       where: { id: 1 },
-      relations: ['user', 'report', 'report.category', 'report.createdBy']
+      relations: ['user', 'report', 'report.category', 'report.createdBy', 'message', 'message.sender']
     });
     expect(result).toEqual(savedNotification);
   });
@@ -209,7 +209,7 @@ describe('NotificationRepository (mock)', () => {
     expect(fakeRepo.find).toHaveBeenCalledTimes(1);
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { user: { id: 42 } },
-      relations: ['user', 'report', 'report.category', 'report.createdBy'],
+      relations: ['user', 'report', 'report.category', 'report.createdBy', 'message', 'message.sender'],
       order: { createdAt: 'DESC' }
     });
     expect(result).toHaveLength(3);
@@ -232,7 +232,7 @@ describe('NotificationRepository (mock)', () => {
     expect(fakeRepo.find).toHaveBeenCalledTimes(1);
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { user: { id: 100 } },
-      relations: ['user', 'report', 'report.category', 'report.createdBy'],
+      relations: ['user', 'report', 'report.category', 'report.createdBy', 'message', 'message.sender'],
       order: { createdAt: 'DESC' }
     });
     expect(result).toEqual([]);

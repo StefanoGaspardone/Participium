@@ -236,7 +236,7 @@ describe('UserController integration tests', () => {
         lastName: 'Two',
         username: 'selfmuni2',
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        officeId: 1,
+        officeIds: [1],
       },
       token: { userId: 1, role: UserType.ADMINISTRATOR },
     };
@@ -286,7 +286,7 @@ describe('UserController integration tests', () => {
         lastName: 'Two',
         username: 'selfmuni2',
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        officeId: 1,
+        officeIds: [1],
       },
       token: { userId: 1, role: UserType.ADMINISTRATOR },
     };

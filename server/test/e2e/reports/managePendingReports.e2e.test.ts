@@ -330,7 +330,7 @@ describe("Manage Pending Reports E2E Tests", () => {
         firstName: "Tech",
         lastName: "Assign",
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: office!,
+        offices: [office!],
       });
       await userRepo.save(techUser);
 
@@ -373,7 +373,7 @@ describe("Manage Pending Reports E2E Tests", () => {
         firstName: "Tech",
         lastName: "Notif",
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: office!,
+        offices: [office!],
       });
       const savedTech = await userRepo.save(techUser);
 
@@ -417,7 +417,7 @@ describe("Manage Pending Reports E2E Tests", () => {
         firstName: "Tech",
         lastName: "One",
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: office!,
+        offices: [office!],
       });
       await userRepo.save(tech1);
 
@@ -429,7 +429,7 @@ describe("Manage Pending Reports E2E Tests", () => {
         firstName: "Tech",
         lastName: "Two",
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: office!,
+        offices: [office!],
       });
       await userRepo.save(tech2);
 

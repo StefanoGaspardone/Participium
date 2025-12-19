@@ -112,7 +112,7 @@ describe('User routes integration tests', () => {
       lastName: 'One',
       username: 'selfmuni1',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: roleId,
+      officeIds: [roleId],
     };
     const res = await request(app).post('/api/users/employees').send(payload);
     expect(res.status).toBe(401);
@@ -132,7 +132,7 @@ describe('User routes integration tests', () => {
       lastName: 'Two',
       username: 'selfmuni2',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: roleId,
+      officeIds: [roleId],
     };
 
     const res = await request(app)
@@ -155,7 +155,7 @@ describe('User routes integration tests', () => {
       lastName: 'User',
       username: 'dupuser',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: roleId,
+      officeIds: [roleId],
     };
 
     const res = await request(app)
@@ -179,7 +179,7 @@ describe('User routes integration tests', () => {
       lastName: 'User',
       username: 'nooffice',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: 99999, // non-existing
+      officeIds: [99999], // non-existing
     };
 
     const res = await request(app)
@@ -189,7 +189,7 @@ describe('User routes integration tests', () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message');
-    expect(String(res.body.message).toLowerCase()).toMatch(/office not found/);
+    expect(String(res.body.message).toLowerCase()).toMatch(/office.*not found/);
   });
 
   it('POST /api/users/employees => 400 with admin token when missing mandatory fields', async () => {
@@ -205,7 +205,7 @@ describe('User routes integration tests', () => {
       lastName: 'Missing',
       // username: missing
       // userType: missing
-      officeId: roleId,
+      officeIds: [roleId],
     };
 
     const res = await request(app)
@@ -230,7 +230,7 @@ describe('User routes integration tests', () => {
       lastName: 'Three',
       username: 'selfmuni3',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: roleId,
+      officeIds: [roleId],
     };
 
     const res = await request(app)

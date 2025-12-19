@@ -99,7 +99,7 @@ describe("Users e2e tests : Login and Registration", () => {
       lastName: 'Municipal',
       username: 'e2emuni',
       userType: 'TECHNICAL_STAFF_MEMBER',
-      officeId,
+      officeIds: [officeId],
     };
 
     const res = await request(app)
@@ -226,7 +226,7 @@ describe("Users e2e tests : Login and Registration", () => {
     const found = users.find(u => u.email === 'e2e_muni@example.com');
     expect(found).toBeDefined();
     expect(found.userType).toBe('TECHNICAL_STAFF_MEMBER');
-    expect(found.office).toBeDefined();
+    expect(found.offices).toBeDefined();
   });
 
   it('GET /api/users should include the created external maintainer with company', async () => {
