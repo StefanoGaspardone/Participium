@@ -7,10 +7,10 @@ import {UserType} from "@daos/UserDAO";
 const router = Router();
 
 // require authentication to access notifications
-router.get('/', notificationController.findAll); //TODO add citizen auth middleware?
+router.get('/', notificationController.findAll);
 router.post('/', notificationController.createNotification);
-router.patch("/seen/:id", authMiddleware([UserType.CITIZEN]), notificationController.updateNotificationSeen);
-router.get("/my", authMiddleware([UserType.CITIZEN]), notificationController.getMyNotifications);
+router.patch("/seen/:id", authMiddleware([UserType.CITIZEN, UserType.TECHNICAL_STAFF_MEMBER, UserType.EXTERNAL_MAINTAINER]), notificationController.updateNotificationSeen);
+router.get("/my", authMiddleware([UserType.CITIZEN, UserType.TECHNICAL_STAFF_MEMBER, UserType.EXTERNAL_MAINTAINER]), notificationController.getMyNotifications);
 
 export const notificationRouter = router;
 

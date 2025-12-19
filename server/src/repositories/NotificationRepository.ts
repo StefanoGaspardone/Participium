@@ -13,7 +13,7 @@ export class NotificationRepository {
     }
 
     findAllNotifications = async (): Promise<NotificationDAO[]> => {
-        return this.repo.find({relations: ['user', 'report', 'report.category', 'report.createdBy']});
+        return this.repo.find({relations: ['user', 'report', 'report.category', 'report.createdBy', 'message', 'message.sender']});
     }
 
     findNotificationById = async (id: number): Promise<NotificationDAO | null> => {
@@ -24,7 +24,7 @@ export class NotificationRepository {
         const saved = await this.repo.save(notification);
         const newNotification = await this.repo.findOne({
             where: { id: saved.id },
-            relations: ['user', 'report', 'report.category', 'report.createdBy']
+            relations: ['user', 'report', 'report.category', 'report.createdBy', 'message', 'message.sender']
         });
         return newNotification!;
     }
@@ -36,7 +36,7 @@ export class NotificationRepository {
     findMyNotifications = async (user: UserDAO): Promise<NotificationDAO[]> => {
         return this.repo.find({
             where: { user: { id: user.id } },
-            relations: ['user', 'report', 'report.category', 'report.createdBy'],
+            relations: ['user', 'report', 'report.category', 'report.createdBy', 'message', 'message.sender'],
             order: { createdAt: 'DESC' }
         });
     }
