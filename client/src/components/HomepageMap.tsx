@@ -128,7 +128,7 @@ type Props = {
     reports?: Report[] | null;
 };
 
-export const fetchAddress = async (lat: number, lng: number): Promise<string> => {
+export const fetchAddressByCoordinates = async (lat: number, lng: number): Promise<string> => {
     try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`);
 
@@ -143,6 +143,29 @@ export const fetchAddress = async (lat: number, lng: number): Promise<string> =>
     } catch (error) {
         console.error(error);
         return 'Not available';
+    }
+}
+
+export const fetchCoordinatesByAddress = async (address: string): Promise<{ lat: number, lng: number } | null> => {
+    try {
+        const query = encodeURIComponent(address);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=jsonv2&limit=1`);
+
+        if(!res.ok) return null;
+
+        const data = await res.json();
+
+        if(data && data.length > 0) {
+            return {
+                lat: Number.parseFloat(data[0].lat),
+                lng: Number.parseFloat(data[0].lon)
+            };
+        }
+
+        return null;
+    } catch(error) {
+        console.error("Errore durante il geocoding:", error);
+        return null;
     }
 }
 
@@ -163,7 +186,7 @@ const LocationMarker = ({ selected, setSelected, turinPolys }: { selected: Coord
 
             if (snapped) {
                 setSelected({ lat: snapped.lat, lng: snapped.lng, address: 'Fetching address...' });
-                const addr = await fetchAddress(snapped.lat, snapped.lng);
+                const addr = await fetchAddressByCoordinates(snapped.lat, snapped.lng);
                 setSelected({ lat: snapped.lat, lng: snapped.lng, address: addr });
 
                 setTimeout(() => {

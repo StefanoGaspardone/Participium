@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserCircle } from "react-icons/fa";
 import './AuthForms.css';
 import Chats from './Chats';
-import { fetchAddress } from './HomepageMap';
+import { fetchAddressByCoordinates } from './HomepageMap';
 import { Lightbox } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { REPORT_STATUS_COLORS } from '../constants/reportStatusColors';
@@ -56,7 +56,7 @@ export default function TechnicalStaffHomepage() {
     const fetchAndSetAddress = async (reportId: number, lat: number, lng: number) => {
         setAddressByReport(prev => ({ ...prev, [reportId]: 'Fetching address...' }));
         try {
-            const addr = await fetchAddress(lat, lng);
+            const addr = await fetchAddressByCoordinates(lat, lng);
             setAddressByReport(prev => ({ ...prev, [reportId]: addr }));
         } catch {
             setAddressByReport(prev => ({ ...prev, [reportId]: 'Not available' }));

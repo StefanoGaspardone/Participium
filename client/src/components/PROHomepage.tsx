@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import CustomNavbar from './CustomNavbar';
 import { Accordion, Badge, Card, Container, Row, Col, Form, Button, Alert, Modal } from 'react-bootstrap';
 import ReportMiniMap from './ReportMiniMap';
-import { fetchAddress } from './HomepageMap';
+import { fetchAddressByCoordinates } from './HomepageMap';
 import { getReportsByStatus, getCategories, updateReportCategory, assignOrRejectReport } from '../api/api';
 import type { Report, Category } from '../models/models';
 import { useAppContext } from '../contexts/AppContext';
@@ -101,7 +101,7 @@ export default function PROHomepage() {
   const fetchAndSetAddress = async (reportId: number, lat: number, lng: number) => {
     setAddressByReport(prev => ({ ...prev, [reportId]: 'Fetching address...' }));
     try {
-      const addr = await fetchAddress(lat, lng);
+      const addr = await fetchAddressByCoordinates(lat, lng);
       setAddressByReport(prev => ({ ...prev, [reportId]: addr }));
     } catch (e) {
       setAddressByReport(prev => ({ ...prev, [reportId]: 'Not available' }));
