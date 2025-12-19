@@ -608,3 +608,71 @@ export const assignReportToExternalMaintainer = async (reportId: number, maintai
   const data = await res.json();
   return data as Report;
 };
+
+// Technical Staff Members (TSM) endpoints
+export interface TechnicalStaffMember {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  userType: string;
+  offices: string[]; // array of office names
+}
+
+/**
+ * GET /users/tsm
+ * Returns an array of technical staff members with their assigned office names
+ */
+export const getTechnicalStaffMembers = async (): Promise<TechnicalStaffMember[]> => {
+  const res = await fetch(`${BASE_URL}/users/tsm`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!res.ok) throw await toApiError(res);
+
+  const data = await res.json();
+  const arr = Array.isArray(data) ? data : Array.isArray(data?.tsm) ? data.tsm : [];
+
+  return arr.map((t: any) => ({
+    id: Number(t.id),
+    firstName: String(t.firstName ?? ""),
+    lastName: String(t.lastName ?? ""),
+    email: String(t.email ?? ""),
+    username: String(t.username ?? ""),
+    userType: String(t.userType ?? ""),
+    offices: Array.isArray(t.offices) ? t.offices.map(String) : [],
+  }));
+};
+
+/**
+ * Convenience helper: return the offices for a single TSM by id.
+ * Implemented locally by using `getTechnicalStaffMembers` (server doesn't expose /users/tsm/{id}).
+ */
+export const getTsmOffices = async (tsmId: number): Promise<string[]> => {
+  const all = await getTechnicalStaffMembers();
+  const t = Array.isArray(all) ? all.find((s) => Number(s.id) === Number(tsmId)) : null;
+  return t?.offices ?? [];
+};
+
+/**
+ * PATCH /users/tsm/{id}
+ * Body: { officeIds: number[] }
+ */
+export const updateTsmOffices = async (tsmId: number, officeIds: number[]): Promise<{ message?: string; updatedTsm?: any }> => {
+  const res = await fetch(`${BASE_URL}/users/tsm/${tsmId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ officeIds }),
+  });
+
+  if (!res.ok) throw await toApiError(res);
+
+  return res.json();
+};

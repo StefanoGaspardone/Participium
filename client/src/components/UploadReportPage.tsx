@@ -11,10 +11,20 @@ import {
   createReport,
   type CreateReportPayload,
 } from "../api/api";
-import { isApiError, type Category, type Coord, type FieldErrors } from "../models/models";
+import {
+  isApiError,
+  type Category,
+  type Coord,
+  type FieldErrors,
+} from "../models/models";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
-import Select, { components, type MenuProps, type SingleValue, type OptionProps } from "react-select";
+import Select, {
+  components,
+  type MenuProps,
+  type SingleValue,
+  type OptionProps,
+} from "react-select";
 import "./AuthForms.css";
 
 type Props = {
@@ -30,7 +40,7 @@ const AnimatedMenu = (props: MenuProps<any, false>) => (
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
         >
           {props.children}
         </motion.div>
@@ -53,7 +63,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
-  const [anonymous] = useState(false); // feature currently disabled
+  const [anonymous, setAnonymous] = useState<boolean>(false);
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -114,9 +124,9 @@ export default function UploadReport({ selected, setSelected }: Props) {
         ...(selected
           ? {}
           : {
-            lat: "Select a location on the map",
-            long: "Select a location on the map",
-          }),
+              lat: "Select a location on the map",
+              long: "Select a location on the map",
+            }),
       }));
       setGeneralError("Please fill all required fields.");
 
@@ -152,7 +162,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
         images: imageUrls,
         lat: selected!.lat,
         long: selected!.lng,
-        anonymous,
+        anonymous: anonymous,
       };
       await createReport(payload);
 
@@ -215,10 +225,10 @@ export default function UploadReport({ selected, setSelected }: Props) {
 
   const canSubmitRequired = Boolean(
     selected &&
-    title.trim().length > 0 &&
-    description.trim().length > 0 &&
-    categoryId &&
-    images.length >= 1
+      title.trim().length > 0 &&
+      description.trim().length > 0 &&
+      categoryId &&
+      images.length >= 1
   );
 
   return (
@@ -226,7 +236,11 @@ export default function UploadReport({ selected, setSelected }: Props) {
       <CustomNavbar />
       <main className="upload-container">
         <section className="upload-form">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55 }}
+          >
             <Card className="auth-card p-3 p-md-4">
               <Button
                 id="go-to-homepage-button"
@@ -238,21 +252,34 @@ export default function UploadReport({ selected, setSelected }: Props) {
                 onFocus={() => setHover(true)}
                 onBlur={() => setHover(false)}
                 style={{
-                  transform: hover ? 'translateY(-2px) scale(1.03)' : 'translateY(0) scale(1)',
-                  transition: 'transform 0.2s ease'
+                  transform: hover
+                    ? "translateY(-2px) scale(1.03)"
+                    : "translateY(0) scale(1)",
+                  transition: "transform 0.2s ease",
                 }}
               >
                 Go back to Homepage
               </Button>
-              <Form onSubmit={handleSubmit} className="d-flex flex-column auth-grid-gap">
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.4 }}>
+              <Form
+                onSubmit={handleSubmit}
+                className="d-flex flex-column auth-grid-gap"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05, duration: 0.4 }}
+                >
                   <section className="upload-map mb-3">
                     <MapDefault selected={selected} setSelected={setSelected} />
                   </section>
                 </motion.div>
                 <Row className="mb-1">
                   <Col md={12}>
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1, duration: 0.4 }}
+                    >
                       <Form.Group className="mb-3 underline-anim">
                         <Form.Label>Address</Form.Label>
                         <Form.Control
@@ -276,7 +303,11 @@ export default function UploadReport({ selected, setSelected }: Props) {
                     </motion.div>
                   </Col>
                 </Row>
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15, duration: 0.4 }}
+                >
                   <Form.Group className="mb-3 underline-anim">
                     <Form.Label>Title</Form.Label>
                     <Form.Control
@@ -298,7 +329,11 @@ export default function UploadReport({ selected, setSelected }: Props) {
                     )}
                   </Form.Group>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.4 }}
+                >
                   <Form.Group className="mb-3 underline-anim">
                     <Form.Label>Description</Form.Label>
                     <Form.Control
@@ -321,20 +356,36 @@ export default function UploadReport({ selected, setSelected }: Props) {
                     )}
                   </Form.Group>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.4 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25, duration: 0.4 }}
+                >
                   <Form.Group className="mb-3">
                     <Form.Label>Category</Form.Label>
                     <Select<{ value: string; label: string }>
                       inputId="select-category"
                       instanceId="select-category"
                       ref={categorySelectRef}
-                      options={categories.map(c => ({ value: String(c.id), label: c.name }))}
-                      value={categories.map(c => ({ value: String(c.id), label: c.name })).find(o => o.value === categoryId) ?? null}
-                      onChange={(opt: SingleValue<{ value: string; label: string }>) => setCategoryId(opt?.value ?? "")}
+                      options={categories.map((c) => ({
+                        value: String(c.id),
+                        label: c.name,
+                      }))}
+                      value={
+                        categories
+                          .map((c) => ({ value: String(c.id), label: c.name }))
+                          .find((o) => o.value === categoryId) ?? null
+                      }
+                      onChange={(
+                        opt: SingleValue<{ value: string; label: string }>
+                      ) => setCategoryId(opt?.value ?? "")}
                       placeholder="Select a category"
                       isDisabled={isSubmitting}
                       classNamePrefix="rs"
-                      components={{ Menu: AnimatedMenu, Option: CategoryOption }}
+                      components={{
+                        Menu: AnimatedMenu,
+                        Option: CategoryOption,
+                      }}
                     />
                     {fieldErrors.categoryId && (
                       <div className="text-danger mt-1">
@@ -345,13 +396,22 @@ export default function UploadReport({ selected, setSelected }: Props) {
                     )}
                   </Form.Group>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
+                >
                   <Form.Group className="mb-3">
                     <Form.Label>Images (min 1, max 3)</Form.Label>
                     <Row className="g-2">
                       {previews.map((src, index) => (
                         <Col key={index} xs={12} sm={6} md={4}>
-                          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }} className="image-tile">
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.25 }}
+                            className="image-tile"
+                          >
                             <img
                               src={src}
                               alt={`selected-${index}`}
@@ -371,7 +431,10 @@ export default function UploadReport({ selected, setSelected }: Props) {
                       ))}
                       {images.length < 3 && (
                         <Col xs={12} sm={6} md={4}>
-                          <motion.button initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }}
+                          <motion.button
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.25 }}
                             id="add-image-button"
                             onClick={onClickAddImage}
                             className="add-image-tile"
@@ -402,30 +465,67 @@ export default function UploadReport({ selected, setSelected }: Props) {
                     )}
                   </Form.Group>
                 </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.32, duration: 0.35 }}
+                >
+                  <Form.Group className="mb-3">
+                    <Form.Check
+                      id="anonymous-checkbox"
+                      type="checkbox"
+                      label="Submit report anonymously"
+                      checked={anonymous}
+                      onChange={(e) => setAnonymous(e.target.checked)}
+                      disabled={isSubmitting}
+                    />
+                  </Form.Group>
+                </motion.div>
                 {generalError && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-danger mb-2" role="alert">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-danger mb-2"
+                    role="alert"
+                  >
                     {generalError}
                   </motion.div>
                 )}
                 {Object.keys(fieldErrors || {}).length > 0 && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-danger mb-2" role="alert">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-danger mb-2"
+                    role="alert"
+                  >
                     There are some errors - please check the highlighted fields.
                   </motion.div>
                 )}
-                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, duration: 0.45 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.38, duration: 0.45 }}
+                >
                   <Button
                     id="submit-button"
                     variant="primary"
                     type="submit"
-                    className={`w-100 mt-2 auth-button-primary d-inline-flex align-items-center justify-content-center gap-2 ${!canSubmitRequired || isSubmitting ? "submit-disabled" : ""
-                      }`}
+                    className={`w-100 mt-2 auth-button-primary d-inline-flex align-items-center justify-content-center gap-2 ${
+                      !canSubmitRequired || isSubmitting
+                        ? "submit-disabled"
+                        : ""
+                    }`}
                     disabled={!canSubmitRequired || isSubmitting}
                     aria-disabled={!canSubmitRequired || isSubmitting}
                     aria-busy={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2Icon size={18} className="spin" aria-hidden="true" />
+                        <Loader2Icon
+                          size={18}
+                          className="spin"
+                          aria-hidden="true"
+                        />
                         <span>Uploading…</span>
                       </>
                     ) : (
