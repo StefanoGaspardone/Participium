@@ -673,3 +673,229 @@ describe("UserService.createMunicipalityUser - External Maintainer (mock)", () =
     expect(createMock).not.toHaveBeenCalled();
   });
 });
+
+describe("UserService.findTechnicalStaffMembers (mock)", () => {
+  it("should find all TSM users and map them to DTOs", async () => {
+    const service = new UserService();
+
+    const fakeOffice1 = { id: 1, name: "Office A" } as any;
+    const fakeOffice2 = { id: 2, name: "Office B" } as any;
+
+    const fakeTSM1 = {
+      id: 1,
+      firstName: "John",
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      offices: [fakeOffice1],
+      createdAt: new Date(),
+    } as any;
+
+    const fakeTSM2 = {
+      id: 2,
+      firstName: "Jane",
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      offices: [fakeOffice1, fakeOffice2],
+      createdAt: new Date(),
+    } as any;
+
+    const findTSMMock = jest.fn().mockResolvedValue([fakeTSM1, fakeTSM2]);
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findTechnicalStaffMembers: findTSMMock,
+    };
+
+    const result = await service.findTechnicalStaffMembers();
+
+    expect(findTSMMock).toHaveBeenCalled();
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe(1);
+    expect(result[0].firstName).toBe("John");
+    expect(result[0].offices).toEqual(["Office A"]);
+    expect(result[1].id).toBe(2);
+    expect(result[1].firstName).toBe("Jane");
+    expect(result[1].offices).toEqual(["Office A", "Office B"]);
+  });
+
+  it("should return empty array when no TSM users exist", async () => {
+    const service = new UserService();
+
+    const findTSMMock = jest.fn().mockResolvedValue([]);
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findTechnicalStaffMembers: findTSMMock,
+    };
+
+    const result = await service.findTechnicalStaffMembers();
+
+    expect(findTSMMock).toHaveBeenCalled();
+    expect(result).toEqual([]);
+  });
+});
+
+describe("UserService.updateTsm (mock)", () => {
+  it("should update TSM offices successfully", async () => {
+    const service = new UserService();
+
+    const fakeOffice1 = { id: 1, name: "Office A" } as any;
+    const fakeOffice2 = { id: 2, name: "Office B" } as any;
+
+    const fakeTSM = {
+      id: 1,
+      firstName: "John",
+      lastName: "Smith",
+      username: "jsmith",
+      email: "jsmith@test.com",
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      offices: [],
+      createdAt: new Date(),
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(fakeTSM);
+    const updateMock = jest.fn().mockImplementation(async (u: any) => u);
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    // @ts-ignore
+    service["officeRepo"] = {
+      findOfficeById: jest
+        .fn()
+        .mockImplementation(async (id: number) => {
+          if (id === 1) return fakeOffice1;
+          if (id === 2) return fakeOffice2;
+          return null;
+        }),
+    };
+
+    const result = await service.updateTsm(1, [1, 2]);
+
+    expect(findByIdMock).toHaveBeenCalledWith(1);
+    expect(updateMock).toHaveBeenCalled();
+
+    const updatedUser = updateMock.mock.calls[0][0];
+    expect(updatedUser.offices).toHaveLength(2);
+    expect(result.offices).toEqual(["Office A", "Office B"]);
+  });
+
+  it("should throw NotFoundError when TSM does not exist", async () => {
+    const service = new UserService();
+
+    const findByIdMock = jest.fn().mockResolvedValue(null);
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+    };
+
+    await expect(service.updateTsm(999, [1])).rejects.toThrow(
+      "Technical staff member with id 999 not found"
+    );
+
+    expect(findByIdMock).toHaveBeenCalledWith(999);
+  });
+
+  it("should throw BadRequestError when user is not a TSM", async () => {
+    const service = new UserService();
+
+    const fakeUser = {
+      id: 1,
+      firstName: "Regular",
+      lastName: "User",
+      userType: UserType.CITIZEN,
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(fakeUser);
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+    };
+
+    await expect(service.updateTsm(1, [1])).rejects.toThrow(
+      "User with id 1 is not a technical staff member"
+    );
+
+    expect(findByIdMock).toHaveBeenCalledWith(1);
+  });
+
+  it("should throw BadRequestError when office does not exist", async () => {
+    const service = new UserService();
+
+    const fakeTSM = {
+      id: 1,
+      firstName: "John",
+      lastName: "Smith",
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      offices: [],
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(fakeTSM);
+    const updateMock = jest.fn();
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    // @ts-ignore
+    service["officeRepo"] = {
+      findOfficeById: jest.fn().mockResolvedValue(null),
+    };
+
+    await expect(service.updateTsm(1, [999])).rejects.toThrow(
+      "Office with id 999 not found."
+    );
+
+    expect(findByIdMock).toHaveBeenCalledWith(1);
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it("should clear existing offices and set new ones", async () => {
+    const service = new UserService();
+
+    const fakeOffice1 = { id: 1, name: "Office A" } as any;
+    const fakeOffice2 = { id: 2, name: "Office B" } as any;
+    const fakeOffice3 = { id: 3, name: "Office C" } as any;
+
+    const fakeTSM = {
+      id: 1,
+      firstName: "John",
+      lastName: "Smith",
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      offices: [fakeOffice1, fakeOffice2], // Initially has Office A and B
+      createdAt: new Date(),
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(fakeTSM);
+    const updateMock = jest.fn().mockImplementation(async (u: any) => u);
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    // @ts-ignore
+    service["officeRepo"] = {
+      findOfficeById: jest
+        .fn()
+        .mockImplementation(async (id: number) => {
+          if (id === 3) return fakeOffice3;
+          return null;
+        }),
+    };
+
+    const result = await service.updateTsm(1, [3]); // Update to only Office C
+
+    expect(updateMock).toHaveBeenCalled();
+    const updatedUser = updateMock.mock.calls[0][0];
+    expect(updatedUser.offices).toHaveLength(1);
+    expect(result.offices).toEqual(["Office C"]);
+  });
+});
+
