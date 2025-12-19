@@ -306,6 +306,18 @@ describe("Manage Pending Reports E2E Tests", () => {
     it("should return 400 if PRO assigns report but no technical staff exists for the office", async () => {
       // Ensure no technical staff exists for this test
       const userRepo = AppDataSource.getRepository(UserDAO);
+      
+      // First, clear the offices relationship to avoid foreign key constraint
+      const tsmUsers = await userRepo.find({ 
+        where: { userType: UserType.TECHNICAL_STAFF_MEMBER },
+        relations: ['offices']
+      });
+      for (const user of tsmUsers) {
+        user.offices = [];
+        await userRepo.save(user);
+      }
+      
+      // Now delete the TSM users
       await userRepo.delete({ userType: UserType.TECHNICAL_STAFF_MEMBER });
 
       const res = await request(app)

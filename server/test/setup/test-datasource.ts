@@ -171,7 +171,17 @@ export async function populateTestData() {
         firstName: u.firstName,
         lastName: u.lastName,
         userType: u.userType,
+        isActive: true, // Set users as active for e2e tests
       });
+      
+      // Assign offices to technical staff member
+      if (u.userType === UserType.TECHNICAL_STAFF_MEMBER) {
+        const office = roleMap.get('Infrastructure Division');
+        if (office) {
+          user.offices = [office];
+        }
+      }
+      
       user = await userRepo.save(user);
     }
   }
