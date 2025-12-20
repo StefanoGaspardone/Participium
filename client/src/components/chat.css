@@ -156,16 +156,27 @@
   }
 }
 
-/* make title and id white when a chat list item is active */
+/* Active item: ensure good contrast — dark text on light blue background */
 .list-group-item.active .fw-semibold,
-.list-group-item.active .text-muted {
-  color: #fff !important;
+.list-group-item.active .text-muted,
+.list-group-item.active .other-user-details {
+  color: #06364a !important; /* dark teal/navy for contrast */
+  font-weight: 600;
+}
+
+/* Ensure avatar / icon are clearly visible for active item */
+.chats-popover .list-group-item.active img,
+.chats-popover .list-group-item.active .fa-user-circle,
+.chats-popover .list-group-item.active svg {
+  color: #06364a !important;
+  filter: none;
+  opacity: 1;
 }
 
 .chats-popover .list-group-item {
   padding: 0.65rem 0.9rem;
   align-items: center;
-}
+} 
 
 .chats-popover .list-group-item .rounded-circle {
   object-fit: cover;
@@ -180,8 +191,8 @@
 .chats-popover .list-group-item.active {
   background: linear-gradient(
     90deg,
-    rgba(13, 110, 253, 0.06),
-    rgba(13, 110, 253, 0.02)
+    rgba(13, 110, 253, 0.09),
+    rgba(13, 110, 253, 0.03)
   );
   border-left: 3px solid rgba(13, 110, 253, 0.6);
 }
