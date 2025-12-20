@@ -18,6 +18,14 @@ export class ReportRepository {
         return this.repo.find({ where: { status }, relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"] });
     }
 
+    findReportsByUserId = async (userId: number): Promise<ReportDAO[]> => {
+        return await this.repo.find({ where: { createdBy: { id: userId } }, relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"] });
+    }
+
+    findReportsByAssignedUserId = async (userId: number): Promise<ReportDAO[]> => {
+        return await this.repo.find({ where: { assignedTo: { id: userId } }, relations: ["assignedTo"] });
+    }
+
     findReportById = async (id: number): Promise<ReportDAO | null> => {
         return this.repo.findOne({ where: { id }, relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"] });
     }
@@ -29,7 +37,7 @@ export class ReportRepository {
     findReportsAssignedTo = async (userId: number): Promise<ReportDAO[]> => {
         return this.repo.find({
             where: { assignedTo: { id: userId } as any },
-            relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
+            relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
             order: { createdAt: "DESC" }
         });
     }

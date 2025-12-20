@@ -33,7 +33,7 @@ describe('Report routes integration tests', () => {
       firstName: 'Tech',
       lastName: 'User',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      office
+      offices: [office]
     });
     const saved = await userRepo.save(techUser);
     createdEntities.users.push(saved);
@@ -454,7 +454,7 @@ describe('Report routes integration tests', () => {
         firstName: 'Tech',
         lastName: 'Staff',
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: role,
+        offices: [role],
       });
       await userRepo.save(techUser);
 
@@ -493,7 +493,7 @@ describe('Report routes integration tests', () => {
         firstName: 'Tech',
         lastName: 'Assigned',
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: role,
+        offices: [role],
       });
       const savedTech = await userRepo.save(techUser);
       techUserId = savedTech.id;
@@ -573,7 +573,7 @@ describe('Report routes integration tests', () => {
         firstName: 'Tech',
         lastName: 'Other',
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: role,
+        offices: [role],
       });
       const savedTech2 = await userRepo.save(techUser2);
 

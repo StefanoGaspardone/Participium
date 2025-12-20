@@ -279,7 +279,7 @@ const MapUpdater = ({ position }: { position: Coord | null }) => {
 
 export default function MapDefault({ selected, setSelected }: Props) {
     const center = { lat: 45.06985, lng: 7.68228 };
-    const zoom = 11;
+    const zoom = 12;
     const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
 
     useEffect(() => {
@@ -303,7 +303,7 @@ export default function MapDefault({ selected, setSelected }: Props) {
 
 export function HomepageMap({ selected, setSelected, reports }: Props) {
     const center = { lat: 45.06985, lng: 7.68228 };
-    const zoom = 11;
+    const zoom = 13;
 
     const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
     const [legendOpen, setLegendOpen] = useState(false);

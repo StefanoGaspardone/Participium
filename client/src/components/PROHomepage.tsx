@@ -125,8 +125,8 @@ export default function PROHomepage() {
   const acceptReport = async (report: PendingReport) => {
     try {
       setStatusUpdatingId(report.id);
-      await assignOrRejectReport(report.id, 'Assigned');
-       toast.success(`Report successfully accepted!`);
+      const data = await assignOrRejectReport(report.id, 'Assigned');
+       toast.success(data.message, { duration: 4000 });
       setReports(rs => rs.filter(r => r.id !== report.id));
       // nothing else to clear (rejection now handled via modal)
     } catch (e: any) {
@@ -217,7 +217,7 @@ export default function PROHomepage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          Public Relations Officer {user?.username}
+          Public relations officer Dashboard
         </motion.h2>
 
         <AnimatePresence mode="wait">

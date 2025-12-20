@@ -220,7 +220,7 @@ describe("Reports e2e tests", () => {
 				firstName: "Tech",
 				lastName: "E2E",
 				userType: UserType.TECHNICAL_STAFF_MEMBER,
-				office: office!,
+				offices: [office!],
 			});
 			await userRepo.save(techUser);
 
@@ -291,7 +291,7 @@ describe("Reports e2e tests", () => {
 				firstName: "Tech",
 				lastName: "ExtTest",
 				userType: UserType.TECHNICAL_STAFF_MEMBER,
-				office: office!,
+				offices: [office!],
 			});
 			await userRepo.save(techUser);
 
@@ -388,7 +388,7 @@ describe("Reports e2e tests", () => {
 				firstName: "Tech",
 				lastName: "Dup",
 				userType: UserType.TECHNICAL_STAFF_MEMBER,
-				office: office!,
+				offices: [office!],
 			});
 			await userRepo.save(techUser);
 

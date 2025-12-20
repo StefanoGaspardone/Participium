@@ -51,7 +51,7 @@ describe('ReportController integration tests', () => {
       firstName: 'Ctrl',
       lastName: 'Staff',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      office: role
+      offices: [role]
     });
     await userRepo.save(staff);
     staffId = staff.id;
@@ -219,7 +219,7 @@ describe('ReportController integration tests', () => {
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Report status updated',
+      message: expect.stringContaining('Report assigned to'),
       report: expect.objectContaining({ status: ReportStatus.Assigned })
     }));
   });

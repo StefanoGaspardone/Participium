@@ -136,7 +136,11 @@ export class ReportController {
                 }
             }
             // IF the report is rejected NO chat has to be created (rejection description does the job)
-            res.status(200).json({ message: 'Report status updated', report: updated });
+            if(updated.status === ReportStatus.Assigned) {
+                res.status(200).json({message: `Report assigned to ${updated.assignedTo?.username}`, report: updated});
+            }else {
+                res.status(200).json({message: 'Report successfully rejected', report: updated});
+            }
         } catch (error) {
             next(error);
         }
@@ -255,6 +259,26 @@ export class ReportController {
             return res.status(201).json(updatedReport);
 
         } catch (error) {
+            next(error);
+        }
+    }
+
+    getMyReports = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const reports = await reportService.listReportsByUserId(req.token?.user?.id as number);
+            return res.status(200).json({ reports });
+        } catch(error) {
+            next(error);
+        }
+    }
+
+    getReportById = async (req: AuthRequest & { params: { id: number } }, res: Response, next: NextFunction) => {
+        try {
+            const reportId = Number(req.params.id);
+
+            const report = await this.reportService.findByIdAndUserId(reportId, req.token?.user?.id as number);
+            return res.status(200).json({ report });
+        } catch(error) {
             next(error);
         }
     }

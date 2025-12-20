@@ -19,6 +19,8 @@ router.get('/maintainers', userController.findMaintainersByCategory);
 router.patch('/me', authMiddleware([UserType.CITIZEN]), userController.updateUser);
 router.post('/validate-user', userController.validateUser);
 router.post('/resend-user', userController.resendCode);
+router.get("/tsm", authMiddleware([UserType.ADMINISTRATOR]) , userController.findTsm);
+router.patch("/tsm/:id", authMiddleware([UserType.ADMINISTRATOR]) , userController.updateTsm);
 
 router.get('/:telegramUsername', userController.findUserByTelegramUsername)
 export const userRouter = router;

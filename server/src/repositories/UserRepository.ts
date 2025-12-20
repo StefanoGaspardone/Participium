@@ -13,11 +13,11 @@ export class UserRepository {
   }
 
   findAllUsers = async (): Promise<UserDAO[]> => {
-    return this.repo.find({ relations: ["office", "company", "company.categories"] });
+    return this.repo.find({ relations: ["offices", "company", "company.categories"] });
   };
 
   findUserById = async (id: number): Promise<UserDAO | null> => {
-    return this.repo.findOne({ where: { id }, relations: ["office", "company", "company.categories"] });
+    return this.repo.findOne({ where: { id }, relations: ["offices", "company", "company.categories"] });
   }
 
   findUserByTelegramUsername = async (telegramUsername: string): Promise<UserDAO | null> => {
@@ -35,7 +35,7 @@ export class UserRepository {
   login = async (username: string, password: string): Promise<UserDAO | null> => {
     // Ensure relations (office, company) are loaded so the returned user
     // contains the office data (name) required when mapping to DTO/token.
-    const user = await this.repo.findOne({ where: { username }, relations: ["office", "company", "company.categories"] });
+    const user = await this.repo.findOne({ where: { username }, relations: ["offices", "company", "company.categories"] });
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
       if (isPasswordValid) return user;
@@ -45,24 +45,25 @@ export class UserRepository {
 
   findLeastLoadedStaffForOffice = async (officeId: number): Promise<UserDAO | null> => {
     const qb = this.repo
-      .createQueryBuilder('u')
-      .leftJoin('u.assignedReports', 'r', 'r.status IN (:...statuses)', {
-        statuses: [ReportStatus.Assigned, ReportStatus.InProgress, ReportStatus.Suspended],
-      })
-      .where('u.userType = :type', { type: UserType.TECHNICAL_STAFF_MEMBER })
-      .andWhere('u.office_id = :officeId', { officeId })
-      .select(['u.id', 'u.firstName', 'u.lastName', 'u.username', 'u.email', 'u.userType'])
-      .addSelect('COUNT(r.id)', 'assigned_count')
-      .groupBy('u.id')
-      .orderBy('assigned_count', 'ASC')
-      .addOrderBy('u.lastName', 'ASC')
-      .addOrderBy('u.firstName', 'ASC')
-      .addOrderBy('u.username', 'ASC')
-      .limit(1);
+        .createQueryBuilder('u')
+        .innerJoin('u.offices', 'o', 'o.id = :officeId', { officeId })
+        .leftJoin('u.assignedReports', 'r', 'r.status IN (:...statuses)', {
+          statuses: [ReportStatus.Assigned, ReportStatus.InProgress, ReportStatus.Suspended],
+        })
+        .where('u.userType = :type', { type: UserType.TECHNICAL_STAFF_MEMBER })
+        .select(['u.id', 'u.firstName', 'u.lastName', 'u.username', 'u.email', 'u.userType'])
+        .addSelect('COUNT(r.id)', 'assigned_count')
+        .groupBy('u.id')
+        .orderBy('assigned_count', 'ASC')
+        .addOrderBy('u.lastName', 'ASC')
+        .addOrderBy('u.firstName', 'ASC')
+        .addOrderBy('u.username', 'ASC')
+        .limit(1);
 
     const res = await qb.getRawAndEntities();
     return res.entities[0] || null;
   };
+
 
   updateUser = async (user: UserDAO): Promise<UserDAO> => {
     // Use save to persist nested relations (e.g. codeConfirmation).
@@ -82,6 +83,10 @@ export class UserRepository {
       .where('user.userType = :type', { type: UserType.EXTERNAL_MAINTAINER })
       .getMany();
   };
+
+  findTechnicalStaffMembers = async (): Promise<UserDAO[]> => {
+    return this.repo.find({ where: { userType: UserType.TECHNICAL_STAFF_MEMBER }, relations: ['offices'] });
+  }
 }
 
 export const userRepository = new UserRepository();

@@ -128,9 +128,9 @@ export class UserController {
       }
       if (
         req.body.userType == UserType.TECHNICAL_STAFF_MEMBER &&
-        !req.body.officeId
+          (!req.body.officeIds || !Array.isArray(req.body.officeIds) || req.body.officeIds.length === 0)
       ) {
-        throw new BadRequestError("Missing office id");
+        throw new BadRequestError("Missing office ids array or it's empty");
       }
       if (
           req.body.userType == UserType.EXTERNAL_MAINTAINER &&
@@ -148,9 +148,9 @@ export class UserController {
       payload.lastName = req.body.lastName;
       payload.username = req.body.username;
       payload.userType = req.body.userType;
-      payload.officeId = req.body.officeId;
+      payload.officeIds = req.body.officeIds;
       payload.companyId = req.body.companyId;
-      const user = await this.userService.createMunicipalityUser(req.body);
+      const user = await this.userService.createMunicipalityUser(payload);
       res.status(201).json({ message: "Municipality user created" });
     } catch (error) {
       if (
@@ -266,6 +266,31 @@ export class UserController {
       return res.status(201).send();
     } catch (error) {
       next(error);
+    }
+  }
+
+  findTsm = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+      const tsm = await this.userService.findTechnicalStaffMembers();
+        res.status(200).json({ tsm });
+    }catch (error) {
+        next(error);
+    }
+  }
+
+  updateTsm = async(req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+      const tsmId = Number.parseInt(req.params.id, 10);
+      if (Number.isNaN(tsmId)) throw new BadRequestError('Id must be a valid number');
+
+      if(!req.body.officeIds || !Array.isArray(req.body.officeIds) || req.body.officeIds.length === 0) {
+        throw new BadRequestError('officeIds must be a not empty array of numbers');
+      }
+
+      const updatedTsm = await this.userService.updateTsm(tsmId, req.body.officeIds);
+      res.status(200).json({ message: "TSM availability updated successfully", updatedTsm });
+    } catch (error) {
+        next(error);
     }
   }
 }

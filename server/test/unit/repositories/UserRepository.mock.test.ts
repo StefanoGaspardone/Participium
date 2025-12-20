@@ -68,7 +68,7 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["offices", "company", "company.categories"] });
     expect(ok).not.toBeNull();
   });
 
@@ -87,7 +87,7 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["offices", "company", "company.categories"] });
     expect(ok).toBeNull();
   });
 
@@ -104,7 +104,7 @@ describe("UserRepository (mock)", () => {
 
     const repo = new UserRepository();
     const ok = await repo.login("t@t", TEST_PASSWORD);
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["office", "company", "company.categories"] });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { username: "t@t" }, relations: ["offices", "company", "company.categories"] });
     expect(ok).toBeNull();
   });
 });
@@ -131,7 +131,7 @@ describe("UserRepository.findUserById and updateUser (mock)", () => {
     const repo = new UserRepository();
     const user = await repo.findUserById(5);
 
-    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { id: 5 }, "relations": ["office",  "company",  "company.categories"], });
+    expect(fakeRepo.findOne).toHaveBeenCalledWith({ where: { id: 5 }, "relations": ["offices",  "company",  "company.categories"], });
     expect(user).toEqual(fakeUser);
   });
 
@@ -250,6 +250,7 @@ describe("UserRepository.findUserByTelegramUsername (mock)", () => {
 
 describe("UserRepository.findLeastLoadedStaffForOffice (mock)", () => {
   const createFakeQueryBuilder = (entities: any[]) => ({
+    innerJoin: jest.fn().mockReturnThis(),
     leftJoin: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
@@ -387,5 +388,62 @@ describe("UserRepository.findMaintainersByCategory (mock)", () => {
     expect(resultNoId).toEqual([]);
     
     expect(fakeRepo.createQueryBuilder).not.toHaveBeenCalled();
+  });
+});
+
+describe("UserRepository.findTechnicalStaffMembers (mock)", () => {
+  it("should find all technical staff members with their offices", async () => {
+    const fakeOffice1 = { id: 1, name: "Office A" } as any;
+    const fakeOffice2 = { id: 2, name: "Office B" } as any;
+
+    const fakeTSM1 = {
+      id: 1,
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      offices: [fakeOffice1],
+    } as any;
+
+    const fakeTSM2 = {
+      id: 2,
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      offices: [fakeOffice1, fakeOffice2],
+    } as any;
+
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue([fakeTSM1, fakeTSM2]),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    const result = await repo.findTechnicalStaffMembers();
+
+    expect(fakeRepo.find).toHaveBeenCalledWith({
+      where: { userType: UserType.TECHNICAL_STAFF_MEMBER },
+      relations: ["offices"],
+    });
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe(1);
+    expect(result[0].offices).toEqual([fakeOffice1]);
+    expect(result[1].id).toBe(2);
+    expect(result[1].offices).toEqual([fakeOffice1, fakeOffice2]);
+  });
+
+  it("should return empty array when no technical staff members exist", async () => {
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue([]),
+    };
+
+    const database = require("@database");
+    jest.spyOn(database.AppDataSource, "getRepository").mockImplementation(() => fakeRepo);
+
+    const repo = new UserRepository();
+    const result = await repo.findTechnicalStaffMembers();
+
+    expect(fakeRepo.find).toHaveBeenCalledWith({
+      where: { userType: UserType.TECHNICAL_STAFF_MEMBER },
+      relations: ["offices"],
+    });
+    expect(result).toEqual([]);
   });
 });
