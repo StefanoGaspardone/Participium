@@ -1,8 +1,9 @@
 import { HomepageMap } from "./HomepageMap";
 import ReportList from "./ReportList";
 import CustomNavbar from "./CustomNavbar";
+import Chats from "./Chats";
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import { BsTelegram } from "react-icons/bs";
 import { motion } from "framer-motion";
@@ -10,15 +11,51 @@ import { useAppContext } from "../contexts/AppContext";
 import type { Coord, Report } from "../models/models";
 import { getReportsByStatus } from "../api/api";
 
-type Props = {
+type Props = Readonly<{
   selected: Coord | null;
   setSelected: React.Dispatch<React.SetStateAction<Coord | null>>;
-};
+}>;
 
 export default function HomePage({ selected, setSelected }: Props) {
   const { user, isLoggedIn } = useAppContext();
   const navigate = useNavigate();
   const [reports, setReports] = useState<Report[] | null>(null);
+
+  // Chats state
+  const [showChats, setShowChats] = useState<boolean>(false);
+  const [activeReport, setActiveReport] = useState<Report | null>(null);
+  const [chatTargetUserId, setChatTargetUserId] = useState<number | null>(null);
+
+  const handleToggleChats = () => setShowChats((prev) => !prev);
+  const handleOpenChat = (r: Report, targetUserId?: number | null) => {
+    setChatTargetUserId(targetUserId ?? null);
+    setActiveReport(r);
+    setShowChats(true);
+  };
+
+  // Open chat when coming from notifications navigate state
+  const location = useLocation();
+  type NavState = {
+    openChat?: { report?: Partial<Report>; targetUserId?: number | null };
+  };
+  useEffect(() => {
+    const payload = (location.state as NavState)?.openChat;
+    if (!payload) return;
+
+    const reportObj = payload.report ? (payload.report as Report) : null;
+    handleOpenChat(
+      reportObj ??
+        ({
+          id: payload.report?.id,
+          title: payload.report?.title,
+        } as unknown as Report),
+      payload.targetUserId ?? null
+    );
+
+    // Clear location state so it doesn't re-trigger on navigation
+    if (globalThis?.history?.replaceState)
+      globalThis.history.replaceState({}, document.title);
+  }, [location]);
 
   useEffect(() => {
     const nav = document.querySelector(".navbar");
@@ -124,11 +161,13 @@ export default function HomePage({ selected, setSelected }: Props) {
                 />
               </motion.div>
               <p className="lead mb-4 px-2">
-                Participium is a web application for <strong>citizen participation</strong> in the
-                management of <strong>urban environments</strong>.<br />
-                It enables citizens to interact with the public administration by <strong>reporting</strong> {" "}
-                local issues such as 🕳️ potholes, ♿ sidewalk barriers, 🗑️ trash on the streets,
-                💡 broken streetlights, and more.
+                Participium is a web application for{" "}
+                <strong>citizen participation</strong> in the management of{" "}
+                <strong>urban environments</strong>.<br />
+                It enables citizens to interact with the public administration
+                by <strong>reporting</strong> local issues such as 🕳️ potholes,
+                ♿ sidewalk barriers, 🗑️ trash on the streets, 💡 broken
+                streetlights, and more.
               </p>
               <div className="mx-auto" style={{ maxWidth: 820 }}>
                 <Row className="g-3 text-start justify-content-center">
@@ -138,16 +177,40 @@ export default function HomePage({ selected, setSelected }: Props) {
                       style={{ background: "#ffffff" }}
                       whileHover={{ y: -2, scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 20,
+                      }}
                     >
                       <h6 className="fw-semibold mb-2">How it works</h6>
                       <ul className="mb-0 ps-3">
-                        <li>📝 <strong>Register</strong> or log in to your account</li>
+                        <li>
+                          📝 <strong>Register</strong> or log in to your account
+                        </li>
                         <li>🗺️ Open the map and locate the affected area</li>
-                        <li>📷 Upload a report with <strong>photo</strong>, <strong>location</strong>, and <strong>category</strong></li>
-                        <li>🔄 Track the status: <strong>Assigned → In Progress → Resolved</strong></li>
+                        <li>
+                          📷 Upload a report with <strong>photo</strong>,{" "}
+                          <strong>location</strong>, and{" "}
+                          <strong>category</strong>
+                        </li>
+                        <li>
+                          🔄 Track the status:{" "}
+                          <strong>Assigned → In Progress → Resolved</strong>
+                        </li>
                         <li>🔔 Receive notifications on updates</li>
-                        <li> <BsTelegram /> Link your Telegram account in Profile settings to report and track issues via our  <a href="https://t.me/ParticipiumSE05Bot" target="_blank" rel="noopener noreferrer">bot</a> </li>
+                        <li>
+                          {" "}
+                          <BsTelegram /> Link your Telegram account in Profile
+                          settings to report and track issues via our{" "}
+                          <a
+                            href="https://t.me/ParticipiumSE05Bot"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            bot
+                          </a>{" "}
+                        </li>
                       </ul>
                     </motion.div>
                   </Col>
@@ -157,12 +220,17 @@ export default function HomePage({ selected, setSelected }: Props) {
                       style={{ background: "#ffffff" }}
                       whileHover={{ y: -2, scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 20,
+                      }}
                     >
                       <h6 className="fw-semibold mb-2">Who can report</h6>
                       <p className="mb-0">
-                        👤 Reports can be uploaded only by <strong>registered</strong> citizens and
-                        only after <strong>logging in</strong>.
+                        👤 Reports can be uploaded only by{" "}
+                        <strong>registered</strong> citizens and only after{" "}
+                        <strong>logging in</strong>.
                       </p>
                     </motion.div>
                   </Col>
@@ -175,7 +243,11 @@ export default function HomePage({ selected, setSelected }: Props) {
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 300, damping: 18 }}
                 >
-                  <Link id = "login-2" to="/login" className="btn btn-warning btn-lg me-3">
+                  <Link
+                    id="login-2"
+                    to="/login"
+                    className="btn btn-warning btn-lg me-3"
+                  >
                     Log In
                   </Link>
                 </motion.div>
@@ -185,7 +257,11 @@ export default function HomePage({ selected, setSelected }: Props) {
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 300, damping: 18 }}
                 >
-                  <Link id="register-redirect" to="/register" className="btn btn-outline-primary btn-lg ">
+                  <Link
+                    id="register-redirect"
+                    to="/register"
+                    className="btn btn-outline-primary btn-lg "
+                  >
                     Register
                   </Link>
                 </motion.div>
@@ -194,6 +270,18 @@ export default function HomePage({ selected, setSelected }: Props) {
           </div>
         )}
       </Container>
+
+      {/* Chats (Citizen homepage) */}
+      {isLoggedIn && (
+        <Chats
+          show={showChats}
+          handleToggle={handleToggleChats}
+          activeReport={activeReport}
+          setActiveReport={setActiveReport}
+          targetUserId={chatTargetUserId}
+        />
+      )}
+
       {isLoggedIn && user?.userType === "CITIZEN" && (
         <motion.button
           id="upload-new-report-button"
