@@ -112,7 +112,7 @@ describe('User routes integration tests', () => {
       lastName: 'One',
       username: 'selfmuni1',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: roleId,
+      officeIds: [roleId],
     };
     const res = await request(app).post('/api/users/employees').send(payload);
     expect(res.status).toBe(401);
@@ -132,7 +132,7 @@ describe('User routes integration tests', () => {
       lastName: 'Two',
       username: 'selfmuni2',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: roleId,
+      officeIds: [roleId],
     };
 
     const res = await request(app)
@@ -155,7 +155,7 @@ describe('User routes integration tests', () => {
       lastName: 'User',
       username: 'dupuser',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: roleId,
+      officeIds: [roleId],
     };
 
     const res = await request(app)
@@ -179,7 +179,7 @@ describe('User routes integration tests', () => {
       lastName: 'User',
       username: 'nooffice',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: 99999, // non-existing
+      officeIds: [99999], // non-existing
     };
 
     const res = await request(app)
@@ -189,7 +189,7 @@ describe('User routes integration tests', () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message');
-    expect(String(res.body.message).toLowerCase()).toMatch(/office not found/);
+    expect(String(res.body.message).toLowerCase()).toMatch(/office.*not found/);
   });
 
   it('POST /api/users/employees => 400 with admin token when missing mandatory fields', async () => {
@@ -205,7 +205,7 @@ describe('User routes integration tests', () => {
       lastName: 'Missing',
       // username: missing
       // userType: missing
-      officeId: roleId,
+      officeIds: [roleId],
     };
 
     const res = await request(app)
@@ -230,7 +230,7 @@ describe('User routes integration tests', () => {
       lastName: 'Three',
       username: 'selfmuni3',
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      officeId: roleId,
+      officeIds: [roleId],
     };
 
     const res = await request(app)
@@ -817,6 +817,211 @@ describe('User routes integration tests', () => {
       });
       expect(updatedUser?.codeConfirmation).toBeDefined();
       expect(updatedUser?.codeConfirmation?.code).toBeDefined();
+    });
+  });
+
+  describe('GET /api/users/tsm', () => {
+    let adminToken: string;
+    let tsmId1: number;
+    let tsmId2: number;
+
+    beforeAll(async () => {
+      // Login as admin to get token
+      const loginRes = await request(app)
+        .post('/api/users/login')
+        .send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
+      adminToken = loginRes.body.token;
+
+      // Create TSM users
+      const { AppDataSource } = await import('@database');
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      // Create offices
+      const office1 = officeRepo.create({ name: 'Routes TSM Office 1' });
+      const savedOffice1 = await officeRepo.save(office1);
+
+      const office2 = officeRepo.create({ name: 'Routes TSM Office 2' });
+      const savedOffice2 = await officeRepo.save(office2);
+
+      const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, 10);
+      const tsm1 = userRepo.create({
+        username: 'routes_tsm1',
+        email: 'routes_tsm1@test.com',
+        passwordHash: hash,
+        firstName: 'Routes TSM',
+        lastName: 'One',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        offices: [savedOffice1],
+        emailNotificationsEnabled: false,
+      });
+      const savedTsm1 = await userRepo.save(tsm1);
+      tsmId1 = savedTsm1.id;
+
+      const tsm2 = userRepo.create({
+        username: 'routes_tsm2',
+        email: 'routes_tsm2@test.com',
+        passwordHash: hash,
+        firstName: 'Routes TSM',
+        lastName: 'Two',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        offices: [savedOffice1, savedOffice2],
+        emailNotificationsEnabled: false,
+      });
+      const savedTsm2 = await userRepo.save(tsm2);
+      tsmId2 = savedTsm2.id;
+    });
+
+    it('=> 401 when no token provided', async () => {
+      const res = await request(app).get('/api/users/tsm');
+      expect(res.status).toBe(401);
+    });
+
+    it('=> 200 and returns TSM users with their offices', async () => {
+      const res = await request(app)
+        .get('/api/users/tsm')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('tsm');
+      expect(Array.isArray(res.body.tsm)).toBe(true);
+      expect(res.body.tsm.length).toBeGreaterThanOrEqual(2);
+
+      const tsm1 = res.body.tsm.find((t: any) => t.id === tsmId1);
+      const tsm2 = res.body.tsm.find((t: any) => t.id === tsmId2);
+
+      expect(tsm1).toBeDefined();
+      expect(tsm1.offices).toEqual(['Routes TSM Office 1']);
+
+      expect(tsm2).toBeDefined();
+      expect(tsm2.offices).toEqual(['Routes TSM Office 1', 'Routes TSM Office 2']);
+    });
+  });
+
+  describe('PATCH /api/users/tsm/:id', () => {
+    let adminToken: string;
+    let tsmId: number;
+    let officeId1: number;
+    let officeId2: number;
+
+    beforeAll(async () => {
+      // Login as admin to get token
+      const loginRes = await request(app)
+        .post('/api/users/login')
+        .send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
+      adminToken = loginRes.body.token;
+
+      // Create TSM user and offices
+      const { AppDataSource } = await import('@database');
+      const officeRepo = AppDataSource.getRepository(OfficeDAO);
+      const userRepo = AppDataSource.getRepository(UserDAO);
+
+      // Create offices
+      const office1 = officeRepo.create({ name: 'Routes Update Office 1' });
+      const savedOffice1 = await officeRepo.save(office1);
+      officeId1 = savedOffice1.id;
+
+      const office2 = officeRepo.create({ name: 'Routes Update Office 2' });
+      const savedOffice2 = await officeRepo.save(office2);
+      officeId2 = savedOffice2.id;
+
+      const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, 10);
+      const tsm = userRepo.create({
+        username: 'routes_tsm_update',
+        email: 'routes_tsm_update@test.com',
+        passwordHash: hash,
+        firstName: 'Routes TSM',
+        lastName: 'Update',
+        userType: UserType.TECHNICAL_STAFF_MEMBER,
+        offices: [savedOffice1],
+        emailNotificationsEnabled: false,
+      });
+      const savedTsm = await userRepo.save(tsm);
+      tsmId = savedTsm.id;
+    });
+
+    it('=> 401 when no token provided', async () => {
+      const res = await request(app)
+        .patch(`/api/users/tsm/${tsmId}`)
+        .send({ officeIds: [officeId1] });
+      expect(res.status).toBe(401);
+    });
+
+    it('=> 200 and updates TSM offices successfully', async () => {
+      const res = await request(app)
+        .patch(`/api/users/tsm/${tsmId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ officeIds: [officeId2] });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body).toHaveProperty('updatedTsm');
+      expect(res.body.updatedTsm.offices).toEqual(['Routes Update Office 2']);
+    });
+
+    it('=> 400 when officeIds is missing', async () => {
+      const res = await request(app)
+        .patch(`/api/users/tsm/${tsmId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/officeIds/i);
+    });
+
+    it('=> 400 when officeIds is empty array', async () => {
+      const res = await request(app)
+        .patch(`/api/users/tsm/${tsmId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ officeIds: [] });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/not empty/i);
+    });
+
+    it('=> 400 when id is invalid', async () => {
+      const res = await request(app)
+        .patch('/api/users/tsm/invalid')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ officeIds: [officeId1] });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/valid number/i);
+    });
+
+    it('=> 404 when TSM does not exist', async () => {
+      const res = await request(app)
+        .patch('/api/users/tsm/99999')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ officeIds: [officeId1] });
+
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('=> 400 when office does not exist', async () => {
+      const res = await request(app)
+        .patch(`/api/users/tsm/${tsmId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ officeIds: [99999] });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/office.*not found/i);
+    });
+
+    it('=> 200 when updating to multiple offices', async () => {
+      const res = await request(app)
+        .patch(`/api/users/tsm/${tsmId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ officeIds: [officeId1, officeId2] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.updatedTsm.offices).toEqual(['Routes Update Office 1', 'Routes Update Office 2']);
     });
   });
 

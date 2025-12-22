@@ -15,7 +15,8 @@ export default function CustomNavbar() {
   const profilePicSize = 40;
 
   // Controlla se siamo nella pagina di login o register
-  const isLoginPage = location.pathname === '/login' || location.pathname === '/register';
+  const isLoginPage =
+    location.pathname === "/login" || location.pathname === "/register";
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -38,22 +39,24 @@ export default function CustomNavbar() {
   const profileRef = useRef<HTMLDivElement | null>(null);
   const profileMobileRef = useRef<HTMLDivElement | null>(null);
 
-  const toggleDropdown = () => setDropdownOpen(o => !o);
+  const toggleDropdown = () => setDropdownOpen((o) => !o);
   const closeDropdown = () => setDropdownOpen(false);
 
   useEffect(() => {
     if (!dropdownOpen) return;
     const handler = (e: MouseEvent) => {
       const target = e.target as Node;
-      const isOutsideDesktop = profileRef.current && !profileRef.current.contains(target);
-      const isOutsideMobile = profileMobileRef.current && !profileMobileRef.current.contains(target);
+      const isOutsideDesktop =
+        profileRef.current && !profileRef.current.contains(target);
+      const isOutsideMobile =
+        profileMobileRef.current && !profileMobileRef.current.contains(target);
 
       if (isOutsideDesktop && isOutsideMobile) {
         closeDropdown();
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
   return (
@@ -61,9 +64,9 @@ export default function CustomNavbar() {
       sticky="top"
       className="custom-navbar"
       style={{
-        transition: 'transform 0.3s ease',
-        willChange: 'transform',
-        zIndex: 10000
+        transition: "transform 0.3s ease",
+        willChange: "transform",
+        zIndex: 10000,
       }}
     >
       <Container fluid className="navbar-container">
@@ -80,14 +83,15 @@ export default function CustomNavbar() {
               src={logo}
               height={45}
               alt="Logo"
-              style={{ display: 'block' }}
+              style={{ display: "block" }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: logoHover ? 1.1 : 1 }}
               transition={{ duration: 0.3 }}
             />
           </div>
 
-          <motion.div id = 'to-homepage'
+          <motion.div
+            id="to-homepage"
             onClick={handleBrandClick}
             role="button"
             tabIndex={0}
@@ -103,16 +107,25 @@ export default function CustomNavbar() {
 
           <div className="navbar-right-section">
             <div className="navbar-desktop-actions d-none d-lg-flex align-items-center">
-              {isLoggedIn && user?.userType === "CITIZEN" && <Notifications />}
+              {isLoggedIn &&
+                [
+                  "CITIZEN",
+                  "TECHNICAL_STAFF_MEMBER",
+                  "EXTERNAL_MAINTAINER",
+                ].includes(user?.userType || "") && <Notifications />}
               {isLoggedIn && (
-                <div ref={profileRef} className="ms-3" style={{ position: 'relative' }}>
+                <div
+                  ref={profileRef}
+                  className="ms-3"
+                  style={{ position: "relative" }}
+                >
                   <motion.div
                     id="profile-dropdown"
                     role="button"
                     tabIndex={0}
                     onClick={toggleDropdown}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         toggleDropdown();
                       }
@@ -120,13 +133,13 @@ export default function CustomNavbar() {
                     onMouseEnter={() => setProfileHover(true)}
                     onMouseLeave={() => setProfileHover(false)}
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      padding: '0.25rem 0.55rem',
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "0.25rem 0.55rem",
                       borderRadius: 6,
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      marginRight: '1rem',
+                      cursor: "pointer",
+                      userSelect: "none",
+                      marginRight: "1rem",
                     }}
                     initial={false}
                     animate={{ scale: profileHover ? 1.06 : 1 }}
@@ -136,14 +149,14 @@ export default function CustomNavbar() {
                     {user?.username && (
                       <motion.span
                         style={{
-                          color: '#f8f8f8ff',
-                          marginRight: '0.55rem',
+                          color: "#f8f8f8ff",
+                          marginRight: "0.55rem",
                           fontWeight: 500,
-                          fontSize: '1.00rem',
-                          textDecoration: 'underline',
-                          textDecorationColor: '#0067c6',
-                          textDecorationThickness: '2px',
-                          textUnderlineOffset: '3px'
+                          fontSize: "1.00rem",
+                          textDecoration: "underline",
+                          textDecorationColor: "#0067c6",
+                          textDecorationThickness: "2px",
+                          textUnderlineOffset: "3px",
                         }}
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -159,11 +172,23 @@ export default function CustomNavbar() {
                         roundedCircle
                         width={profilePicSize}
                         height={profilePicSize}
-                        style={{ objectFit: 'cover', border: '2px solid #E1AD01' }}
+                        style={{
+                          objectFit: "cover",
+                          border: "2px solid #E1AD01",
+                        }}
                       />
                     ) : (
-                      <span style={{ width: profilePicSize, height: profilePicSize }} className="d-inline-flex align-items-center justify-content-center">
-                        <FaUserCircle className="text-white" style={{ width: '100%', height: '100%' }} />
+                      <span
+                        style={{
+                          width: profilePicSize,
+                          height: profilePicSize,
+                        }}
+                        className="d-inline-flex align-items-center justify-content-center"
+                      >
+                        <FaUserCircle
+                          className="text-white"
+                          style={{ width: "100%", height: "100%" }}
+                        />
                       </span>
                     )}
                   </motion.div>
@@ -174,22 +199,28 @@ export default function CustomNavbar() {
                         initial={{ opacity: 0, scale: 0.92, y: -4 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                        transition={{ duration: 0.16, ease: 'easeOut' }}
+                        transition={{ duration: 0.16, ease: "easeOut" }}
                         style={{
-                          position: 'absolute',
+                          position: "absolute",
                           right: 0,
-                          marginTop: '0.4rem',
-                          backgroundColor: '#ffffffff',
-                          color: '#00205B',
+                          marginTop: "0.4rem",
+                          backgroundColor: "#ffffffff",
+                          color: "#00205B",
                           borderRadius: 14,
-                          padding: '0.5rem 0.55rem 0.65rem',
-                          boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
-                          minWidth: '200px',
-                          zIndex: 30
+                          padding: "0.5rem 0.55rem 0.65rem",
+                          boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
+                          minWidth: "200px",
+                          zIndex: 30,
                         }}
                       >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          {user?.userType === 'CITIZEN' && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          {user?.userType === "CITIZEN" && (
                             <motion.div
                               layout
                               role="button"
@@ -198,27 +229,30 @@ export default function CustomNavbar() {
                               animate={{ opacity: 1, y: 0 }}
                               whileHover={{ scale: 1.015 }}
                               whileTap={{ scale: 0.97 }}
-                              onClick={() => { closeDropdown(); navigate('/profile'); }}
+                              onClick={() => {
+                                closeDropdown();
+                                navigate("/profile");
+                              }}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
+                                if (e.key === "Enter" || e.key === " ") {
                                   e.preventDefault();
                                   closeDropdown();
-                                  navigate('/profile');
+                                  navigate("/profile");
                                 }
                               }}
                               style={{
-                                background: '#ffffff',
-                                border: '1px solid #e6e6e6',
+                                background: "#ffffff",
+                                border: "1px solid #e6e6e6",
                                 borderRadius: 10,
-                                padding: '0.6rem 0.85rem',
-                                cursor: 'pointer',
-                                fontSize: '0.9rem',
+                                padding: "0.6rem 0.85rem",
+                                cursor: "pointer",
+                                fontSize: "0.9rem",
                                 fontWeight: 500,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                color: '#00205B',
-                                transition: 'transform 0.18s, box-shadow 0.18s'
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.4rem",
+                                color: "#00205B",
+                                transition: "transform 0.18s, box-shadow 0.18s",
                               }}
                             >
                               Profile
@@ -232,27 +266,30 @@ export default function CustomNavbar() {
                             animate={{ opacity: 1, y: 0 }}
                             whileHover={{ scale: 1.015 }}
                             whileTap={{ scale: 0.96 }}
-                            onClick={() => { closeDropdown(); handleLogout(); }}
+                            onClick={() => {
+                              closeDropdown();
+                              handleLogout();
+                            }}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
+                              if (e.key === "Enter" || e.key === " ") {
                                 e.preventDefault();
                                 closeDropdown();
                                 handleLogout();
                               }
                             }}
                             style={{
-                              background: '#ffffff',
-                              border: '1px solid #e6e6e6',
+                              background: "#ffffff",
+                              border: "1px solid #e6e6e6",
                               borderRadius: 10,
-                              padding: '0.6rem 0.85rem',
-                              cursor: 'pointer',
-                              fontSize: '0.9rem',
+                              padding: "0.6rem 0.85rem",
+                              cursor: "pointer",
+                              fontSize: "0.9rem",
                               fontWeight: 600,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.4rem',
-                              color: '#c62828',
-                              transition: 'transform 0.18s, box-shadow 0.18s'
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.4rem",
+                              color: "#c62828",
+                              transition: "transform 0.18s, box-shadow 0.18s",
                             }}
                           >
                             Logout
@@ -269,11 +306,16 @@ export default function CustomNavbar() {
                   to={isLoginPage ? "/" : "/login"}
                   className="btn btn-warning ms-3"
                   style={{
-                    transition: 'transform 0.2s',
-                    marginRight: '1rem'
+                    transition: "transform 0.2s",
+                    marginRight: "1rem",
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px) scale(1.06)')}
-                  onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0) scale(1)')}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.transform =
+                      "translateY(-2px) scale(1.06)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.transform = "translateY(0) scale(1)")
+                  }
                 >
                   {isLoginPage ? "Back to homepage" : "Login"}
                 </Link>
@@ -282,19 +324,28 @@ export default function CustomNavbar() {
 
             {/* Notifiche e profilo compatte per mobile */}
             <div className="navbar-mobile-actions d-flex d-lg-none align-items-center">
-              {isLoggedIn && user?.userType === "CITIZEN" && (
-                <div className="navbar-mobile-notification">
-                  <Notifications />
-                </div>
-              )}
+              {isLoggedIn &&
+                [
+                  "CITIZEN",
+                  "TECHNICAL_STAFF_MEMBER",
+                  "EXTERNAL_MAINTAINER",
+                ].includes(user?.userType || "") && (
+                  <div className="navbar-mobile-notification">
+                    <Notifications />
+                  </div>
+                )}
               {isLoggedIn && (
-                <div ref={profileMobileRef} className="ms-2 navbar-mobile-profile" style={{ position: 'relative' }}>
+                <div
+                  ref={profileMobileRef}
+                  className="ms-2 navbar-mobile-profile"
+                  style={{ position: "relative" }}
+                >
                   <motion.div
                     role="button"
                     tabIndex={0}
                     onClick={toggleDropdown}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         toggleDropdown();
                       }
@@ -302,7 +353,7 @@ export default function CustomNavbar() {
                     initial={false}
                     animate={{ scale: profileHover ? 1.06 : 1 }}
                     transition={{ duration: 0.18 }}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: "pointer" }}
                   >
                     {user?.image ? (
                       <Image
@@ -311,10 +362,16 @@ export default function CustomNavbar() {
                         roundedCircle
                         width={32}
                         height={32}
-                        style={{ objectFit: 'cover', border: '2px solid #E1AD01' }}
+                        style={{
+                          objectFit: "cover",
+                          border: "2px solid #E1AD01",
+                        }}
                       />
                     ) : (
-                      <FaUserCircle className="text-white" style={{ width: 32, height: 32 }} />
+                      <FaUserCircle
+                        className="text-white"
+                        style={{ width: 32, height: 32 }}
+                      />
                     )}
                   </motion.div>
 
@@ -326,64 +383,78 @@ export default function CustomNavbar() {
                         initial={{ opacity: 0, scale: 0.92, y: -4 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                        transition={{ duration: 0.16, ease: 'easeOut' }}
+                        transition={{ duration: 0.16, ease: "easeOut" }}
                         style={{
-                          position: 'absolute',
+                          position: "absolute",
                           right: 0,
-                          marginTop: '0.4rem',
-                          backgroundColor: '#e8f0ff',
-                          color: '#00205B',
+                          marginTop: "0.4rem",
+                          backgroundColor: "#e8f0ff",
+                          color: "#00205B",
                           borderRadius: 12,
-                          padding: '0.4rem 0',
-                          boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
-                          minWidth: '160px',
-                          zIndex: 30
+                          padding: "0.4rem 0",
+                          boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
+                          minWidth: "160px",
+                          zIndex: 30,
                         }}
                       >
-                        {user?.userType === 'CITIZEN' && (
-                            <button
-                                type="button"
-                                style={{
-                                    // Stili per resettare l'aspetto del bottone
-                                    background: 'none',
-                                    border: 'none',
-                                    textAlign: 'left',
-                                    width: '100%',
-                                    // Stili originali del div
-                                    padding: '0.35rem 0.9rem',
-                                    cursor: 'pointer',
-                                    fontSize: '0.95rem',
-                                    fontWeight: 400,
-                                    color: 'inherit', // Eredita il colore dal genitore
-                                    transition: 'transform 0.18s'
-                                }}
-                                onClick={() => { closeDropdown(); navigate('/profile'); }}
-                                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                            >
-                                Profile
-                            </button>
-                        )}
+                        {user?.userType === "CITIZEN" && (
                           <button
-                              type="button"
-                              style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  padding: '0.35rem 0.9rem',
-                                  textAlign: 'left',
-                                  // I tuoi stili
-                                  cursor: 'pointer',
-                                  fontSize: '0.95rem',
-                                  fontWeight: 600,
-                                  color: '#c62828',
-                                  transition: 'transform 0.18s'
-                              }}
-                              onClick={() => { closeDropdown(); handleLogout(); }}
-                              onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                              onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                            type="button"
+                            style={{
+                              // Stili per resettare l'aspetto del bottone
+                              background: "none",
+                              border: "none",
+                              textAlign: "left",
+                              width: "100%",
+                              // Stili originali del div
+                              padding: "0.35rem 0.9rem",
+                              cursor: "pointer",
+                              fontSize: "0.95rem",
+                              fontWeight: 400,
+                              color: "inherit", // Eredita il colore dal genitore
+                              transition: "transform 0.18s",
+                            }}
+                            onClick={() => {
+                              closeDropdown();
+                              navigate("/profile");
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.transform = "scale(1.06)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.transform = "scale(1)")
+                            }
                           >
-                              Logout
+                            Profile
                           </button>
+                        )}
+                        <button
+                          type="button"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            padding: "0.35rem 0.9rem",
+                            textAlign: "left",
+                            // I tuoi stili
+                            cursor: "pointer",
+                            fontSize: "0.95rem",
+                            fontWeight: 600,
+                            color: "#c62828",
+                            transition: "transform 0.18s",
+                          }}
+                          onClick={() => {
+                            closeDropdown();
+                            handleLogout();
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.transform = "scale(1.06)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.transform = "scale(1)")
+                          }
+                        >
+                          Logout
+                        </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -394,9 +465,9 @@ export default function CustomNavbar() {
                   to={isLoginPage ? "/" : "/login"}
                   className="btn btn-warning ms-3"
                   style={{
-                    transition: 'transform 0.2s',
-                    fontSize: '0.9rem',
-                    padding: '0.4rem 0.8rem'
+                    transition: "transform 0.2s",
+                    fontSize: "0.9rem",
+                    padding: "0.4rem 0.8rem",
                   }}
                 >
                   {isLoginPage ? "Homepage" : "Login"}

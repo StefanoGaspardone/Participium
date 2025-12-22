@@ -1,4 +1,6 @@
 import {messageRepository, MessageRepository} from '@repositories/MessageRepository';
+import {notificationService} from '@services/NotificationService';
+import { logError } from '@utils/logger';
 import {userRepository, UserRepository} from '@repositories/UserRepository';
 import {reportRepository, ReportRepository} from '@repositories/ReportRepository';
 import {CreateMessageDTO, messageDAOtoDTO, messageDAOtoDTOforChats, MessageDTO, MessageDTOforChats} from '@dtos/MessageDTO';
@@ -57,6 +59,18 @@ export class MessageService {
         message.text = createMessageDTO.text;
 
         const savedMessage = await this.messageRepository.create(message);
+        // Create a notification for the receiver (best-effort)
+        try {
+            await notificationService.createMessageNotification({
+                userId: receiver.id,
+                reportId: chat.report.id,
+                messageId: savedMessage.id,
+            });
+        } catch (error) {
+            // Log but do not fail the message send flow
+            logError('[NOTIFICATION] Failed to create message notification', (error as Error).message || String(error));
+        }
+
         return messageDAOtoDTOforChats(savedMessage);
     }
 

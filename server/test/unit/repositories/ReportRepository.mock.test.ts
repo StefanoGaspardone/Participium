@@ -137,7 +137,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { assignedTo: { id: 123 } },
-      relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
+      relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
       order: { createdAt: "DESC" }
     });
 
@@ -159,7 +159,7 @@ describe('ReportRepository (mock)', () => {
 
     expect(fakeRepo.find).toHaveBeenCalledWith({
       where: { assignedTo: { id: 456 } },
-      relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
+      relations: ["category", "category.office", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"],
       order: { createdAt: "DESC" }
     });
 

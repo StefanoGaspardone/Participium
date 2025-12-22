@@ -5,17 +5,22 @@ import {createNotificationDTO, NewNotificationDTO, NotificationDTO} from "@dtos/
 import {userRepository, UserRepository} from "@repositories/UserRepository";
 import {BadRequestError} from "@errors/BadRequestError";
 import {reportRepository, ReportRepository} from "@repositories/ReportRepository";
+import {messageRepository, MessageRepository} from "@repositories/MessageRepository";
+import {NotificationType} from '@daos/NotificationsDAO';
+import {NewMessageNotificationDTO} from '@dtos/NotificationDTO';
 
 export class NotificationService {
 
     private notificationRepo: NotificationRepository;
     private userRepo: UserRepository;
     private reportRepo: ReportRepository;
+    private messageRepo: MessageRepository;
 
     constructor() {
         this.notificationRepo = notificationRepository;
         this.userRepo = userRepository;
         this.reportRepo = reportRepository;
+        this.messageRepo = messageRepository;
     }
 
     findAllNotifications = async (): Promise<NotificationDTO[]> => {
@@ -40,6 +45,8 @@ export class NotificationService {
         }
         notificationDAO.report = report;
 
+        notificationDAO.type = NotificationType.REPORT_STATUS;
+
         const newNotification = await this.notificationRepo.createNotification(notificationDAO);
         return createNotificationDTO(newNotification);
     }
@@ -60,6 +67,33 @@ export class NotificationService {
 
         const myNotifications = await this.notificationRepo.findMyNotifications(user);
         return myNotifications.map(createNotificationDTO);
+    }
+
+    createMessageNotification = async (payload: NewMessageNotificationDTO): Promise<NotificationDTO> => {
+        const notificationDAO = new NotificationDAO;
+
+        const user = await this.userRepo.findUserById(payload.userId);
+        if (!user) {
+            throw new BadRequestError("User not found");
+        }
+        notificationDAO.user = user;
+
+        const report = await this.reportRepo.findReportById(payload.reportId);
+        if (!report) {
+            throw new BadRequestError("Report not found");
+        }
+        notificationDAO.report = report;
+
+        const message = await this.messageRepo.findMessageById(payload.messageId);
+        if (!message) {
+            throw new BadRequestError('Message not found');
+        }
+        notificationDAO.message = message;
+
+        notificationDAO.type = NotificationType.MESSAGE;
+
+        const newNotification = await this.notificationRepo.createNotification(notificationDAO);
+        return createNotificationDTO(newNotification);
     }
 }
 

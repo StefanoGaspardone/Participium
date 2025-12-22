@@ -1,5 +1,5 @@
-import type { Category, Chat, Company, Message, Office, Report, User } from "../models/models";
-import { toApiError } from "../models/models";
+import type {Category, Chat, Company, Message, Office, Report, User} from "../models/models";
+import {toApiError} from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
 
@@ -243,9 +243,13 @@ export const getOffices = async (): Promise<Office[]> => {
 
 // Reports management (PRO homepage)
 export const getReportsByStatus = async (status: string): Promise<Report[]> => {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const res = await fetch(`${BASE_URL}/reports?status=${encodeURIComponent(status)}`, {
     method: 'GET',
-    headers: { 'Authorization': `Bearer ${getToken()}` }
+    headers,
   });
   if (!res.ok) throw await toApiError(res);
   const data = await res.json();
@@ -271,8 +275,11 @@ export const updateReportCategory = async (reportId: number, categoryId: number)
   const data = await res.json();
   return data.report as Report;
 };
-
-export const assignOrRejectReport = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<Report> => {
+export interface AssignOrRejectResponse {
+  report: Report,
+    message: string
+}
+export const assignOrRejectReport = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<AssignOrRejectResponse> => {
   const body: any = { status };
   if (status === 'Rejected') body.rejectedDescription = rejectedDescription;
   const res = await fetch(`${BASE_URL}/reports/${reportId}/status/public`, {
@@ -284,8 +291,7 @@ export const assignOrRejectReport = async (reportId: number, status: 'Assigned' 
     body: JSON.stringify(body)
   });
   if (!res.ok) throw await toApiError(res);
-  const data = await res.json();
-  return data.report as Report;
+  return await res.json();
 };
 
 interface StatusUpdatePayload {
@@ -306,8 +312,6 @@ export const updateReportStatus = async (reportId: number, status: "InProgress" 
   return data.report as Report;
 };
 
-
-// Reports assigned to the logged technical staff member
 export const getAssignedReports = async (): Promise<Report[]> => {
   const res = await fetch(`${BASE_URL}/reports/assigned`, {
     method: 'GET',
@@ -355,14 +359,22 @@ export const updateUser = async (
 
 export interface Notification {
   id: number;
-  previousStatus: string;
-  newStatus: string;
+  previousStatus?: string | null;
+  newStatus?: string | null;
   seen: boolean;
   createdAt: string;
   report: {
     id: number;
     title: string;
   };
+  type?: string | null;
+  message?: {
+    id: number;
+    text: string;
+    sentAt: string;
+    senderId?: number;
+    senderRole?: string;
+  } | null;
 }
 type NotificationsResponse = {
   notifications: Notification[];
@@ -599,4 +611,72 @@ export const assignReportToExternalMaintainer = async (reportId: number, maintai
 
   const data = await res.json();
   return data as Report;
+};
+
+// Technical Staff Members (TSM) endpoints
+export interface TechnicalStaffMember {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  userType: string;
+  offices: string[]; // array of office names
+}
+
+/**
+ * GET /users/tsm
+ * Returns an array of technical staff members with their assigned office names
+ */
+export const getTechnicalStaffMembers = async (): Promise<TechnicalStaffMember[]> => {
+  const res = await fetch(`${BASE_URL}/users/tsm`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!res.ok) throw await toApiError(res);
+
+  const data = await res.json();
+  const arr = Array.isArray(data) ? data : Array.isArray(data?.tsm) ? data.tsm : [];
+
+  return arr.map((t: any) => ({
+    id: Number(t.id),
+    firstName: String(t.firstName ?? ""),
+    lastName: String(t.lastName ?? ""),
+    email: String(t.email ?? ""),
+    username: String(t.username ?? ""),
+    userType: String(t.userType ?? ""),
+    offices: Array.isArray(t.offices) ? t.offices.map(String) : [],
+  }));
+};
+
+/**
+ * Convenience helper: return the offices for a single TSM by id.
+ * Implemented locally by using `getTechnicalStaffMembers` (server doesn't expose /users/tsm/{id}).
+ */
+export const getTsmOffices = async (tsmId: number): Promise<string[]> => {
+  const all = await getTechnicalStaffMembers();
+  const t = Array.isArray(all) ? all.find((s) => Number(s.id) === Number(tsmId)) : null;
+  return t?.offices ?? [];
+};
+
+/**
+ * PATCH /users/tsm/{id}
+ * Body: { officeIds: number[] }
+ */
+export const updateTsmOffices = async (tsmId: number, officeIds: number[]): Promise<{ message?: string; updatedTsm?: any }> => {
+  const res = await fetch(`${BASE_URL}/users/tsm/${tsmId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ officeIds }),
+  });
+
+  if (!res.ok) throw await toApiError(res);
+
+  return res.json();
 };

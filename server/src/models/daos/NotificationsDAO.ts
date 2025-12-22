@@ -1,7 +1,10 @@
 import {Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {ReportDAO, ReportStatus} from '@daos/ReportDAO';
 import {UserDAO} from "@daos/UserDAO";
+import {MessageDAO} from "@daos/MessagesDAO";
 import {IsEnum} from "class-validator";
+
+export enum NotificationType { REPORT_STATUS = 'REPORT_STATUS', MESSAGE = 'MESSAGE' }
 
 @Entity({ name: 'notifications' })
 export class NotificationDAO {
@@ -16,11 +19,19 @@ export class NotificationDAO {
     @JoinColumn({ name: 'report_id' })
     report: ReportDAO;
 
-    @Column({ type: 'varchar'})
-    previousStatus: ReportStatus;
+    @Column({ type: 'varchar', nullable: true})
+    previousStatus?: ReportStatus;
 
-    @Column({ type: 'varchar'})
-    newStatus: ReportStatus;
+    @Column({ type: 'varchar', nullable: true})
+    newStatus?: ReportStatus;
+
+    @Column({ type: 'enum', enum: NotificationType, nullable: true })
+    @IsEnum(NotificationType)
+    type: NotificationType;
+
+    @ManyToOne(() => MessageDAO, { nullable: true })
+    @JoinColumn({ name: 'message_id' })
+    message?: MessageDAO;
 
     @Column({ type: 'boolean', default: false })
     seen: boolean;

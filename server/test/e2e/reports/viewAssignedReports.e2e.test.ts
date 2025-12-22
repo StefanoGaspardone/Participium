@@ -45,7 +45,7 @@ describe("View Assigned Reports E2E Tests", () => {
       firstName: "Tech",
       lastName: "Staff",
       userType: UserType.TECHNICAL_STAFF_MEMBER,
-      office: office!,
+      offices: [office!],
     });
     const savedTech = await userRepo.save(techUser);
     techUserId = savedTech.id;
@@ -163,7 +163,7 @@ describe("View Assigned Reports E2E Tests", () => {
         firstName: "Tech",
         lastName: "Staff2",
         userType: UserType.TECHNICAL_STAFF_MEMBER,
-        office: office!,
+        offices: [office!],
       });
       const savedTech2 = await userRepo.save(techUser2);
 
