@@ -10,7 +10,7 @@ import ReportMiniMap from "./ReportMiniMap";
 import { motion, AnimatePresence } from "framer-motion";
 import "./AuthForms.css";
 import Chats from "./Chats";
-import { fetchAddress } from "./HomepageMap";
+import { fetchAddressByCoordinates } from "./HomepageMap";
 import { Lightbox } from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { REPORT_STATUS_COLORS } from "../constants/reportStatusColors";

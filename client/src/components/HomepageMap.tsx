@@ -165,14 +165,9 @@ type Props = {
   reports?: Report[] | null;
 };
 
-export const fetchAddress = async (
-  lat: number,
-  lng: number
-): Promise<string> => {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`
-    );
+export const fetchAddressByCoordinates = async (lat: number, lng: number): Promise<string> => {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`);
 
     if (!res.ok) return "Not available";
 
@@ -181,12 +176,64 @@ export const fetchAddress = async (
     const houseNumber = data.address?.house_number || "";
     const address = `${road} ${houseNumber}`.trim() || data.display_name || "";
 
-    return address || "Not available";
-  } catch (error) {
-    console.error(error);
-    return "Not available";
-  }
-};
+        return address || 'Not available';
+    } catch (error) {
+        console.error(error);
+        return 'Not available';
+    }
+}
+
+export const fetchCoordinatesByAddress = async (address: string): Promise<{ lat: number, lng: number } | null> => {
+    try {
+        const query = encodeURIComponent(address);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=jsonv2&limit=1`);
+
+        if(!res.ok) return null;
+
+        const data = await res.json();
+
+        if(data && data.length > 0) {
+            return {
+                lat: Number.parseFloat(data[0].lat),
+                lng: Number.parseFloat(data[0].lon)
+            };
+        }
+
+        return null;
+    } catch(error) {
+        console.error("Errore durante il geocoding:", error);
+        return null;
+    }
+}
+
+const LocationMarker = ({ selected, setSelected, turinPolys }: { selected: Coord | null, setSelected: (c: Coord | null) => void, turinPolys: L.LatLng[][] }) => {
+    const { isLoggedIn } = useAppContext();
+    const markerRef = useRef<L.Marker>(null);
+
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    useMapEvents({
+        async click(e) {
+            if (!isLoggedIn || !turinPolys.length) return;
+
+            const { lat, lng } = e.latlng;
+            const inside = turinPolys.some((poly) => pointInPolygon(lat, lng, poly));
+            const snapped = inside ? { lat, lng } : nearestPointOnTurin(lat, lng, turinPolys);
+
+            if (snapped) {
+                setSelected({ lat: snapped.lat, lng: snapped.lng, address: 'Fetching address...' });
+                const addr = await fetchAddressByCoordinates(snapped.lat, snapped.lng);
+                setSelected({ lat: snapped.lat, lng: snapped.lng, address: addr });
+
+                setTimeout(() => {
+                    if (markerRef.current) {
+                        markerRef.current.openPopup();
+                    }
+                }, 100);
+            }
+        },
+    });
 
 const LocationMarker = ({
   selected,
