@@ -98,6 +98,209 @@ describe('ReportService (mock)', () => {
     });
   });
 
+  describe('listReportsByUserId', () => {
+    it('should return empty array when user has no reports', async () => {
+      const service = new ReportService();
+      // @ts-ignore
+      service['reportRepo'] = { findReportsByUserId: jest.fn().mockResolvedValue([]) };
+
+      const result = await service.listReportsByUserId(123);
+
+      expect((service as any).reportRepo.findReportsByUserId).toHaveBeenCalledWith(123);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should return list of reports for a specific user', async () => {
+      const service = new ReportService();
+      const mockReports = [
+        {
+          id: 1,
+          title: 'User Report 1',
+          description: 'First report',
+          status: ReportStatus.PendingApproval,
+          createdBy: { id: 123, username: 'user123' },
+          category: { id: 1, name: 'Potholes' },
+          createdAt: new Date(),
+          lat: 45.07,
+          long: 7.65,
+          images: ['img1.jpg'],
+          anonymous: false
+        },
+        {
+          id: 2,
+          title: 'User Report 2',
+          description: 'Second report',
+          status: ReportStatus.Assigned,
+          createdBy: { id: 123, username: 'user123' },
+          category: { id: 2, name: 'Lights' },
+          createdAt: new Date(),
+          lat: 45.08,
+          long: 7.66,
+          images: ['img2.jpg'],
+          anonymous: false
+        }
+      ];
+
+      // @ts-ignore
+      service['reportRepo'] = { findReportsByUserId: jest.fn().mockResolvedValue(mockReports) };
+
+      const result = await service.listReportsByUserId(123);
+
+      expect((service as any).reportRepo.findReportsByUserId).toHaveBeenCalledWith(123);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe(1);
+      expect(result[0].title).toBe('User Report 1');
+      expect(result[0].createdBy.id).toBe(123);
+      expect(result[1].id).toBe(2);
+      expect(result[1].title).toBe('User Report 2');
+    });
+
+    it('should map reports to DTOs correctly', async () => {
+      const service = new ReportService();
+      const mockReport = {
+        id: 5,
+        title: 'My Report',
+        description: 'Report description',
+        status: ReportStatus.InProgress,
+        createdBy: { id: 100, username: 'citizen100', firstName: 'Jane', lastName: 'Smith' },
+        assignedTo: { id: 50, username: 'tech50' },
+        category: { id: 3, name: 'Water', office: { id: 2, name: 'Water Office' } },
+        images: ['https://img/report.jpg'],
+        lat: 45.0703,
+        long: 7.6869,
+        anonymous: true,
+        createdAt: new Date('2025-01-15'),
+        rejectedDescription: null
+      };
+
+      // @ts-ignore
+      service['reportRepo'] = { findReportsByUserId: jest.fn().mockResolvedValue([mockReport]) };
+
+      const result = await service.listReportsByUserId(100);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty('id', 5);
+      expect(result[0]).toHaveProperty('title', 'My Report');
+      expect(result[0]).toHaveProperty('description', 'Report description');
+      expect(result[0]).toHaveProperty('anonymous', true);
+      expect(result[0].category).toHaveProperty('name', 'Water');
+      expect(result[0].createdBy.id).toBe(100);
+    });
+  });
+
+  describe('findByIdAndUserId', () => {
+    it('should throw NotFoundError when report does not exist', async () => {
+      const service = new ReportService();
+      // @ts-ignore
+      service['reportRepo'] = { findReportById: jest.fn().mockResolvedValue(null) };
+
+      await expect(service.findByIdAndUserId(1, 123)).rejects.toThrow('Report 1 not found');
+      expect((service as any).reportRepo.findReportById).toHaveBeenCalledWith(1);
+    });
+
+    it('should throw InsufficientRightsError when report does not belong to user', async () => {
+      const service = new ReportService();
+      const mockReport = {
+        id: 1,
+        title: 'Report',
+        createdBy: { id: 999 },
+        category: { id: 1 },
+        createdAt: new Date()
+      };
+
+      // @ts-ignore
+      service['reportRepo'] = { findReportById: jest.fn().mockResolvedValue(mockReport) };
+
+      await expect(service.findByIdAndUserId(1, 123)).rejects.toThrow('Report 1 does not belong to user 123');
+    });
+
+    it('should return report DTO when report belongs to user', async () => {
+      const service = new ReportService();
+      const mockReport = {
+        id: 1,
+        title: 'My Report',
+        description: 'Description',
+        status: ReportStatus.PendingApproval,
+        createdBy: { id: 123, username: 'user123', firstName: 'John', lastName: 'Doe' },
+        category: { id: 1, name: 'Category1', office: { id: 1, name: 'Office1' } },
+        images: ['img1.jpg', 'img2.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdAt: new Date('2025-01-20'),
+        rejectedDescription: null
+      };
+
+      // @ts-ignore
+      service['reportRepo'] = { findReportById: jest.fn().mockResolvedValue(mockReport) };
+
+      const result = await service.findByIdAndUserId(1, 123);
+
+      expect((service as any).reportRepo.findReportById).toHaveBeenCalledWith(1);
+      expect(result).toBeDefined();
+      expect(result.id).toBe(1);
+      expect(result.title).toBe('My Report');
+      expect(result.createdBy.id).toBe(123);
+      expect(result.images).toHaveLength(2);
+    });
+
+    it('should return report with all details including assignedTo', async () => {
+      const service = new ReportService();
+      const mockReport = {
+        id: 10,
+        title: 'Assigned Report',
+        description: 'This is assigned',
+        status: ReportStatus.InProgress,
+        createdBy: { id: 50, username: 'citizen50', firstName: 'Alice', lastName: 'Brown' },
+        assignedTo: { id: 99, username: 'tech99', firstName: 'Tech', lastName: 'Staff' },
+        category: { id: 2, name: 'Roads', office: { id: 2, name: 'Roads Office' } },
+        images: ['road1.jpg'],
+        lat: 45.0703,
+        long: 7.6869,
+        anonymous: false,
+        createdAt: new Date('2025-01-10'),
+        rejectedDescription: null
+      };
+
+      // @ts-ignore
+      service['reportRepo'] = { findReportById: jest.fn().mockResolvedValue(mockReport) };
+
+      const result = await service.findByIdAndUserId(10, 50);
+
+      expect(result.id).toBe(10);
+      expect(result.status).toBe(ReportStatus.InProgress);
+      expect(result.assignedTo).toBeDefined();
+      expect(result.assignedTo?.id).toBe(99);
+      expect(result.assignedTo?.username).toBe('tech99');
+    });
+
+    it('should return rejected report with rejectedDescription', async () => {
+      const service = new ReportService();
+      const mockReport = {
+        id: 15,
+        title: 'Rejected Report',
+        description: 'This was rejected',
+        status: ReportStatus.Rejected,
+        createdBy: { id: 75, username: 'citizen75' },
+        category: { id: 3, name: 'Waste' },
+        images: [],
+        lat: 45.08,
+        long: 7.67,
+        anonymous: false,
+        createdAt: new Date('2025-01-05'),
+        rejectedDescription: 'Does not meet requirements'
+      };
+
+      // @ts-ignore
+      service['reportRepo'] = { findReportById: jest.fn().mockResolvedValue(mockReport) };
+
+      const result = await service.findByIdAndUserId(15, 75);
+
+      expect(result.status).toBe(ReportStatus.Rejected);
+      expect(result.rejectedDescription).toBe('Does not meet requirements');
+    });
+  });
+
   describe('updateReportCategory', () => {
     it('should throw NotFoundError if report not found', async () => {
       const service = new ReportService();

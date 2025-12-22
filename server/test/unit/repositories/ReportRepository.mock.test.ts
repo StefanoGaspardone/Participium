@@ -260,4 +260,107 @@ describe('ReportRepository (mock)', () => {
         expect(result[0].title).toBe('Newer Report');
         expect(result[1].title).toBe('Older Report');
     });
+
+  it('findReportsByUserId should return reports created by a user', async () => {
+    const mockReports = [
+      { id: 1, title: 'User Report 1', createdBy: { id: 100 }, status: 'PendingApproval' },
+      { id: 2, title: 'User Report 2', createdBy: { id: 100 }, status: 'Assigned' }
+    ];
+
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue(mockReports),
+    };
+
+    const database = require('@database');
+    jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+    const repo = new ReportRepository();
+    const result = await repo.findReportsByUserId(100);
+
+    expect(fakeRepo.find).toHaveBeenCalledWith({
+      where: { createdBy: { id: 100 } },
+      relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"]
+    });
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual(expect.objectContaining({ title: 'User Report 1' }));
+    expect(result[1]).toEqual(expect.objectContaining({ title: 'User Report 2' }));
+  });
+
+  it('findReportsByUserId should return empty array if user has no reports', async () => {
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue([]),
+    };
+
+    const database = require('@database');
+    jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+    const repo = new ReportRepository();
+    const result = await repo.findReportsByUserId(999);
+
+    expect(fakeRepo.find).toHaveBeenCalledWith({
+      where: { createdBy: { id: 999 } },
+      relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"]
+    });
+
+    expect(result).toHaveLength(0);
+  });
+
+  it('findReportsByUserId should return reports with all relations loaded', async () => {
+    const mockReports = [
+      {
+        id: 1,
+        title: 'Detailed Report',
+        createdBy: { id: 50, username: 'user50' },
+        category: { id: 1, name: 'Roads' },
+        assignedTo: { id: 20, username: 'tech20' },
+        coAssignedTo: { id: 30, username: 'external30', company: { id: 5, name: 'Company A' } },
+        status: 'InProgress'
+      }
+    ];
+
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue(mockReports),
+    };
+
+    const database = require('@database');
+    jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+    const repo = new ReportRepository();
+    const result = await repo.findReportsByUserId(50);
+
+    expect(fakeRepo.find).toHaveBeenCalledWith(expect.objectContaining({
+      relations: ["category", "createdBy", "assignedTo", "coAssignedTo", "coAssignedTo.company"]
+    }));
+
+    expect(result).toHaveLength(1);
+    expect(result[0].category).toBeDefined();
+    expect(result[0].createdBy).toBeDefined();
+    expect(result[0].assignedTo).toBeDefined();
+    expect(result[0].coAssignedTo).toBeDefined();
+    expect(result[0].coAssignedTo.company).toBeDefined();
+  });
+
+  it('findReportsByUserId should handle multiple reports with different statuses', async () => {
+    const mockReports = [
+      { id: 1, title: 'Pending Report', createdBy: { id: 75 }, status: 'PendingApproval' },
+      { id: 2, title: 'Assigned Report', createdBy: { id: 75 }, status: 'Assigned' },
+      { id: 3, title: 'Resolved Report', createdBy: { id: 75 }, status: 'Resolved' },
+      { id: 4, title: 'Rejected Report', createdBy: { id: 75 }, status: 'Rejected' }
+    ];
+
+    const fakeRepo: any = {
+      find: jest.fn().mockResolvedValue(mockReports),
+    };
+
+    const database = require('@database');
+    jest.spyOn(database.AppDataSource, 'getRepository').mockImplementation(() => fakeRepo);
+
+    const repo = new ReportRepository();
+    const result = await repo.findReportsByUserId(75);
+
+    expect(result).toHaveLength(4);
+    expect(result.map(r => r.status)).toEqual(['PendingApproval', 'Assigned', 'Resolved', 'Rejected']);
+  });
 });
+
