@@ -243,9 +243,13 @@ export const getOffices = async (): Promise<Office[]> => {
 
 // Reports management (PRO homepage)
 export const getReportsByStatus = async (status: string): Promise<Report[]> => {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const res = await fetch(`${BASE_URL}/reports?status=${encodeURIComponent(status)}`, {
     method: 'GET',
-    headers: { 'Authorization': `Bearer ${getToken()}` }
+    headers,
   });
   if (!res.ok) throw await toApiError(res);
   const data = await res.json();
