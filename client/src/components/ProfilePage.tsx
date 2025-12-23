@@ -215,7 +215,7 @@ export default function ProfilePage() {
                                     </div>
                                     {user.telegramUsername && (
                                         <div className="profile-info-item">
-                                            <span className="profile-info-label">Telegram</span>
+                                            <span className="profile-info-label">Telegram — <a href="https://t.me/ParticipiumSE05Bot" target="_blank" rel="noopener noreferrer">Go to bot</a> </span>
                                             <span className="profile-info-value">{user.telegramUsername}</span>
                                         </div>
                                     )}
