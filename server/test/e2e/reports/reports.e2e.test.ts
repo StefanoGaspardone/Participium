@@ -133,6 +133,38 @@ describe("Reports e2e tests", () => {
 		expect(res.status).toBe(201);
 	});
 
+	it("POST /api/reports => 201 when creating anonymous report and verify it was created", async () => {
+		const payload = {
+			payload: {
+				title: "Anonymous Report E2E",
+				description: "This is an anonymous report for testing",
+				categoryId: categoryId,
+				images: ["http://example.com/anonymous.jpg"],
+				lat: 45.0703,
+				long: 7.6869,
+				anonymous: true,
+			},
+		};
+
+		const res = await request(app).post("/api/reports").set("Authorization", `Bearer ${token}`).send(payload);
+		expect(res.status).toBe(201);
+		expect(res.body).toHaveProperty("message");
+
+		// Verify the anonymous report was persisted correctly
+		const repo = AppDataSource.getRepository(ReportDAO);
+		const created = await repo.findOne({
+			where: { title: "Anonymous Report E2E" },
+			relations: ["category", "createdBy"]
+		});
+
+		expect(created).toBeDefined();
+		expect(created?.anonymous).toBe(true);
+		expect(created?.title).toBe("Anonymous Report E2E");
+		expect(created?.description).toBe("This is an anonymous report for testing");
+		expect(created?.category?.id).toBe(categoryId);
+		expect(created?.createdBy).toBeDefined();
+	});
+
 	it("POST /api/reports => 400 when coordinates are outside Turin", async () => {
 		const payload = {
 			payload: {
@@ -188,6 +220,21 @@ describe("Reports e2e tests", () => {
 		expect(res.status).toBe(404);
 		expect(res.body).toHaveProperty("message");
 		expect(String(res.body.message).toLowerCase()).toMatch(/not found/);
+	});
+
+	it("POST /api/reports => 400 when anonymous is not boolean", async () => {
+		const goodPayload = {
+			payload: {
+				...getValidPayload().payload,
+				title: "Broken sidewalk E2E",
+				description: "There is a large crack on the sidewalk near XY",
+				anonymous: "false",
+			},
+		};
+
+		const res = await request(app).post("/api/reports").set("Authorization", `Bearer ${token}`).send(goodPayload);
+		expect(res.status).toBe(400);
+		expect(res.body).toHaveProperty("message");
 	});
 
 	describe("Chat creation on report assignment", () => {
