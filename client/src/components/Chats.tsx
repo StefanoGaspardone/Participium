@@ -421,7 +421,7 @@ const Chats = ({
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <div ref={popoverRef} className="chats-popover p-0 overflow-hidden">
-              <div className="row h-100 m-0">
+              <div className="row h-100 m-0" id="chat-popover">
                 {/* Left column: list of chats */}
                 <div className="col-5 h-100 border-end p-0 d-flex flex-column">
                   <div className="p-2 border-bottom bg-light">
@@ -523,6 +523,7 @@ const Chats = ({
           type="button"
           onClick={handleToggle}
           className="chat-toggle"
+          id="open-chat-button"
           aria-label="Open chat"
           title="Open chat"
         >

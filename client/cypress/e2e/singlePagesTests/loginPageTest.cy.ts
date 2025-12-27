@@ -49,7 +49,6 @@ describe('4. Test suite for login page :', () => {
 		loginPage.insertPassword('user');
 		loginPage.submitForm();
 		cy.wait('@loginCitizen');
-		// cy.get('.e2e-toast-success', { timeout: 5000 }).should('be.visible').and('contain.text', 'Welcome user!');
 		cy.url().should('equal', HOMEPAGE_URL);
 	});
 

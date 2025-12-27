@@ -224,6 +224,7 @@ export default function CustomNavbar() {
                             <motion.div
                               layout
                               role="button"
+                              id="profile-button"
                               tabIndex={0}
                               initial={{ opacity: 0, y: 6 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -261,6 +262,7 @@ export default function CustomNavbar() {
                           <motion.div
                             layout
                             role="button"
+                            id="logout-button"
                             tabIndex={0}
                             initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
