@@ -275,7 +275,9 @@ export class ReportController {
     getReportById = async (req: AuthRequest & { params: { id: number } }, res: Response, next: NextFunction) => {
         try {
             const reportId = Number(req.params.id);
-
+            if( Number.isNaN(reportId) || reportId <= 0) {
+                throw new BadRequestError('Report id must be a positive number');
+            }
             const report = await this.reportService.findByIdAndUserId(reportId, req.token?.user?.id as number);
             return res.status(200).json({ report });
         } catch(error) {

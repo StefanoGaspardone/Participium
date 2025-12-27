@@ -751,4 +751,389 @@ describe('Report routes integration tests', () => {
       });
     });
   });
+
+  describe('GET /api/reports/mine', () => {
+    it('should return 401 without token', async () => {
+      const res = await request(app).get('/api/reports/mine');
+      expect(res.status).toBe(401);
+    });
+
+    it('should return empty array when user has no reports', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('newuser123', salt);
+
+      const newUser = userRepo.create({
+        username: 'user_no_reports',
+        email: 'noreports@test.com',
+        passwordHash: hash,
+        firstName: 'No',
+        lastName: 'Reports',
+        userType: UserType.CITIZEN,
+      });
+      const savedUser = await userRepo.save(newUser);
+      createdEntities.users.push(savedUser);
+
+      const login = await request(app).post('/api/users/login').send({
+        username: 'user_no_reports',
+        password: 'newuser123',
+      });
+      const userToken = login.body.token;
+
+      const res = await request(app)
+        .get('/api/reports/mine')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.reports).toEqual([]);
+    });
+
+    it('should return only reports created by authenticated user', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+
+      const salt = await bcrypt.genSalt(10);
+      const hash1 = await bcrypt.hash('user1pass', salt);
+      const hash2 = await bcrypt.hash('user2pass', salt);
+
+      const user1 = userRepo.create({
+        username: 'user_mine_1',
+        email: 'mine1@test.com',
+        passwordHash: hash1,
+        firstName: 'User1',
+        lastName: 'Mine',
+        userType: UserType.CITIZEN,
+      });
+      const savedUser1 = await userRepo.save(user1);
+      createdEntities.users.push(savedUser1);
+
+      const user2 = userRepo.create({
+        username: 'user_mine_2',
+        email: 'mine2@test.com',
+        passwordHash: hash2,
+        firstName: 'User2',
+        lastName: 'Mine',
+        userType: UserType.CITIZEN,
+      });
+      const savedUser2 = await userRepo.save(user2);
+      createdEntities.users.push(savedUser2);
+
+      const category = await categoryRepo.findOne({ where: { id: categoryId } });
+
+      // Create reports for user1
+      const report1 = reportRepo.create({
+        title: 'User1 Report 1',
+        description: 'First report by user1',
+        category: category!,
+        images: ['http://example.com/user1_1.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: savedUser1,
+        status: ReportStatus.PendingApproval,
+      });
+      const savedReport1 = await reportRepo.save(report1);
+      createdEntities.reports.push(savedReport1);
+
+      const report2 = reportRepo.create({
+        title: 'User1 Report 2',
+        description: 'Second report by user1',
+        category: category!,
+        images: ['http://example.com/user1_2.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: savedUser1,
+        status: ReportStatus.Assigned,
+      });
+      const savedReport2 = await reportRepo.save(report2);
+      createdEntities.reports.push(savedReport2);
+
+      // Create report for user2
+      const report3 = reportRepo.create({
+        title: 'User2 Report 1',
+        description: 'First report by user2',
+        category: category!,
+        images: ['http://example.com/user2_1.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: savedUser2,
+        status: ReportStatus.PendingApproval,
+      });
+      const savedReport3 = await reportRepo.save(report3);
+      createdEntities.reports.push(savedReport3);
+
+      const login = await request(app).post('/api/users/login').send({
+        username: 'user_mine_1',
+        password: 'user1pass',
+      });
+      const user1Token = login.body.token;
+
+      const res = await request(app)
+        .get('/api/reports/mine')
+        .set('Authorization', `Bearer ${user1Token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.reports).toHaveLength(2);
+      expect(res.body.reports.every((r: any) => r.createdBy.id === savedUser1.id)).toBe(true);
+      expect(res.body.reports.map((r: any) => r.title).sort()).toEqual(['User1 Report 1', 'User1 Report 2']);
+    });
+
+    it('should return reports with all details', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('detailuser', salt);
+
+      const user = userRepo.create({
+        username: 'user_with_details',
+        email: 'details@test.com',
+        passwordHash: hash,
+        firstName: 'Detail',
+        lastName: 'User',
+        userType: UserType.CITIZEN,
+      });
+      const savedUser = await userRepo.save(user);
+      createdEntities.users.push(savedUser);
+
+      const category = await categoryRepo.findOne({
+        where: { id: categoryId },
+        relations: ['office']
+      });
+
+      const report = reportRepo.create({
+        title: 'Detailed Report Mine',
+        description: 'Full details',
+        category: category!,
+        images: ['http://example.com/d1.jpg', 'http://example.com/d2.jpg'],
+        lat: 45.0703,
+        long: 7.6869,
+        anonymous: false,
+        createdBy: savedUser,
+        status: ReportStatus.PendingApproval,
+      });
+      const savedReport = await reportRepo.save(report);
+      createdEntities.reports.push(savedReport);
+
+      const login = await request(app).post('/api/users/login').send({
+        username: 'user_with_details',
+        password: 'detailuser',
+      });
+      const userToken = login.body.token;
+
+      const res = await request(app)
+        .get('/api/reports/mine')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.reports).toHaveLength(1);
+      expect(res.body.reports[0]).toMatchObject({
+        title: 'Detailed Report Mine',
+        description: 'Full details',
+        lat: 45.0703,
+        long: 7.6869,
+        anonymous: false,
+        status: ReportStatus.PendingApproval
+      });
+      expect(res.body.reports[0].category).toBeDefined();
+      expect(res.body.reports[0].category.id).toBe(categoryId);
+      expect(res.body.reports[0].images).toHaveLength(2);
+    });
+  });
+
+  describe('GET /api/reports/:id', () => {
+    it('should return 401 without token', async () => {
+      const res = await request(app).get('/api/reports/1');
+      expect(res.status).toBe(401);
+    });
+
+    it('should return 404 when report does not exist', async () => {
+      const res = await request(app)
+        .get('/api/reports/999999')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('should return 403 when trying to access another user\'s report', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+
+      const salt = await bcrypt.genSalt(10);
+      const hash1 = await bcrypt.hash('owner123', salt);
+      const hash2 = await bcrypt.hash('other123', salt);
+
+      const owner = userRepo.create({
+        username: 'report_owner',
+        email: 'owner@test.com',
+        passwordHash: hash1,
+        firstName: 'Owner',
+        lastName: 'Test',
+        userType: UserType.CITIZEN,
+      });
+      const savedOwner = await userRepo.save(owner);
+      createdEntities.users.push(savedOwner);
+
+      const otherUser = userRepo.create({
+        username: 'other_user',
+        email: 'other@test.com',
+        passwordHash: hash2,
+        firstName: 'Other',
+        lastName: 'Test',
+        userType: UserType.CITIZEN,
+      });
+      const savedOther = await userRepo.save(otherUser);
+      createdEntities.users.push(savedOther);
+
+      const category = await categoryRepo.findOne({ where: { id: categoryId } });
+
+      const report = reportRepo.create({
+        title: 'Owner\'s Report',
+        description: 'This belongs to owner',
+        category: category!,
+        images: ['http://example.com/owner.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: savedOwner,
+        status: ReportStatus.PendingApproval,
+      });
+      const savedReport = await reportRepo.save(report);
+      createdEntities.reports.push(savedReport);
+
+      const login = await request(app).post('/api/users/login').send({
+        username: 'other_user',
+        password: 'other123',
+      });
+      const otherToken = login.body.token;
+
+      const res = await request(app)
+        .get(`/api/reports/${savedReport.id}`)
+        .set('Authorization', `Bearer ${otherToken}`);
+
+      expect(res.status).toBe(403);
+    });
+
+    it('should return report when user is the owner', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('owner456', salt);
+
+      const owner = userRepo.create({
+        username: 'report_owner_valid',
+        email: 'owner_valid@test.com',
+        passwordHash: hash,
+        firstName: 'Valid',
+        lastName: 'Owner',
+        userType: UserType.CITIZEN,
+      });
+      const savedOwner = await userRepo.save(owner);
+      createdEntities.users.push(savedOwner);
+
+      const category = await categoryRepo.findOne({ where: { id: categoryId } });
+
+      const report = reportRepo.create({
+        title: 'Valid Owner Report',
+        description: 'This should be accessible',
+        category: category!,
+        images: ['http://example.com/valid.jpg'],
+        lat: 45.07,
+        long: 7.65,
+        anonymous: false,
+        createdBy: savedOwner,
+        status: ReportStatus.PendingApproval,
+      });
+      const savedReport = await reportRepo.save(report);
+      createdEntities.reports.push(savedReport);
+
+      const login = await request(app).post('/api/users/login').send({
+        username: 'report_owner_valid',
+        password: 'owner456',
+      });
+      const ownerToken = login.body.token;
+
+      const res = await request(app)
+        .get(`/api/reports/${savedReport.id}`)
+        .set('Authorization', `Bearer ${ownerToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.report).toBeDefined();
+      expect(res.body.report.id).toBe(savedReport.id);
+      expect(res.body.report.title).toBe('Valid Owner Report');
+      expect(res.body.report.createdBy.id).toBe(savedOwner.id);
+    });
+
+    it('should return report with all details including category and office', async () => {
+      const userRepo = AppDataSource.getRepository(UserDAO);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('details123', salt);
+
+      const user = userRepo.create({
+        username: 'user_details',
+        email: 'details_id@test.com',
+        passwordHash: hash,
+        firstName: 'Details',
+        lastName: 'User',
+        userType: UserType.CITIZEN,
+      });
+      const savedUser = await userRepo.save(user);
+      createdEntities.users.push(savedUser);
+
+      const category = await categoryRepo.findOne({
+        where: { id: categoryId },
+        relations: ['office']
+      });
+
+      const report = reportRepo.create({
+        title: 'Detailed Report ID',
+        description: 'Report with full details',
+        category: category!,
+        images: ['http://example.com/detail1.jpg', 'http://example.com/detail2.jpg'],
+        lat: 45.0703,
+        long: 7.6869,
+        anonymous: false,
+        createdBy: savedUser,
+        status: ReportStatus.PendingApproval,
+      });
+      const savedReport = await reportRepo.save(report);
+      createdEntities.reports.push(savedReport);
+
+      const login = await request(app).post('/api/users/login').send({
+        username: 'user_details',
+        password: 'details123',
+      });
+      const userToken = login.body.token;
+
+      const res = await request(app)
+        .get(`/api/reports/${savedReport.id}`)
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.report.category).toBeDefined();
+      expect(res.body.report.category.id).toBe(categoryId);
+      expect(res.body.report.images).toHaveLength(2);
+      expect(res.body.report.lat).toBe(45.0703);
+      expect(res.body.report.long).toBe(7.6869);
+    });
+
+    it('should return 400 with invalid id format', async () => {
+      const res = await request(app)
+        .get('/api/reports/invalid')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(400); // Express router will not match the route
+    });
+  });
 });
