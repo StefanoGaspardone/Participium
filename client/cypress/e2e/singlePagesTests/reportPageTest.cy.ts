@@ -37,7 +37,7 @@ const stubCategories = () => {
 	}).as('getCategories');
 };
 
-const stubUploadSigningAndCloudinary = () => {
+export const stubUploadSigningAndCloudinary = () => {
 	cy.intercept('POST', '/api/uploads/sign', {
 		statusCode: 200,
 		body: {

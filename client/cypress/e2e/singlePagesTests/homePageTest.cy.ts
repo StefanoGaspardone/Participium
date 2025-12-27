@@ -20,7 +20,7 @@ const stubReportsEndpoints = () => {
 	cy.intercept('GET', /\/api\/reports\?status=Resolved.*/, { statusCode: 200, body: { reports: emptyList } }).as('reportsResolved');
 };
 
-const performLoginAsCitizen = () => {
+export const performLoginAsCitizen = () => {
 	cy.intercept('POST', '/api/users/login', (req) => {
 		const token = makeToken({
 			id: 1,
@@ -103,7 +103,7 @@ describe("3. Test suite for home page :", () => {
 		cy.url().should("equal", HOMEPAGE_URL);
 	});
 
-	it.only('3.9 Chat button click should be clickable and if clicked should lead to showing the chats', () => {
+	it('3.9 Chat button click should be clickable and if clicked should lead to showing the chats', () => {
 		performLoginAsCitizen();
 
 		homePage.clickChats();

@@ -218,6 +218,7 @@ export class UserController {
         }
 
         const user = await this.userService.updateUser(userId, updateData);
+        console.log("USER UPDATED IS: ", JSON.stringify(user));
         res.status(200).json({ message: "User updated successfully", user });
     } catch (error) {
         if (error instanceof QueryFailedError && (error as any).code === "23505") {
