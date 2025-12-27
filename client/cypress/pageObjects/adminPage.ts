@@ -69,6 +69,10 @@ const adminPage = {
   moveToTsmManagement: () => {
     cy.get('[id="section-offices-button"]').click();
   },
+  /**
+   * Select the first Technical Staff Member in the dropdown, which is 
+   * "forced" to be the one "inserted" through the intercept stub.
+   */
   selectFisrtTsm: () => {
     cy.get('#select-tsm').then(($select) => {
       // Open the dropdown
@@ -77,6 +81,10 @@ const adminPage = {
       cy.get('.rs__menu .rs__option').first().click({ force: true });
     });
   },
+  /**
+   * Select the first Office in the dropdown, which is
+   * "forced" to be the one "inserted" through the intercept stub.
+   */
   selectFirstOffice: () => {
     cy.get('#select-add-office').then(($select) => {
       cy.get('#select-add-office').first().click({ force: true });
@@ -91,6 +99,10 @@ const adminPage = {
   },
   removeFirstOffice: () => {
     cy.get('[id="remove-office-1"]').first().click({ force: true });
+  },
+  removeTwoOffices: () => {
+    cy.get('[id="remove-office-1"]').click({ force: true });
+    cy.get('[id="remove-office-2"]').click({ force: true });
   }
 };
 

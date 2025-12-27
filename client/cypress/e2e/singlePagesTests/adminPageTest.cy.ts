@@ -216,4 +216,13 @@ describe("1. Test suite for the admin page (used to create new municipality user
 
         cy.wait('@updateTsmOffices');
     });
+
+    it.only('1.8 attempt to modify TSM office with no offices should lead to the non-ability to save changes', () => {
+        performLoginAsAdmin();
+
+        adminPage.moveToTsmManagement();
+        adminPage.selectFisrtTsm();
+        adminPage.removeTwoOffices();
+        cy.get('[id="save-tsm-offices"]').should('be.disabled');
+    });
 })
