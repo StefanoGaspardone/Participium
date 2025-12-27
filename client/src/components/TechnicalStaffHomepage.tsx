@@ -14,12 +14,12 @@ import { Accordion, Badge, Alert, Button, Row, Col } from "react-bootstrap";
 import ReportMiniMap from "./ReportMiniMap";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaUserCircle } from "react-icons/fa";
-import './AuthForms.css';
-import Chats from './Chats';
-import { fetchAddressByCoordinates } from './HomepageMap';
-import { Lightbox } from 'yet-another-react-lightbox';
-import 'yet-another-react-lightbox/styles.css';
-import { REPORT_STATUS_COLORS } from '../constants/reportStatusColors';
+import "./AuthForms.css";
+import Chats from "./Chats";
+import { fetchAddressByCoordinates } from "./HomepageMap";
+import { Lightbox } from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
+import { REPORT_STATUS_COLORS } from "../constants/reportStatusColors";
 
 export default function TechnicalStaffHomepage() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -100,7 +100,7 @@ export default function TechnicalStaffHomepage() {
       [reportId]: "Fetching address...",
     }));
     try {
-      const addr = await fetchAddress(lat, lng);
+      const addr = await fetchAddressByCoordinates(lat, lng);
       setAddressByReport((prev) => ({ ...prev, [reportId]: addr }));
     } catch {
       setAddressByReport((prev) => ({ ...prev, [reportId]: "Not available" }));

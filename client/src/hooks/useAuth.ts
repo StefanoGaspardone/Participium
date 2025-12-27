@@ -21,7 +21,6 @@ interface UserData {
 }
 
 export function useAuth(
-  user: UserData | null,
   setUser: React.Dispatch<React.SetStateAction<UserData | null>>
 ) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -66,5 +65,5 @@ export function useAuth(
     loadUserFromToken();
   }, [loadUserFromToken]);
 
-  return { reloadAuth: loadUserFromToken };
+  return { reloadAuth: loadUserFromToken, isAuthenticated };
 }

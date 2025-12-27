@@ -421,17 +421,19 @@ export default function Notifications() {
                   >
                     Report Updates
                   </button>
-                  <button
-                    id="section-messages-button"
-                    type="button"
-                    className={`auth-link-inline section-btn ${
-                      selectedSection === "MESSAGES" ? "selected" : "muted"
-                    }`}
-                    onClick={() => setSelectedSection("MESSAGES")}
-                    aria-pressed={selectedSection === "MESSAGES"}
-                  >
-                    Messages
-                  </button>
+                  {showMessages && (
+                    <button
+                      id="section-messages-button"
+                      type="button"
+                      className={`auth-link-inline section-btn ${
+                        selectedSection === "MESSAGES" ? "selected" : "muted"
+                      }`}
+                      onClick={() => setSelectedSection("MESSAGES")}
+                      aria-pressed={selectedSection === "MESSAGES"}
+                    >
+                      Messages
+                    </button>
+                  )}
                 </div>
               ) : (
                 <h6

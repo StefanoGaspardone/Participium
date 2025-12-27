@@ -87,7 +87,7 @@ export default function ExternalPage() {
       [reportId]: "Fetching address...",
     }));
     try {
-      const addr = await fetchAddress(lat, lng);
+      const addr = await fetchAddressByCoordinates(lat, lng);
       setAddressByReport((prev) => ({ ...prev, [reportId]: addr }));
     } catch {
       setAddressByReport((prev) => ({ ...prev, [reportId]: "Not available" }));
