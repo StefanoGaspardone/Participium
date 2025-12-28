@@ -85,6 +85,7 @@ const Chats = ({
     setError(null);
     try {
       const retrievedChats = await getUserChats();
+      console.log("RETRIEVED (ui-side) : ", retrievedChats);
       setChats(retrievedChats);
     } catch (error) {
       setError(
@@ -177,7 +178,7 @@ const Chats = ({
 
               <div className="flex-grow-1 min-width-0">
                 <div className="d-flex align-items-center justify-content-between mb-1">
-                  <div className="fw-semibold text-truncate">
+                  <div id="user-details" className="fw-semibold text-truncate">
                     {otherUserDetails}
                   </div>
                 </div>

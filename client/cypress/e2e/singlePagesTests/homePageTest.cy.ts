@@ -2,6 +2,91 @@ import { HOMEPAGE_URL, LOGINPAGE_URL, UPLOADREPORTPAGE_URL, REGISTERPAGE_URL, PR
 import { homePage } from "../../pageObjects/homePage";
 import { loginPage } from "../../pageObjects/loginPage";
 
+const mockedChatResponse2 = [
+	{
+		"id": 1,
+		"chatType": "citizen_tosm",
+		"tosm_user": {
+			"id": 4,
+			"firstName": "Carmine",
+			"lastName": "Conte",
+			"email": "tsm1@part.se",
+			"username": "tsm1",
+			"image": null,
+			"telegramUsername": null,
+			"userType": "TECHNICAL_STAFF_MEMBER",
+			"emailNotificationsEnabled": false,
+			"offices": null,
+			"company": null,
+			"createdAt": "2025-12-27T09:58:50.975Z",
+			"isActive": true
+		},
+		"second_user": {
+			"id": 1,
+			"firstName": "User",
+			"lastName": "Test",
+			"email": "user@example.test",
+			"username": "user",
+			"image": "https://res.cloudinary.com/dhzr4djkx/image/upload/v1766914654/participium/bsj6un9zip3tdvgxgwds.jpg",
+			"telegramUsername": null,
+			"userType": "CITIZEN",
+			"emailNotificationsEnabled": true,
+			"offices": null,
+			"company": null,
+			"createdAt": "2025-12-27T09:58:50.899Z",
+			"isActive": true
+		},
+		"report": {
+			"id": 5,
+			"title": "UI Test - Report ",
+			"description": "The mocked report for the ui tests",
+			"category": { "id": 1, "name": "Water Supply - Drinking Water" },
+			"images": [
+				"https://res.cloudinary.com/dhzr4djkx/image/upload/v1766849234/participium/qdas0200sfqufpxsi83t.jpg"
+			],
+			"lat": 45.07400411,
+			"long": 7.74326127,
+			"status": "InProgress",
+			"anonymous": false,
+			"rejectedDescription": null,
+			"createdBy": {
+				"id": 1,
+				"firstName": "User",
+				"lastName": "Test",
+				"email": "user@example.test",
+				"username": "user",
+				"image": "https://res.cloudinary.com/dhzr4djkx/image/upload/v1766914654/participium/bsj6un9zip3tdvgxgwds.jpg",
+				"telegramUsername": null,
+				"userType": "CITIZEN",
+				"emailNotificationsEnabled": true,
+				"offices": null,
+				"company": null,
+				"createdAt": "2025-12-27T09:58:50.899Z",
+				"isActive": true
+			},
+			"assignedTo": {
+				"id": 4,
+				"firstName": "Carmine",
+				"lastName": "Conte",
+				"email": "tsm1@part.se",
+				"username": "tsm1",
+				"image": null,
+				"telegramUsername": null,
+				"userType": "TECHNICAL_STAFF_MEMBER",
+				"emailNotificationsEnabled": false,
+				"offices": null,
+				"company": null,
+				"createdAt": "2025-12-27T09:58:50.975Z",
+				"isActive": true
+			},
+			"coAssignedTo": null,
+			"createdAt": "2025-12-27T15:27:14.485Z"
+		}
+	}
+];
+
+const mockedChatResponse = [{ "id": 1, "chatType": "citizen_tosm", "tosm_user": { "id": 4, "firstName": "Carmine", "lastName": "Conte", "email": "tsm1@part.se", "username": "tsm1", "image": null, "telegramUsername": null, "userType": "TECHNICAL_STAFF_MEMBER", "emailNotificationsEnabled": false, "offices": null, "company": null, "createdAt": "2025-12-27T09:58:50.975Z", "isActive": true }, "second_user": { "id": 3, "firstName": "Giacomo", "lastName": "Pirloaa", "email": "giack@five.se", "username": "giack.team5", "image": "https://res.cloudinary.com/dhzr4djkx/image/upload/v1766914654/participium/bsj6un9zip3tdvgxgwds.jpg", "telegramUsername": null, "userType": "CITIZEN", "emailNotificationsEnabled": true, "offices": null, "company": null, "createdAt": "2025-12-27T09:58:50.899Z", "isActive": true }, "report": { "id": 5, "title": "aaaaa", "description": "aaaaaa", "category": { "id": 1, "name": "Water Supply - Drinking Water" }, "images": ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1766849234/participium/qdas0200sfqufpxsi83t.jpg"], "lat": 45.07400411, "long": 7.74326127, "status": "InProgress", "anonymous": false, "rejectedDescription": null, "createdBy": { "id": 3, "firstName": "Giacomo", "lastName": "Pirloaa", "email": "giack@five.se", "username": "giack.team5", "image": "https://res.cloudinary.com/dhzr4djkx/image/upload/v1766914654/participium/bsj6un9zip3tdvgxgwds.jpg", "telegramUsername": null, "userType": "CITIZEN", "emailNotificationsEnabled": true, "offices": null, "company": null, "createdAt": "2025-12-27T09:58:50.899Z", "isActive": true }, "assignedTo": { "id": 4, "firstName": "Carmine", "lastName": "Conte", "email": "tsm1@part.se", "username": "tsm1", "image": null, "telegramUsername": null, "userType": "TECHNICAL_STAFF_MEMBER", "emailNotificationsEnabled": false, "offices": null, "company": null, "createdAt": "2025-12-27T09:58:50.975Z", "isActive": true }, "coAssignedTo": null, "createdAt": "2025-12-27T15:27:14.485Z" } }];
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const makeToken = (user: any) => {
 	const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
@@ -108,5 +193,18 @@ describe("3. Test suite for home page :", () => {
 
 		homePage.clickChats();
 		homePage.checkChatsPopoverVisible();
+	});
+
+	it('3.10 The chat to appear should be the one correctly showing the other member name and surname got from the api call', () => {
+		performLoginAsCitizen();
+
+		cy.intercept('GET', '/api/chats', { statusCode: 200, body: [{ "id": 1, "chatType": "citizen_tosm", "tosm_user": { "id": 4, "firstName": "Carmine", "lastName": "Conte", "email": "tsm1@part.se", "username": "tsm1", "image": null, "telegramUsername": null, "userType": "TECHNICAL_STAFF_MEMBER", "emailNotificationsEnabled": false, "offices": null, "company": null, "createdAt": "2025-12-27T09:58:50.975Z", "isActive": true }, "second_user": { "id": 3, "firstName": "Giacomo", "lastName": "Pirloaa", "email": "giack@five.se", "username": "giack.team5", "image": "https://res.cloudinary.com/dhzr4djkx/image/upload/v1766914654/participium/bsj6un9zip3tdvgxgwds.jpg", "telegramUsername": null, "userType": "CITIZEN", "emailNotificationsEnabled": true, "offices": null, "company": null, "createdAt": "2025-12-27T09:58:50.899Z", "isActive": true }, "report": { "id": 5, "title": "aaaaa", "description": "aaaaaa", "category": { "id": 1, "name": "Water Supply - Drinking Water" }, "images": ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1766849234/participium/qdas0200sfqufpxsi83t.jpg"], "lat": 45.07400411, "long": 7.74326127, "status": "InProgress", "anonymous": false, "rejectedDescription": null, "createdBy": { "id": 3, "firstName": "Giacomo", "lastName": "Pirloaa", "email": "giack@five.se", "username": "giack.team5", "image": "https://res.cloudinary.com/dhzr4djkx/image/upload/v1766914654/participium/bsj6un9zip3tdvgxgwds.jpg", "telegramUsername": null, "userType": "CITIZEN", "emailNotificationsEnabled": true, "offices": null, "company": null, "createdAt": "2025-12-27T09:58:50.899Z", "isActive": true }, "assignedTo": { "id": 4, "firstName": "Carmine", "lastName": "Conte", "email": "tsm1@part.se", "username": "tsm1", "image": null, "telegramUsername": null, "userType": "TECHNICAL_STAFF_MEMBER", "emailNotificationsEnabled": false, "offices": null, "company": null, "createdAt": "2025-12-27T09:58:50.975Z", "isActive": true }, "coAssignedTo": null, "createdAt": "2025-12-27T15:27:14.485Z" } }] }).as('getChats');
+
+		homePage.clickChats();
+		cy.wait('@getChats');
+		homePage.checkChatsPopoverVisible();
+
+		homePage.checkFirstChatOtherMember('Carmine Conte');
+
 	});
 });

@@ -38,6 +38,9 @@ const homePage = {
     },
     checkChatsPopoverVisible: () => {
         cy.get('[id="chat-popover"]').should('be.visible');
+    },
+    checkFirstChatOtherMember: (nameSurname: string) => {
+        cy.get('[id="user-details"]').first().should('contain.text', nameSurname);
     }
 }
 
