@@ -2,7 +2,6 @@ import { HOMEPAGE_URL, LOGINPAGE_URL, PROFILEPAGE_URL } from "../../support/util
 import { homePage } from "../../pageObjects/homePage";
 import { loginPage } from "../../pageObjects/loginPage";
 import { profilePage } from "../../pageObjects/profilePage";
-import { stubUploadSigningAndCloudinary } from "./reportPageTest.cy";
 import { generateRandomString } from "../../pageObjects/utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +51,24 @@ const goToProfileAsCitizen = () => {
     homePage.clickProfileDropdown();
     homePage.clickProfile();
     cy.url().should("equal", PROFILEPAGE_URL);
+};
+
+export const stubUploadSigningAndCloudinary = () => {
+    cy.intercept('POST', '/api/uploads/sign', {
+        statusCode: 200,
+        body: {
+            cloudName: 'demo',
+            apiKey: '123456',
+            timestamp: Math.floor(Date.now() / 1000),
+            signature: 'fake-signature',
+            defaultFolder: 'tests'
+        }
+    }).as('signUpload');
+
+    cy.intercept('POST', /https:\/\/api\.cloudinary\.com\/v1_1\/.*\/image\/upload/, {
+        statusCode: 200,
+        body: { secure_url: 'https://res.cloudinary.com/demo/image/upload/fake.png' }
+    }).as('cloudinaryUpload');
 };
 
 describe("9. Test suite for profile page :", () => {
@@ -225,5 +242,34 @@ describe("9. Test suite for profile page :", () => {
         profilePage.submitProfileChanges();
         cy.wait(1000);
         profilePage.checkEmailNotificationsChecked();
+    });
+    it.only('9.7 As a logged user i should be able to update my profile picture', () => {
+        goToProfileAsCitizen();
+        profilePage.clickEditProfile();
+
+        stubUploadSigningAndCloudinary();
+        cy.intercept('PATCH', '/api/users/me', (req) => {
+            const user = {
+                id: 1,
+                firstName: 'Giacomo',
+                lastName: 'Pirlo',
+                email: 'user@example.test',
+                username: 'user',
+                image: 'https://res.cloudinary.com/demo/image/upload/fake.png',
+                telegramUsername: null,
+                userType: 'CITIZEN',
+                emailNotificationsEnabled: true,
+                offices: [],
+                company: null,
+                createdAt: '2025-12-27T09:58:50.899Z',
+                isActive: true,
+            };
+            req.reply({ statusCode: 200, body: { message: 'Profile updated successfully!', user } });
+        }).as('updateProfile');
+
+        profilePage.insertProfilePicture();
+        profilePage.submitProfileChanges();
+        
+
     });
 });

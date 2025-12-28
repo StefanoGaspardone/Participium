@@ -156,6 +156,7 @@ export default function ProfilePage() {
                                 />
                             ) : user.image ? (
                                 <img
+                                    id="profile-image"
                                     src={user.image}
                                     alt={`${user.firstName} ${user.lastName}`}
                                     className="profile-avatar"

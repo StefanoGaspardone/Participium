@@ -52,5 +52,11 @@ export const profilePage = {
     },
     cancelProfileChanges: () => {
         cy.get('[id="cancel-edit-button"]').click();
+    },
+    insertProfilePicture: () => {
+        cy.get('[id="profilePicture"]').selectFile("cypress/e2e/singlePagesTests/toUploadImages/toUp.png", {force: true});
+    },
+    checkProfilePciture: () => {
+        cy.get('[id="profile-image"]').should('have.attr', 'src').and('include', 'https://res.cloudinary.com/demo/image/upload/fake.png');
     }
 }
