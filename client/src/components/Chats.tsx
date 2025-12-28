@@ -85,7 +85,6 @@ const Chats = ({
     setError(null);
     try {
       const retrievedChats = await getUserChats();
-      console.log("RETRIEVED (ui-side) : ", retrievedChats);
       setChats(retrievedChats);
     } catch (error) {
       setError(
@@ -156,6 +155,7 @@ const Chats = ({
           return (
             <button
               key={chat.id}
+              id="chat-button"
               type="button"
               className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${
                 isActive ? "active" : ""
@@ -249,7 +249,7 @@ const Chats = ({
           return (
             <div key={msg.id} className={`mb-2 d-flex ${justifyClass}`}>
               <div className={`message-bubble ${isMine ? "mine" : "other"}`}>
-                <div>{msg.text}</div>
+                <div id="message-text" >{msg.text}</div>
                 <div className={`small mt-1 ${timeClass} text-muted`}>
                   {new Date(msg.sentAt).toLocaleTimeString([], {
                     hour: "2-digit",

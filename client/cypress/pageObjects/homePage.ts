@@ -41,6 +41,12 @@ const homePage = {
     },
     checkFirstChatOtherMember: (nameSurname: string) => {
         cy.get('[id="user-details"]').first().should('contain.text', nameSurname);
+    },
+    selectFirstChat: () => {
+        cy.get('[id="chat-button"]').first().click({ force: true });
+    },
+    checkFirstMessageInChat: (message: string) => {
+        cy.get('[id="message-text"]').first().should('contain.text', message);
     }
 }
 

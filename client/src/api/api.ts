@@ -477,7 +477,6 @@ export const getUserChats = async (): Promise<Chat[]> => {
   let data: ChatsResponse;
   try {
     data = await res.json();
-    console.log("RAW RECEIVED : ", JSON.stringify(data));
   } catch {
     throw new Error("Failed to fetch your chats");
   }
@@ -505,6 +504,7 @@ export const getChatMessages = async (chatId: number): Promise<Message[]> => {
   let data;
   try {
     data = await res.json();
+    console.log("MESSAGES RETRIEVED: ", JSON.stringify(data));
   } catch {
     throw new Error("Failed to fetch your chats");
   }

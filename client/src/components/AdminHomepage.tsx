@@ -161,7 +161,6 @@ export default function AdminHomepage() {
       try {
         const res = await getOffices();
         setOffices(res);
-        console.log("RETRIEVED OFFICES :\n", JSON.stringify(res));
       } catch (e) {
         console.error("Failed to load offices", e);
         toast.error("Unable to load offices.");
@@ -212,7 +211,6 @@ export default function AdminHomepage() {
               }))
             : []
         );
-        console.log("RETRIEVED TSMS :\n", JSON.stringify(res));
       } catch (e) {
         console.error("Failed to load technical staff members", e);
         toast.error("Unable to load technical staff members.");
