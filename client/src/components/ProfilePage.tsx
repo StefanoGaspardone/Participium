@@ -156,6 +156,7 @@ export default function ProfilePage() {
                                 />
                             ) : user.image ? (
                                 <img
+                                    id="profile-image"
                                     src={user.image}
                                     alt={`${user.firstName} ${user.lastName}`}
                                     className="profile-avatar"
@@ -199,29 +200,29 @@ export default function ProfilePage() {
                                 <div className="profile-info-grid">
                                     <div className="profile-info-item">
                                         <span className="profile-info-label">First Name</span>
-                                        <span className="profile-info-value">{user.firstName}</span>
+                                        <span id="firstname-current" className="profile-info-value">{user.firstName}</span>
                                     </div>
                                     <div className="profile-info-item">
                                         <span className="profile-info-label">Last Name</span>
-                                        <span className="profile-info-value">{user.lastName}</span>
+                                        <span id="lastname-current" className="profile-info-value">{user.lastName}</span>
                                     </div>
                                     <div className="profile-info-item">
                                         <span className="profile-info-label">Username</span>
-                                        <span className="profile-info-value">{user.username}</span>
+                                        <span id="username-current" className="profile-info-value">{user.username}</span>
                                     </div>
                                     <div className="profile-info-item">
                                         <span className="profile-info-label">Email</span>
-                                        <span className="profile-info-value">{user.email}</span>
+                                        <span id="email-current" className="profile-info-value">{user.email}</span>
                                     </div>
                                     {user.telegramUsername && (
                                         <div className="profile-info-item">
                                             <span className="profile-info-label">Telegram — <a href="https://t.me/ParticipiumSE05Bot" target="_blank" rel="noopener noreferrer">Go to bot</a> </span>
-                                            <span className="profile-info-value">{user.telegramUsername}</span>
+                                            <span id="telegram-current" className="profile-info-value">{user.telegramUsername}</span>
                                         </div>
                                     )}
                                     <div className="profile-info-item">
                                         <span className="profile-info-label">Receive email notifications</span>
-                                        <span className="profile-info-value">{user.emailNotificationsEnabled? "yes" : "no"}</span>
+                                        <span id="email-current" className="profile-info-value">{user.emailNotificationsEnabled? "yes" : "no"}</span>
                                     </div>
                                 </div>
                             ) : (
@@ -336,6 +337,7 @@ export default function ProfilePage() {
                             {!isEditing ? (
                                 <button
                                     className="profile-button profile-button-primary"
+                                    id="edit-profile-button"
                                     onClick={handleEditClick}
                                 >
                                     Edit Profile
@@ -344,6 +346,7 @@ export default function ProfilePage() {
                                 <>
                                     <button
                                         className="profile-button profile-button-primary"
+                                        id="save-profile-button"
                                         onClick={handleSubmit}
                                         disabled={isLoading}
                                     >
@@ -351,6 +354,7 @@ export default function ProfilePage() {
                                     </button>
                                     <button
                                         className="profile-button profile-button-secondary"
+                                        id="cancel-edit-button"
                                         onClick={handleCancelEdit}
                                         disabled={isLoading}
                                     >

@@ -117,17 +117,12 @@ const ConfirmCodePage = () => {
 
     const handleResend = async () => {
 
-        console.log('here1');
         if(!username.trim()) {
             toast.error('Please enter username first');
             return;
         }
 
-        console.log('here2');
-
         if(!canResend) return;
-
-        console.log('here3');
 
         try {
             setCanResend(false);

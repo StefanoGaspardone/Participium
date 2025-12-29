@@ -15,15 +15,17 @@ const loginPage = {
 	},
 
 	insertUsername: (username: string) => {
-		cy.get('[id="username"]').focus().clear().type(username);
+		cy.get('[id="username"]').clear();
+		cy.get('[id="username"]').type(username);
 	},
 
 	insertPassword: (pwd: string) => {
-		cy.get('[id="password"]').focus().clear().type(pwd);
+		cy.get('[id="password"]').clear();
+		cy.get('[id="password"]').type(pwd);
 	},
 
 	submitForm: () => {
-		cy.get('[id="submit-button"]').focus().click();
+		cy.get('[id="submit-button"]').click();
 	},
 
 	clickHomepage: () => {

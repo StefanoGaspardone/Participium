@@ -1,5 +1,5 @@
-import type {Category, Chat, Company, Message, Office, Report, User} from "../models/models";
-import {toApiError} from "../models/models";
+import type { Category, Chat, Company, Message, Office, Report, User } from "../models/models";
+import { toApiError } from "../models/models";
 
 const BASE_URL = "http://localhost:3000/api";
 
@@ -277,9 +277,10 @@ export const updateReportCategory = async (reportId: number, categoryId: number)
 };
 export interface AssignOrRejectResponse {
   report: Report,
-    message: string
+  message: string
 }
 export const assignOrRejectReport = async (reportId: number, status: 'Assigned' | 'Rejected', rejectedDescription?: string): Promise<AssignOrRejectResponse> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: any = { status };
   if (status === 'Rejected') body.rejectedDescription = rejectedDescription;
   const res = await fetch(`${BASE_URL}/reports/${reportId}/status/public`, {
@@ -503,6 +504,7 @@ export const getChatMessages = async (chatId: number): Promise<Message[]> => {
   let data;
   try {
     data = await res.json();
+    console.log("MESSAGES RETRIEVED: ", JSON.stringify(data));
   } catch {
     throw new Error("Failed to fetch your chats");
   }
@@ -641,6 +643,7 @@ export const getTechnicalStaffMembers = async (): Promise<TechnicalStaffMember[]
   const data = await res.json();
   const arr = Array.isArray(data) ? data : Array.isArray(data?.tsm) ? data.tsm : [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return arr.map((t: any) => ({
     id: Number(t.id),
     firstName: String(t.firstName ?? ""),

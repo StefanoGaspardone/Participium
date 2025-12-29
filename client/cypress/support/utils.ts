@@ -12,3 +12,4 @@ export const TSMPAGE_URL = BASE_URL + "/tech";
 export const MUNADMPAGE_URL = ""; // TO ADD 
 export const PUBRELOFFPAGE_URL = BASE_URL + "/pro";
 export const MAINTAINERPAGE_URL = BASE_URL + "/external";
+export const PROFILEPAGE_URL = BASE_URL + "/profile";

@@ -41,7 +41,7 @@ const adminPage = {
    * @param choice is related to the office (it's valid only if 1 <= choice <= 5)
    */
   selectOffice: (choice: number) => {
-    if(choice < 1) return;
+    if (choice < 1) return;
     cy.get('#open-offices').click();
     // select nth option (choice is 1-based index)
     cy.get('.rs__menu .rs__option').eq(choice - 1).click();
@@ -65,6 +65,44 @@ const adminPage = {
 
   clickHomepage: () => {
     cy.get('[id="to-homepage"]').click();
+  },
+  moveToTsmManagement: () => {
+    cy.get('[id="section-offices-button"]').click();
+  },
+  /**
+   * Select the first Technical Staff Member in the dropdown, which is 
+   * "forced" to be the one "inserted" through the intercept stub.
+   */
+  selectFisrtTsm: () => {
+    cy.get('#select-tsm').then(($select) => {
+      // Open the dropdown
+      cy.wrap($select).click({ force: true });
+      // Select the first option
+      cy.get('.rs__menu .rs__option').first().click({ force: true });
+    });
+  },
+  /**
+   * Select the first Office in the dropdown, which is
+   * "forced" to be the one "inserted" through the intercept stub.
+   */
+  selectFirstOffice: () => {
+    cy.get('#select-add-office').then(($select) => {
+      cy.get('#select-add-office').first().click({ force: true });
+      // Open the dropdown
+      cy.wrap($select).click({ force: true });
+      // Select the first option
+      cy.get('.rs__menu .rs__option').first().click({ force: true });
+    });
+  },
+  saveChanges: () => {
+    cy.get('[id="save-tsm-offices"]').click();
+  },
+  removeFirstOffice: () => {
+    cy.get('[id="remove-office-1"]').first().click({ force: true });
+  },
+  removeTwoOffices: () => {
+    cy.get('[id="remove-office-1"]').click({ force: true });
+    cy.get('[id="remove-office-2"]').click({ force: true });
   }
 };
 

@@ -4,6 +4,7 @@ import { loginPage } from "../../pageObjects/loginPage";
 import { homePage } from "../../pageObjects/homePage";
 import { generateRandomString } from "../../pageObjects/utils";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const makeToken = (user: any) => {
 	const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
 	const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -37,7 +38,7 @@ const stubCategories = () => {
 	}).as('getCategories');
 };
 
-const stubUploadSigningAndCloudinary = () => {
+export const stubUploadSigningAndCloudinary = () => {
 	cy.intercept('POST', '/api/uploads/sign', {
 		statusCode: 200,
 		body: {

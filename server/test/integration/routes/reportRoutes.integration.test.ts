@@ -141,7 +141,6 @@ describe('Report routes integration tests', () => {
     } catch (err) {
       // Ignore cleanup errors - they may occur if entities were already cleaned up
       const error = err as Error;
-      console.log('Cleanup warning:', error.message);
     }
   });
 
@@ -368,8 +367,6 @@ describe('Report routes integration tests', () => {
 
     it('should return 403 if user is Citizen', async () => {
       const res = await request(app).put(`/api/reports/${reportId}/category`).set('Authorization', `Bearer ${token}`).send({ categoryId });
-      console.log('Status ricevuto:', res.status);
-      console.log('Body:', res.body);
       expect(res.status).toBe(403);
     });
 

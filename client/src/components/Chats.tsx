@@ -155,6 +155,7 @@ const Chats = ({
           return (
             <button
               key={chat.id}
+              id="chat-button"
               type="button"
               className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${
                 isActive ? "active" : ""
@@ -177,7 +178,7 @@ const Chats = ({
 
               <div className="flex-grow-1 min-width-0">
                 <div className="d-flex align-items-center justify-content-between mb-1">
-                  <div className="fw-semibold text-truncate">
+                  <div id="user-details" className="fw-semibold text-truncate">
                     {otherUserDetails}
                   </div>
                 </div>
@@ -248,7 +249,7 @@ const Chats = ({
           return (
             <div key={msg.id} className={`mb-2 d-flex ${justifyClass}`}>
               <div className={`message-bubble ${isMine ? "mine" : "other"}`}>
-                <div>{msg.text}</div>
+                <div id="message-text" >{msg.text}</div>
                 <div className={`small mt-1 ${timeClass} text-muted`}>
                   {new Date(msg.sentAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -421,7 +422,7 @@ const Chats = ({
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <div ref={popoverRef} className="chats-popover p-0 overflow-hidden">
-              <div className="row h-100 m-0">
+              <div className="row h-100 m-0" id="chat-popover">
                 {/* Left column: list of chats */}
                 <div className="col-5 h-100 border-end p-0 d-flex flex-column">
                   <div className="p-2 border-bottom bg-light">
@@ -523,6 +524,7 @@ const Chats = ({
           type="button"
           onClick={handleToggle}
           className="chat-toggle"
+          id="open-chat-button"
           aria-label="Open chat"
           title="Open chat"
         >
