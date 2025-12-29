@@ -589,7 +589,6 @@ export default function MapDefault(props: Readonly<BaseProps>) {
           setSelected={setSelected}
           turinPolys={turinPolys}
         />
-        <SearchBox setSelected={setSelected} />
       </MapContainer>
     </div>
   );
