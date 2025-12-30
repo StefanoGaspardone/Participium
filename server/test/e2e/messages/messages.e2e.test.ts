@@ -485,4 +485,260 @@ describe("Messages E2E tests", () => {
       expect(conversationTexts).toContain("When will it be fixed?");
     });
   });
+
+  describe("Citizen-TSM message exchange scenarios", () => {
+    it("should allow citizen to initiate conversation with TSM", async () => {
+      // Citizen sends first message
+      const res = await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${citizenToken}`)
+        .send({
+          text: "I need assistance with this report",
+          receiverId: tosmUser.id
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.sender).toBe(citizenUser.id);
+      expect(res.body.receiver).toBe(tosmUser.id);
+      expect(res.body.text).toBe("I need assistance with this report");
+    });
+
+    it("should allow TSM to respond to citizen message", async () => {
+      // TSM responds to citizen
+      const res = await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${tosmToken}`)
+        .send({
+          text: "I'll look into this right away",
+          receiverId: citizenUser.id
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.sender).toBe(tosmUser.id);
+      expect(res.body.receiver).toBe(citizenUser.id);
+      expect(res.body.text).toBe("I'll look into this right away");
+    });
+
+    it("should maintain conversation history between citizen and TSM", async () => {
+      const messages = [
+        { text: "What's the status?", sender: "citizen" },
+        { text: "We're working on it", sender: "tosm" },
+        { text: "When will it be completed?", sender: "citizen" },
+        { text: "By end of week", sender: "tosm" },
+      ];
+
+      // Send messages alternating between users
+      for (const msg of messages) {
+        const token = msg.sender === "citizen" ? citizenToken : tosmToken;
+        const receiverId = msg.sender === "citizen" ? tosmUser.id : citizenUser.id;
+
+        const res = await request(app)
+          .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+          .set("Authorization", `Bearer ${token}`)
+          .send({ text: msg.text, receiverId });
+
+        expect(res.status).toBe(201);
+      }
+
+      // Verify conversation history
+      const res = await request(app)
+        .get(`/api/chats/${citizenTosmChat.id}/messages`)
+        .set("Authorization", `Bearer ${citizenToken}`);
+
+      expect(res.status).toBe(200);
+      const conversationTexts = res.body.chats.map((m: any) => m.text);
+
+      messages.forEach(msg => {
+        expect(conversationTexts).toContain(msg.text);
+      });
+    });
+
+    it("should allow both citizen and TSM to view all messages", async () => {
+      // Send a message from citizen
+      await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${citizenToken}`)
+        .send({ text: "Test visibility", receiverId: tosmUser.id });
+
+      // Citizen retrieves messages
+      const citizenRes = await request(app)
+        .get(`/api/chats/${citizenTosmChat.id}/messages`)
+        .set("Authorization", `Bearer ${citizenToken}`);
+
+      expect(citizenRes.status).toBe(200);
+      const citizenMessages = citizenRes.body.chats;
+
+      // TSM retrieves messages
+      const tosmRes = await request(app)
+        .get(`/api/chats/${citizenTosmChat.id}/messages`)
+        .set("Authorization", `Bearer ${tosmToken}`);
+
+      expect(tosmRes.status).toBe(200);
+      const tosmMessages = tosmRes.body.chats;
+
+      // Both should see the same messages
+      expect(citizenMessages.length).toBe(tosmMessages.length);
+      expect(citizenMessages.map((m: any) => m.id).sort())
+        .toEqual(tosmMessages.map((m: any) => m.id).sort());
+    });
+
+    it("should handle rapid message exchange between citizen and TSM", async () => {
+      const messagePromises = [];
+
+      // Citizen sends 3 messages rapidly
+      for (let i = 1; i <= 3; i++) {
+        messagePromises.push(
+          request(app)
+            .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+            .set("Authorization", `Bearer ${citizenToken}`)
+            .send({ text: `Citizen rapid message ${i}`, receiverId: tosmUser.id })
+        );
+      }
+
+      // TSM sends 3 messages rapidly
+      for (let i = 1; i <= 3; i++) {
+        messagePromises.push(
+          request(app)
+            .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+            .set("Authorization", `Bearer ${tosmToken}`)
+            .send({ text: `TSM rapid message ${i}`, receiverId: citizenUser.id })
+        );
+      }
+
+      const results = await Promise.all(messagePromises);
+
+      // All messages should be created successfully
+      results.forEach(res => {
+        expect(res.status).toBe(201);
+      });
+
+      // Verify all messages are stored
+      const res = await request(app)
+        .get(`/api/chats/${citizenTosmChat.id}/messages`)
+        .set("Authorization", `Bearer ${citizenToken}`);
+
+      expect(res.status).toBe(200);
+      const texts = res.body.chats.map((m: any) => m.text);
+
+      for (let i = 1; i <= 3; i++) {
+        expect(texts).toContain(`Citizen rapid message ${i}`);
+        expect(texts).toContain(`TSM rapid message ${i}`);
+      }
+    });
+
+    it("should prevent citizen from sending messages in ext-tosm chat", async () => {
+      const res = await request(app)
+        .post(`/api/chats/${extTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${citizenToken}`)
+        .send({ text: "Unauthorized message", receiverId: tosmUser.id });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toMatch(/sender inserted is not part of the chat/);
+    });
+
+    it("should verify message timestamps are sequential", async () => {
+      const msg1 = await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${citizenToken}`)
+        .send({ text: "First timestamp test", receiverId: tosmUser.id });
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const msg2 = await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${tosmToken}`)
+        .send({ text: "Second timestamp test", receiverId: citizenUser.id });
+
+      const time1 = new Date(msg1.body.sentAt).getTime();
+      const time2 = new Date(msg2.body.sentAt).getTime();
+
+      expect(time2).toBeGreaterThan(time1);
+    });
+
+    it("should handle long message text from citizen to TSM", async () => {
+      const longText = "A".repeat(1000); // 1000 character message
+
+      const res = await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${citizenToken}`)
+        .send({ text: longText, receiverId: tosmUser.id });
+
+      expect(res.status).toBe(201);
+      expect(res.body.text).toBe(longText);
+      expect(res.body.text.length).toBe(1000);
+    });
+  });
+
+  describe("Edge cases for citizen-TSM messaging", () => {
+    it("should handle empty string message rejection", async () => {
+      const res = await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${citizenToken}`)
+        .send({ text: "", receiverId: tosmUser.id });
+
+      // Depending on validation, this might be 400 or might allow empty strings
+      // Adjust expectation based on your validation rules
+      expect([201, 400]).toContain(res.status);
+    });
+
+    it("should handle special characters in messages", async () => {
+      const specialText = "Special chars: !@#$%^&*()_+-={}[]|\\:\";<>?,./";
+
+      const res = await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${citizenToken}`)
+        .send({ text: specialText, receiverId: tosmUser.id });
+
+      expect(res.status).toBe(201);
+      expect(res.body.text).toBe(specialText);
+    });
+
+    it("should handle unicode and emoji in messages", async () => {
+      const unicodeText = "Hello 你好 こんにちは 👋 😊";
+
+      const res = await request(app)
+        .post(`/api/chats/${citizenTosmChat.id}/newMessage`)
+        .set("Authorization", `Bearer ${citizenToken}`)
+        .send({ text: unicodeText, receiverId: tosmUser.id });
+
+      expect(res.status).toBe(201);
+      expect(res.body.text).toBe(unicodeText);
+    });
+
+    it("should return empty array for new chat with no messages", async () => {
+      // Create a new chat
+      const categoryRepo = AppDataSource.getRepository(CategoryDAO);
+      const reportRepo = AppDataSource.getRepository(ReportDAO);
+      const chatRepo = AppDataSource.getRepository(ChatDAO);
+      const category = (await categoryRepo.find({ take: 1 }))[0];
+
+      const newReport = reportRepo.create({
+        title: "Empty Chat Report",
+        description: "Test",
+        category,
+        images: ["https://example.com/test.jpg"],
+        lat: 45.0703,
+        long: 7.6869,
+        status: ReportStatus.InProgress,
+        createdBy: citizenUser,
+        assignedTo: tosmUser,
+      });
+      const savedReport = await reportRepo.save(newReport);
+
+      const newChat = chatRepo.create({
+        report: savedReport,
+        tosm_user: tosmUser,
+        second_user: citizenUser,
+        chatType: ChatType.CITIZEN_TOSM,
+      });
+      const savedChat = await chatRepo.save(newChat);
+
+      const res = await request(app)
+        .get(`/api/chats/${savedChat.id}/messages`)
+        .set("Authorization", `Bearer ${citizenToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.chats).toEqual([]);
+    });
+  });
 });

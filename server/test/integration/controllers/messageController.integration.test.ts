@@ -455,4 +455,332 @@ describe('MessageController integration tests', () => {
       expect(err.message).toMatch(/Chat not found/);
     });
   });
+
+  describe('Citizen-TSM message exchange integration tests', () => {
+    it('should allow citizen to send message to TSM', async () => {
+      const req: any = {
+        token: { user: { id: citizenUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+        body: {
+          text: 'Question from citizen',
+          receiverId: techStaffUser.id,
+        },
+      };
+
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      const next = jest.fn();
+
+      await messageController.createMessage(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      const message = res.json.mock.calls[0][0];
+      expect(message.text).toBe('Question from citizen');
+      expect(message.sender).toBe(citizenUser.id);
+      expect(message.receiver).toBe(techStaffUser.id);
+    });
+
+    it('should allow TSM to respond to citizen message', async () => {
+      const req: any = {
+        token: { user: { id: techStaffUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+        body: {
+          text: 'Response from TSM',
+          receiverId: citizenUser.id,
+        },
+      };
+
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      const next = jest.fn();
+
+      await messageController.createMessage(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      const message = res.json.mock.calls[0][0];
+      expect(message.text).toBe('Response from TSM');
+      expect(message.sender).toBe(techStaffUser.id);
+      expect(message.receiver).toBe(citizenUser.id);
+    });
+
+    it('should maintain conversation history between citizen and TSM', async () => {
+      // Citizen sends first message
+      await messageController.createMessage(
+        {
+          token: { user: { id: citizenUser.id } },
+          params: { chatId: String(citizenTosmChat.id) },
+          body: { text: 'First message from citizen', receiverId: techStaffUser.id },
+        } as any,
+        { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() } as any,
+        jest.fn()
+      );
+
+      // TSM responds
+      await messageController.createMessage(
+        {
+          token: { user: { id: techStaffUser.id } },
+          params: { chatId: String(citizenTosmChat.id) },
+          body: { text: 'TSM response', receiverId: citizenUser.id },
+        } as any,
+        { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() } as any,
+        jest.fn()
+      );
+
+      // Citizen sends another message
+      await messageController.createMessage(
+        {
+          token: { user: { id: citizenUser.id } },
+          params: { chatId: String(citizenTosmChat.id) },
+          body: { text: 'Follow up from citizen', receiverId: techStaffUser.id },
+        } as any,
+        { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() } as any,
+        jest.fn()
+      );
+
+      // Retrieve all messages
+      const req: any = {
+        token: { user: { id: citizenUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+      };
+
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      const next = jest.fn();
+
+      await messageController.getChatMessages(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const result = res.json.mock.calls[0][0];
+      expect(result.chats.length).toBeGreaterThanOrEqual(3);
+
+      const texts = result.chats.map((m: any) => m.text);
+      expect(texts).toContain('First message from citizen');
+      expect(texts).toContain('TSM response');
+      expect(texts).toContain('Follow up from citizen');
+    });
+
+    it('should allow both citizen and TSM to view all conversation messages', async () => {
+      // Send a test message
+      await messageController.createMessage(
+        {
+          token: { user: { id: citizenUser.id } },
+          params: { chatId: String(citizenTosmChat.id) },
+          body: { text: 'Visibility test message', receiverId: techStaffUser.id },
+        } as any,
+        { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() } as any,
+        jest.fn()
+      );
+
+      // Citizen retrieves messages
+      const citizenReq: any = {
+        token: { user: { id: citizenUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+      };
+
+      const citizenRes: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      await messageController.getChatMessages(citizenReq, citizenRes, jest.fn());
+
+      const citizenMessages = citizenRes.json.mock.calls[0][0].chats;
+
+      // TSM retrieves messages
+      const tsmReq: any = {
+        token: { user: { id: techStaffUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+      };
+
+      const tsmRes: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      await messageController.getChatMessages(tsmReq, tsmRes, jest.fn());
+
+      const tsmMessages = tsmRes.json.mock.calls[0][0].chats;
+
+      // Both should see the same messages
+      expect(citizenMessages.length).toBe(tsmMessages.length);
+      expect(citizenMessages.map((m: any) => m.id).sort())
+        .toEqual(tsmMessages.map((m: any) => m.id).sort());
+    });
+
+    it('should handle rapid message exchange', async () => {
+      const promises = [];
+
+      // Send 3 messages from citizen
+      for (let i = 1; i <= 3; i++) {
+        promises.push(
+          messageController.createMessage(
+            {
+              token: { user: { id: citizenUser.id } },
+              params: { chatId: String(citizenTosmChat.id) },
+              body: { text: `Rapid citizen msg ${i}`, receiverId: techStaffUser.id },
+            } as any,
+            { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() } as any,
+            jest.fn()
+          )
+        );
+      }
+
+      // Send 3 messages from TSM
+      for (let i = 1; i <= 3; i++) {
+        promises.push(
+          messageController.createMessage(
+            {
+              token: { user: { id: techStaffUser.id } },
+              params: { chatId: String(citizenTosmChat.id) },
+              body: { text: `Rapid TSM msg ${i}`, receiverId: citizenUser.id },
+            } as any,
+            { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() } as any,
+            jest.fn()
+          )
+        );
+      }
+
+      await Promise.all(promises);
+
+      // Verify all messages are stored
+      const req: any = {
+        token: { user: { id: citizenUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+      };
+
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      await messageController.getChatMessages(req, res, jest.fn());
+
+      const result = res.json.mock.calls[0][0];
+      const texts = result.chats.map((m: any) => m.text);
+
+      for (let i = 1; i <= 3; i++) {
+        expect(texts).toContain(`Rapid citizen msg ${i}`);
+        expect(texts).toContain(`Rapid TSM msg ${i}`);
+      }
+    });
+
+    it('should prevent external maintainer from sending messages in citizen-TSM chat', async () => {
+      const req: any = {
+        token: { user: { id: extMaintainerUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+        body: {
+          text: 'Unauthorized message',
+          receiverId: techStaffUser.id,
+        },
+      };
+
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      const next = jest.fn();
+
+      await messageController.createMessage(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const err = next.mock.calls[0][0];
+      expect(err.name).toBe('BadRequestError');
+      expect(err.message).toMatch(/sender inserted is not part of the chat/);
+    });
+
+    it('should handle long message text', async () => {
+      const longText = 'A'.repeat(1000);
+
+      const req: any = {
+        token: { user: { id: citizenUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+        body: {
+          text: longText,
+          receiverId: techStaffUser.id,
+        },
+      };
+
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      const next = jest.fn();
+
+      await messageController.createMessage(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      const message = res.json.mock.calls[0][0];
+      expect(message.text).toBe(longText);
+      expect(message.text.length).toBe(1000);
+    });
+
+    it('should handle special characters and unicode in messages', async () => {
+      const specialText = 'Special: !@#$%^&*() 你好 😊';
+
+      const req: any = {
+        token: { user: { id: techStaffUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+        body: {
+          text: specialText,
+          receiverId: citizenUser.id,
+        },
+      };
+
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      const next = jest.fn();
+
+      await messageController.createMessage(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      const message = res.json.mock.calls[0][0];
+      expect(message.text).toBe(specialText);
+    });
+
+    it('should verify messages have correct sender and receiver IDs', async () => {
+      const req: any = {
+        token: { user: { id: citizenUser.id } },
+        params: { chatId: String(citizenTosmChat.id) },
+        body: {
+          text: 'ID verification test',
+          receiverId: techStaffUser.id,
+        },
+      };
+
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+      };
+
+      const next = jest.fn();
+
+      await messageController.createMessage(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      const message = res.json.mock.calls[0][0];
+
+      expect(message.sender).toBe(citizenUser.id);
+      expect(message.receiver).toBe(techStaffUser.id);
+      expect(message.chat).toBe(citizenTosmChat.id);
+      expect(message).toHaveProperty('sentAt');
+    });
+  });
 });
