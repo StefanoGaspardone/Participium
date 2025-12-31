@@ -5,6 +5,10 @@ import { AppDataSource } from '@database';
 import { CompanyDAO } from '@daos/CompanyDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 
+const ADMIN_PASSWORD = 'admin'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+const PRO_PASSWORD = 'password'; //NOSONAR
+
 describe('Companies E2E Tests', () => {
   let adminToken: string;
   let citizenToken: string;
@@ -16,21 +20,21 @@ describe('Companies E2E Tests', () => {
     // Login as admin
     const adminLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'admin', password: 'admin' });
+      .send({ username: 'admin', password: ADMIN_PASSWORD });
     expect(adminLogin.status).toBe(200);
     adminToken = adminLogin.body.token;
 
     // Login as citizen for unauthorized tests
     const citizenLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'user', password: 'user' });
+      .send({ username: 'user', password: USER_PASSWORD });
     expect(citizenLogin.status).toBe(200);
     citizenToken = citizenLogin.body.token;
 
     // Login as PRO (pre-populated in test data)
     const proLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'pro', password: 'password' });
+      .send({ username: 'pro', password: PRO_PASSWORD });
     expect(proLogin.status).toBe(200);
     proToken = proLogin.body.token;
   });
@@ -300,14 +304,13 @@ describe('Companies E2E Tests', () => {
       expect(savedCompany!.categories.length).toBe(categories.length);
       
       // Verify category IDs match
-      const savedCategoryIds = savedCompany!.categories.map(c => c.id).sort();
-      const expectedCategoryIds = categories.map(c => c.id).sort();
+      const savedCategoryIds = savedCompany!.categories.map(c => c.id).sort((a, b) => (a - b));
+      const expectedCategoryIds = categories.map(c => c.id).sort((a, b) => (a - b));
       expect(savedCategoryIds).toEqual(expectedCategoryIds);
     });
 
     it('should maintain company-category relationship integrity', async () => {
       const categoryRepo = AppDataSource.getRepository(CategoryDAO);
-      const companyRepo = AppDataSource.getRepository(CompanyDAO);
       
       const category = await categoryRepo.findOne({ where: {} });
       

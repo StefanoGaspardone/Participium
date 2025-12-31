@@ -8,6 +8,10 @@ import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 import { UserDAO, UserType } from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 
+const PRO_PASSWORD = 'pro'; //NOSONAR
+const ADMIN_PASSWORD = 'admin'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+
 /**
  * E2E tests for the "Managing Pending Reports" feature
  * Tests the endpoints that allow PRO to view, accept, reject, and update category
@@ -31,13 +35,13 @@ describe("Manage Pending Reports E2E Tests", () => {
     // Get seeded office and categories
     const office = await roleRepo.findOneBy({});
     const categories = await categoryRepo.find({ relations: ["office"], take: 2 });
-    categoryId = categories[0]!.id;
-    alternativeCategoryId = categories[1]!.id;
+    categoryId = categories[0]?.id ?? 0;
+    alternativeCategoryId = categories[1]?.id ?? 0;
     officeId = office!.id;
 
     // Create PRO user
     const salt = await bcrypt.genSalt(10);
-    const proHash = await bcrypt.hash("pro", salt);
+    const proHash = await bcrypt.hash(PRO_PASSWORD, salt);
     const proUser = userRepo.create({
       username: "pro_manage_test",
       email: "pro_manage@test.com",
@@ -49,7 +53,7 @@ describe("Manage Pending Reports E2E Tests", () => {
     await userRepo.save(proUser);
 
     // Create Admin user
-    const adminHash = await bcrypt.hash("admin", salt);
+    const adminHash = await bcrypt.hash(ADMIN_PASSWORD, salt);
     const adminUser = userRepo.create({
       username: "admin_manage_test",
       email: "admin_manage@test.com",
@@ -63,17 +67,17 @@ describe("Manage Pending Reports E2E Tests", () => {
     // Login as different users
     const proLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "pro_manage_test", password: "pro" });
+      .send({ username: "pro_manage_test", password: PRO_PASSWORD });
     proToken = proLogin.body.token;
 
     const adminLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "admin_manage_test", password: "admin" });
+      .send({ username: "admin_manage_test", password: ADMIN_PASSWORD });
     adminToken = adminLogin.body.token;
 
     const citizenLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "user", password: "user" });
+      .send({ username: "user", password: USER_PASSWORD });
     citizenToken = citizenLogin.body.token;
   });
 
@@ -387,7 +391,7 @@ describe("Manage Pending Reports E2E Tests", () => {
         userType: UserType.TECHNICAL_STAFF_MEMBER,
         offices: [office!],
       });
-      const savedTech = await userRepo.save(techUser);
+      await userRepo.save(techUser);
 
       const res = await request(app)
         .put(`/api/reports/${reportId}/status/public`)
@@ -493,10 +497,10 @@ describe("Manage Pending Reports E2E Tests", () => {
         relations: ["assignedTo"],
       });
 
-      expect(updated1!.assignedTo).toBeDefined();
-      expect(updated2!.assignedTo).toBeDefined();
+      expect(updated1?.assignedTo).toBeDefined();
+      expect(updated2?.assignedTo).toBeDefined();
       // They should be assigned to different people (round-robin)
-      expect(updated1!.assignedTo!.id).not.toBe(updated2!.assignedTo!.id);
+      expect(updated1?.assignedTo?.id).not.toBe(updated2?.assignedTo?.id);
     });
   });
 });

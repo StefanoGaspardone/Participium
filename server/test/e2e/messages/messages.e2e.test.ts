@@ -8,6 +8,10 @@ import { CategoryDAO } from "@daos/CategoryDAO";
 import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 import { ChatDAO, ChatType } from "@daos/ChatsDAO";
 
+const TEST_PASSWORD = 'password'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+const TECHSTAFF_PASSWORD = 'techstaff'; //NOSONAR
+
 /**
  * E2E tests for chat-based messaging API.
  * 
@@ -44,7 +48,7 @@ describe("Messages E2E tests", () => {
     const extUser = userRepo.create({
       username: "extmaintainer_e2e",
       email: "ext_e2e@test.com",
-      passwordHash: await hash("password", 10),
+      passwordHash: await hash(TEST_PASSWORD, 10),
       firstName: "External",
       lastName: "Maintainer",
       userType: UserType.EXTERNAL_MAINTAINER,
@@ -90,20 +94,20 @@ describe("Messages E2E tests", () => {
     // Login users
     const citizenLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "user", password: "user" });
+      .send({ username: "user", password: USER_PASSWORD });
     expect(citizenLogin.status).toBe(200);
     citizenToken = citizenLogin.body.token;
 
     // Login as TOSM user (seeded as 'techstaff')
     const tosmLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "techstaff", password: "techstaff" });
+      .send({ username: "techstaff", password: TECHSTAFF_PASSWORD });
     expect(tosmLogin.status).toBe(200);
     tosmToken = tosmLogin.body.token;
 
     const extLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "extmaintainer_e2e", password: "password" });
+      .send({ username: "extmaintainer_e2e", password: TEST_PASSWORD });
     expect(extLogin.status).toBe(200);
     extMaintainerToken = extLogin.body.token;
   });
@@ -682,7 +686,7 @@ describe("Messages E2E tests", () => {
     });
 
     it("should handle special characters in messages", async () => {
-      const specialText = "Special chars: !@#$%^&*()_+-={}[]|\\:\";<>?,./";
+      const specialText = String.raw`Special chars: !@#$%^&*()_+-={}[]|\:";<>?,./`;
 
       const res = await request(app)
         .post(`/api/chats/${citizenTosmChat.id}/newMessage`)

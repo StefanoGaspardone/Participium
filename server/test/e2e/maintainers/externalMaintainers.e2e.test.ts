@@ -7,6 +7,11 @@ import { CategoryDAO } from '@daos/CategoryDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import * as bcrypt from 'bcryptjs';
 
+const ADMIN_PASSWORD = 'admin'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+const MAINTAINER_PASSWORD = 'MaintainerPass123!'; //NOSONAR
+const MAINTAINER_TEST_PASSWORD = 'maintainerpass'; //NOSONAR
+
 describe('External Maintainers E2E Tests', () => {
   let adminToken: string;
   let citizenToken: string;
@@ -19,16 +24,15 @@ describe('External Maintainers E2E Tests', () => {
     // Login as admin
     const adminLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'admin', password: 'admin' });
+      .send({ username: 'admin', password: ADMIN_PASSWORD });
     expect(adminLogin.status).toBe(200);
     adminToken = adminLogin.body.token;
 
     // Login as citizen
     const citizenLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'user', password: 'user' });
+      .send({ username: 'user', password: USER_PASSWORD });
     expect(citizenLogin.status).toBe(200);
-    citizenToken = citizenLogin.body.token;
 
     // Use the pre-populated test company
     const companyRepo = AppDataSource.getRepository(CompanyDAO);
@@ -71,7 +75,7 @@ describe('External Maintainers E2E Tests', () => {
     it('should verify external maintainer is persisted with company relationship in database', async () => {
       const payload = {
         email: `ext_maintainer_${Date.now()}@test.it`,
-        password: 'MaintainerPass123!',
+        password: MAINTAINER_PASSWORD,
         firstName: 'External',
         lastName: 'Maintainer',
         username: `ext_maint_${Date.now()}`,
@@ -96,15 +100,15 @@ describe('External Maintainers E2E Tests', () => {
       expect(createdUser).toBeDefined();
       expect(createdUser!.userType).toBe(UserType.EXTERNAL_MAINTAINER);
       expect(createdUser!.company).toBeDefined();
-      expect(createdUser!.company!.id).toBe(companyId);
-      expect(createdUser!.company!.categories).toBeDefined();
-      expect(createdUser!.company!.categories.length).toBeGreaterThan(0);
+      expect(createdUser!.company.id).toBe(companyId);
+      expect(createdUser!.company.categories).toBeDefined();
+      expect(createdUser!.company.categories.length).toBeGreaterThan(0);
     });
 
     it('should return 400 when companyId does not exist', async () => {
       const payload = {
         email: `ext_maintainer_invalid_${Date.now()}@test.it`,
-        password: 'MaintainerPass123!',
+        password: MAINTAINER_PASSWORD,
         firstName: 'External',
         lastName: 'InvalidCompany',
         username: `ext_maint_invalid_${Date.now()}`,
@@ -125,7 +129,7 @@ describe('External Maintainers E2E Tests', () => {
     it('should create multiple external maintainers for same company', async () => {
       const maintainer1 = {
         email: `ext_maintainer_1_${Date.now()}@test.it`,
-        password: 'MaintainerPass123!',
+        password: MAINTAINER_PASSWORD,
         firstName: 'Maintainer',
         lastName: 'One',
         username: `ext_maint_1_${Date.now()}`,
@@ -135,7 +139,7 @@ describe('External Maintainers E2E Tests', () => {
 
       const maintainer2 = {
         email: `ext_maintainer_2_${Date.now()}@test.it`,
-        password: 'MaintainerPass123!',
+        password: MAINTAINER_PASSWORD,
         firstName: 'Maintainer',
         lastName: 'Two',
         username: `ext_maint_2_${Date.now()}`,
@@ -167,8 +171,8 @@ describe('External Maintainers E2E Tests', () => {
         relations: ['company']
       });
 
-      expect(user1!.company!.id).toBe(companyId);
-      expect(user2!.company!.id).toBe(companyId);
+      expect(user1?.company?.id).toBe(companyId);
+      expect(user2?.company?.id).toBe(companyId);
     });
   });
 
@@ -185,7 +189,7 @@ describe('External Maintainers E2E Tests', () => {
         relations: ['categories']
       });
 
-      const hashedPassword = await bcrypt.hash('maintainerpass', 10);
+      const hashedPassword = await bcrypt.hash(MAINTAINER_TEST_PASSWORD, 10);
       const maintainer = await userRepo.save({
         username: `category_maintainer_${Date.now()}`,
         firstName: 'Category',
@@ -250,9 +254,12 @@ describe('External Maintainers E2E Tests', () => {
       const companyRepo = AppDataSource.getRepository(CompanyDAO);
       const companies = await companyRepo.find({ relations: ['categories'] });
       
-      const usedCategoryIds = new Set(
-        companies.flatMap(c => c.categories.map(cat => cat.id))
-      );
+      const usedCategoryIds = new Set<number>();
+      companies.forEach(company => {
+        company.categories.forEach(cat => {
+          usedCategoryIds.add(cat.id);
+        });
+      });
       
       const unusedCategory = categories.find(cat => !usedCategoryIds.has(cat.id));
       
