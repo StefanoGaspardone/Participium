@@ -1,5 +1,6 @@
 import { UserService } from "@services/UserService";
 import { UserDAO, UserType } from "@daos/UserDAO";
+import { ReportStatus } from "@daos/ReportDAO";
 import { NewUserDTO } from "@dtos/UserDTO";
 
 // NOSONAR - Test credentials only, not used in production
@@ -911,6 +912,106 @@ describe("UserService.updateTsm (mock)", () => {
     const updatedUser = updateMock.mock.calls[0][0];
     expect(updatedUser.offices).toHaveLength(1);
     expect(result.offices).toEqual(["Office C"]);
+  });
+
+  it("should throw BadRequestError when TSM has active reports for office being removed", async () => {
+    const service = new UserService();
+
+    const fakeOffice1 = { id: 1, name: "Office A" } as any;
+    const fakeOffice2 = { id: 2, name: "Office B" } as any;
+
+    const fakeTSM = {
+      id: 1,
+      firstName: "John",
+      lastName: "Smith",
+      userType: UserType.TECHNICAL_STAFF_MEMBER,
+      offices: [fakeOffice1, fakeOffice2],
+      createdAt: new Date(),
+    } as any;
+
+    // Active report assigned to Office A
+    const activeReport = {
+      id: 1,
+      title: "Active Report",
+      status: ReportStatus.Assigned,
+      category: {
+        id: 1,
+        name: "Category A",
+        office: fakeOffice1,
+      },
+    } as any;
+
+    const findByIdMock = jest.fn().mockResolvedValue(fakeTSM);
+    const updateMock = jest.fn();
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserById: findByIdMock,
+      updateUser: updateMock,
+    };
+
+    // @ts-ignore
+    service["officeRepo"] = {
+      findOfficeById: jest
+        .fn()
+        .mockImplementation(async (id: number) => {
+          if (id === 2) return fakeOffice2;
+          return null;
+        }),
+    };
+
+    // @ts-ignore
+    service["reportRepo"] = {
+      findReportsAssignedTo: jest.fn().mockResolvedValue([activeReport]),
+    };
+
+    // Try to update to only Office B (remove Office A which has active reports)
+    await expect(service.updateTsm(1, [2])).rejects.toThrow(
+      "Cannot remove technical staff member from office Office A because they have active assigned reports related to this office."
+    );
+
+    expect(findByIdMock).toHaveBeenCalledWith(1);
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("UserService.validateUser (mock)", () => {
+  it("should throw error when deleteById fails in validateUser", async () => {
+    const service = new UserService();
+
+    const fakeUser = {
+      id: 1,
+      username: "testuser",
+      isActive: false,
+      codeConfirmation: {
+        id: 1,
+        code: "123456",
+        expirationDate: new Date(Date.now() + 100000), // Not expired
+      },
+    } as any;
+
+    const findByUsernameMock = jest.fn().mockResolvedValue(fakeUser);
+    const deleteByIdMock = jest.fn().mockRejectedValue(new Error("Delete failed"));
+    const updateUserMock = jest.fn();
+
+    // @ts-ignore
+    service["userRepo"] = {
+      findUserByUsername: findByUsernameMock,
+      updateUser: updateUserMock,
+    };
+
+    // @ts-ignore
+    service["codeService"] = {
+      deleteById: deleteByIdMock,
+    };
+
+    await expect(service.validateUser("testuser", "123456")).rejects.toThrow(
+      "Delete failed"
+    );
+
+    expect(findByUsernameMock).toHaveBeenCalledWith("testuser");
+    expect(deleteByIdMock).toHaveBeenCalledWith(1);
+    expect(updateUserMock).not.toHaveBeenCalled();
   });
 });
 

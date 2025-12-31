@@ -647,6 +647,57 @@ describe('ReportService (mock)', () => {
         expect(result[0].assignedTo.username).toBe('tech99');
       }
     });
+
+    it('should return co-assigned reports for external maintainers', async () => {
+      const service = new ReportService();
+      const mockReports = [
+        {
+          id: 1,
+          title: 'Report 1',
+          status: ReportStatus.InProgress,
+          createdBy: { id: 10, username: 'citizen' },
+          assignedTo: { id: 50, username: 'tech' },
+          coAssignedTo: { id: 100, username: 'external1' },
+          category: { id: 1, name: 'Water' },
+          createdAt: new Date(),
+          lat: 45.07,
+          long: 7.65
+        }
+      ];
+
+      // @ts-ignore
+      service['reportRepo'] = { findReportsCoAssignedTo: jest.fn().mockResolvedValue(mockReports) };
+      service['userRepo'] = {
+        findUserById: jest.fn().mockImplementation(async (id: number) => {
+          if (id === 100) {
+            return { id: 100, username: 'external1', userType: UserType.EXTERNAL_MAINTAINER };
+          }
+          return null;
+        })
+      } as any;
+
+      const result = await service.listAssignedReports(100);
+
+      expect((service as any).reportRepo.findReportsCoAssignedTo).toHaveBeenCalledWith(100);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(1);
+      expect(result[0].title).toBe('Report 1');
+    });
+
+    it('should throw BadRequestError for non-TSM and non-EM users', async () => {
+      const service = new ReportService();
+
+      service['userRepo'] = {
+        findUserById: jest.fn().mockImplementation(async (id: number) => {
+          if (id === 200) {
+            return { id: 200, username: 'citizen', userType: UserType.CITIZEN };
+          }
+          return null;
+        })
+      } as any;
+
+      await expect(service.listAssignedReports(200)).rejects.toThrow('Only technical staff members and external maintainers have assigned reports');
+    });
   });
 
   describe('updateReportStatus', () => {
@@ -742,6 +793,45 @@ describe('ReportService (mock)', () => {
       const result = await service.updateReportStatus(1, ReportStatus.InProgress, 1, UserType.TECHNICAL_STAFF_MEMBER);
 
       expect(result.status).toBe(ReportStatus.InProgress);
+    });
+
+    it('should throw BadRequestError when wrong external maintainer tries to update', async () => {
+      const service = new ReportService();
+      const mockReport = { 
+        status: ReportStatus.InProgress, 
+        createdBy: { id: 10 }, 
+        category: { id: 1 }, 
+        assignedTo: { id: 1 },
+        coAssignedTo: { id: 100 } // Different external maintainer
+      };
+      // @ts-ignore
+      service['reportRepo'] = { findReportById: jest.fn().mockResolvedValue(mockReport) };
+
+      await expect(service.updateReportStatus(1, ReportStatus.Resolved, 200, UserType.EXTERNAL_MAINTAINER))
+        .rejects.toThrow("You're not assigned to the report");
+    });
+
+    it('should allow external maintainer to update status when correctly assigned', async () => {
+      const service = new ReportService();
+      const mockReport = { 
+        status: ReportStatus.InProgress, 
+        createdBy: { id: 10 }, 
+        category: { id: 1 }, 
+        assignedTo: { id: 1 },
+        coAssignedTo: { id: 100 }
+      };
+      // @ts-ignore
+      service['reportRepo'] = { 
+        findReportById: jest.fn().mockResolvedValue(mockReport), 
+        save: jest.fn().mockImplementation(async (r) => r) 
+      };
+      // @ts-ignore
+      service['notificationService'] = { createNotification: jest.fn() };
+
+      const result = await service.updateReportStatus(1, ReportStatus.Resolved, 100, UserType.EXTERNAL_MAINTAINER);
+
+      expect(result.status).toBe(ReportStatus.Resolved);
+      expect((service as any).reportRepo.save).toHaveBeenCalled();
     });
   });
 });

@@ -411,4 +411,153 @@ describe('NotificationService (mock)', () => {
       await expect(service.findMyNotifications(40)).rejects.toThrow('database error');
     });
   });
+
+  describe('createMessageNotification', () => {
+    it('should create message notification successfully when user, report, and message exist', async () => {
+      const service = new NotificationService();
+
+      const mockUser = { id: 5, username: 'testuser', email: 'test@test.com' } as any;
+      const mockReport = { 
+        id: 15, 
+        title: 'Test Report',
+        category: { id: 1, name: 'Category' },
+        createdBy: mockUser
+      } as any;
+      const mockMessage = {
+        id: 25,
+        content: 'Test message',
+        sender: mockUser
+      } as any;
+
+      const mockCreatedNotification = {
+        id: 1,
+        user: mockUser,
+        report: mockReport,
+        message: mockMessage,
+        type: 'MESSAGE',
+        seen: false,
+        createdAt: new Date()
+      } as any;
+
+      // @ts-ignore
+      service['userRepo'] = {
+        findUserById: jest.fn().mockResolvedValue(mockUser)
+      };
+
+      // @ts-ignore
+      service['reportRepo'] = {
+        findReportById: jest.fn().mockResolvedValue(mockReport)
+      };
+
+      // @ts-ignore
+      service['messageRepo'] = {
+        findMessageById: jest.fn().mockResolvedValue(mockMessage)
+      };
+
+      // @ts-ignore
+      service['notificationRepo'] = {
+        createNotification: jest.fn().mockResolvedValue(mockCreatedNotification)
+      };
+
+      const newMessageNotification = {
+        userId: 5,
+        reportId: 15,
+        messageId: 25
+      };
+
+      const result = await service.createMessageNotification(newMessageNotification);
+
+      expect((service as any).userRepo.findUserById).toHaveBeenCalledWith(5);
+      expect((service as any).reportRepo.findReportById).toHaveBeenCalledWith(15);
+      expect((service as any).messageRepo.findMessageById).toHaveBeenCalledWith(25);
+      expect((service as any).notificationRepo.createNotification).toHaveBeenCalledTimes(1);
+      
+      expect(result).toMatchObject({
+        id: 1,
+        type: 'MESSAGE'
+      });
+    });
+
+    it('should throw BadRequestError when user does not exist', async () => {
+      const service = new NotificationService();
+
+      // @ts-ignore
+      service['userRepo'] = {
+        findUserById: jest.fn().mockResolvedValue(null)
+      };
+
+      const newMessageNotification = {
+        userId: 999,
+        reportId: 15,
+        messageId: 25
+      };
+
+      await expect(service.createMessageNotification(newMessageNotification)).rejects.toThrow('User not found');
+      expect((service as any).userRepo.findUserById).toHaveBeenCalledWith(999);
+    });
+
+    it('should throw BadRequestError when report does not exist', async () => {
+      const service = new NotificationService();
+
+      const mockUser = { id: 5, username: 'testuser' } as any;
+
+      // @ts-ignore
+      service['userRepo'] = {
+        findUserById: jest.fn().mockResolvedValue(mockUser)
+      };
+
+      // @ts-ignore
+      service['reportRepo'] = {
+        findReportById: jest.fn().mockResolvedValue(null)
+      };
+
+      const newMessageNotification = {
+        userId: 5,
+        reportId: 888,
+        messageId: 25
+      };
+
+      await expect(service.createMessageNotification(newMessageNotification)).rejects.toThrow('Report not found');
+      expect((service as any).userRepo.findUserById).toHaveBeenCalledWith(5);
+      expect((service as any).reportRepo.findReportById).toHaveBeenCalledWith(888);
+    });
+
+    it('should throw BadRequestError when message does not exist', async () => {
+      const service = new NotificationService();
+
+      const mockUser = { id: 5, username: 'testuser' } as any;
+      const mockReport = { 
+        id: 15, 
+        title: 'Test Report',
+        category: { id: 1, name: 'Category' },
+        createdBy: mockUser
+      } as any;
+
+      // @ts-ignore
+      service['userRepo'] = {
+        findUserById: jest.fn().mockResolvedValue(mockUser)
+      };
+
+      // @ts-ignore
+      service['reportRepo'] = {
+        findReportById: jest.fn().mockResolvedValue(mockReport)
+      };
+
+      // @ts-ignore
+      service['messageRepo'] = {
+        findMessageById: jest.fn().mockResolvedValue(null)
+      };
+
+      const newMessageNotification = {
+        userId: 5,
+        reportId: 15,
+        messageId: 777
+      };
+
+      await expect(service.createMessageNotification(newMessageNotification)).rejects.toThrow('Message not found');
+      expect((service as any).userRepo.findUserById).toHaveBeenCalledWith(5);
+      expect((service as any).reportRepo.findReportById).toHaveBeenCalledWith(15);
+      expect((service as any).messageRepo.findMessageById).toHaveBeenCalledWith(777);
+    });
+  });
 });

@@ -23,6 +23,70 @@ describe('MailService (mock)', () => {
 	});
 
 	describe('constructor', () => {
+		it('should handle SMTP verification failure and set transporter to null', async () => {
+			mockVerify.mockRejectedValue(new Error('SMTP verification failed'));
+
+			const { MailService } = require('@services/MailService');
+			const service = new MailService();
+
+			// Wait for verify to be called
+			await new Promise(resolve => setTimeout(resolve, 50));
+
+			expect(mockVerify).toHaveBeenCalled();
+			expect((service as any).transporter).toBeNull();
+		});
+	});
+
+	describe('sendMail', () => {
+		it('should return early when transporter is null', async () => {
+			mockVerify.mockResolvedValue(true);
+
+			const { MailService } = require('@services/MailService');
+			const service = new MailService();
+
+			// Wait for initialization
+			await new Promise(resolve => setTimeout(resolve, 10));
+
+			// Manually set transporter to null to simulate the case where email is not configured
+			(service as any).transporter = null;
+
+			const mailOptions = {
+				to: 'recipient@test.com',
+				subject: 'Test Subject',
+				text: 'Test message body',
+			};
+
+			const result = await service.sendMail(mailOptions);
+
+			expect(mockSendMail).not.toHaveBeenCalled();
+			expect(result).toBeUndefined();
+		});
+
+		it('should handle sendMail errors gracefully', async () => {
+			mockVerify.mockResolvedValue(true);
+			mockSendMail.mockRejectedValue(new Error('Failed to send email'));
+
+			const { MailService } = require('@services/MailService');
+			const service = new MailService();
+
+			// Wait for transporter initialization
+			await new Promise(resolve => setTimeout(resolve, 10));
+
+			const mailOptions = {
+				to: 'recipient@test.com',
+				subject: 'Test Subject',
+				text: 'Test message body',
+			};
+
+			const result = await service.sendMail(mailOptions);
+
+			expect(mockSendMail).toHaveBeenCalled();
+			expect(result).toBeUndefined();
+		});
+	});
+
+	// Commented out tests to avoid consuming email quota
+	describe('commented tests', () => {
 		// it('should initialize transporter with correct SMTP configuration', async () => {
 		// 	mockVerify.mockResolvedValue(true);
 
@@ -199,4 +263,3 @@ describe('MailService (mock)', () => {
 		// });
 	});
 });
-
