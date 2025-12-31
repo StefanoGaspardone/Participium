@@ -6,6 +6,8 @@ import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import { ChatDAO } from '@daos/ChatsDAO';
 import * as bcrypt from 'bcryptjs';
 
+const TEST_PASSWORD = 'cpass'; //NOSONAR test password used for hashing fixtures
+
 let reportController: any;
 
 describe('ReportController integration tests', () => {
@@ -32,7 +34,7 @@ describe('ReportController integration tests', () => {
     categoryId = category.id;
 
     const salt = await bcrypt.genSalt(10);
-    const userHash = await bcrypt.hash('cpass', salt);
+    const userHash = await bcrypt.hash(TEST_PASSWORD, salt);
     const citizen = userRepo.create({
       username: 'controller_citizen',
       email: 'controller_citizen@gmail.com',
@@ -96,7 +98,7 @@ describe('ReportController integration tests', () => {
           title: 'Lamp broken',
           description: 'Lamp on 3rd street is out',
           categoryId: categoryId,
-          images: ['http://img/1.jpg'],
+          images: ['https://img/1.jpg'],
           lat: 45.07,
           long: 7.65,
           anonymous: false,
@@ -138,7 +140,7 @@ describe('ReportController integration tests', () => {
           title: 'Missing cat',
           description: 'Category not present',
           categoryId: 999999,
-          images: ['http://img/1.jpg'],
+          images: ['https://img/1.jpg'],
           lat: 45.07,
           long: 7.65,
           anonymous: false,

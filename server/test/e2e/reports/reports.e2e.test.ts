@@ -9,6 +9,17 @@ import { UserDAO, UserType } from "@daos/UserDAO";
 import { ChatDAO } from "@daos/ChatsDAO";
 import * as bcrypt from "bcryptjs";
 
+const USER_PASSWORD = 'user'; //NOSONAR
+const PRO_PASSWORD = 'propass'; //NOSONAR
+const EXT_PASSWORD = 'extpass'; //NOSONAR
+const TECH_PASSWORD = 'techpass2'; //NOSONAR
+const PRO_PASSWORD_3 = 'propass3'; //NOSONAR
+const NEW_USER_PASSWORD = 'newuser123'; //NOSONAR
+const USER1_PASSWORD = 'user1pass'; //NOSONAR
+const OTHER_PASSWORD = 'other123'; //NOSONAR
+const OWNER_PASSWORD = 'owner456'; //NOSONAR
+const DETAILS_PASSWORD = 'details123'; //NOSONAR
+
 describe("Reports e2e tests", () => {
 	let token: string;
 	let categoryId: number | undefined;
@@ -30,7 +41,7 @@ describe("Reports e2e tests", () => {
 		// login as the seeded test user
 		const login = await request(app)
 			.post("/api/users/login")
-			.send({ username: "user", password: "user" });
+			.send({ username: "user", password: USER_PASSWORD });
 		expect(login.status).toBe(200);
 		token = login.body.token as string;
 
@@ -298,7 +309,7 @@ describe("Reports e2e tests", () => {
 			// Login as PRO user and accept/assign report
 			const proLogin = await request(app).post("/api/users/login").send({
 				username: "pro_e2e_chat",
-				password: "propass",
+				password: PRO_PASSWORD,
 			});
 			const proToken = proLogin.body.token;
 
@@ -346,7 +357,7 @@ describe("Reports e2e tests", () => {
 			const extUser = userRepo.create({
 				username: "ext_e2e",
 				email: "ext_e2e@test.com",
-				passwordHash: await bcrypt.hash("extpass", extHash),
+				passwordHash: await bcrypt.hash(EXT_PASSWORD, extHash),
 				firstName: "External",
 				lastName: "E2E",
 				userType: UserType.EXTERNAL_MAINTAINER,
@@ -382,7 +393,7 @@ describe("Reports e2e tests", () => {
 			// Login as tech and assign external maintainer
 			const techLogin = await request(app).post("/api/users/login").send({
 				username: "tech_e2e_ext",
-				password: "techpass2",
+				password: TECH_PASSWORD,
 			});
 			const techToken = techLogin.body.token;
 
@@ -460,7 +471,7 @@ describe("Reports e2e tests", () => {
 
 			const proLogin = await request(app).post("/api/users/login").send({
 				username: "pro_e2e_dup",
-				password: "propass3",
+				password: PRO_PASSWORD_3,
 			});
 			const proToken = proLogin.body.token;
 
@@ -511,7 +522,7 @@ describe("Reports e2e tests", () => {
 
 			const login = await request(app).post("/api/users/login").send({
 				username: "user_no_reports",
-				password: "newuser123",
+				password: NEW_USER_PASSWORD,
 			});
 			const userToken = login.body.token;
 
@@ -597,7 +608,7 @@ describe("Reports e2e tests", () => {
 
 			const login = await request(app).post("/api/users/login").send({
 				username: "user_mine_1",
-				password: "user1pass",
+				password: USER1_PASSWORD,
 			});
 			const user1Token = login.body.token;
 
@@ -672,7 +683,7 @@ describe("Reports e2e tests", () => {
 
 			const login = await request(app).post("/api/users/login").send({
 				username: "other_user",
-				password: "other123",
+				password: OTHER_PASSWORD,
 			});
 			const otherToken = login.body.token;
 
@@ -698,6 +709,7 @@ describe("Reports e2e tests", () => {
 				firstName: "Valid",
 				lastName: "Owner",
 				userType: UserType.CITIZEN,
+				isActive: true,
 			});
 			await userRepo.save(owner);
 
@@ -718,7 +730,7 @@ describe("Reports e2e tests", () => {
 
 			const login = await request(app).post("/api/users/login").send({
 				username: "report_owner_valid",
-				password: "owner456",
+				password: OWNER_PASSWORD,
 			});
 			const ownerToken = login.body.token;
 
@@ -771,7 +783,7 @@ describe("Reports e2e tests", () => {
 
 			const login = await request(app).post("/api/users/login").send({
 				username: "user_details",
-				password: "details123",
+				password: DETAILS_PASSWORD,
 			});
 			const userToken = login.body.token;
 

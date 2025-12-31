@@ -165,7 +165,7 @@ describe("UserService.createMunicipalityUser (mock)", () => {
     const saved = await service.createMunicipalityUser(payload);
 
     expect(createMock).toHaveBeenCalled();
-    const passed = createMock.mock.calls[0][0] as any;
+    const passed = createMock.mock.calls[0][0];
     // password should be hashed
     expect(passed.passwordHash).toBeDefined();
     expect(passed.passwordHash).not.toBe(TEST_PASSWORD);
@@ -280,6 +280,8 @@ describe("UserService.updateUser (mock)", () => {
 
     expect(findByIdMock).toHaveBeenCalledWith(10);
     expect(updateMock).toHaveBeenCalled();
+    expect(result).toBeDefined();
+    expect(result.id).toBe(10);
     
     const updatedUser = updateMock.mock.calls[0][0];
     expect(updatedUser.firstName).toBe("New");

@@ -9,6 +9,8 @@ import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 import { ChatType } from "@daos/ChatsDAO";
 
 const TEST_PASSWORD = 'password'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+const TECHSTAFF_PASSWORD = 'techstaff'; //NOSONAR
 
 /**
  * E2E tests for chat management API.
@@ -101,14 +103,14 @@ describe("Chats E2E tests", () => {
     // Login users
     const citizenLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "user", password: "user" });
+      .send({ username: "user", password: USER_PASSWORD });
     expect(citizenLogin.status).toBe(200);
     citizenToken = citizenLogin.body.token;
 
     // Login as TOSM user (seeded as 'techstaff')
     const tosmLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "techstaff", password: "techstaff" });
+      .send({ username: "techstaff", password: TECHSTAFF_PASSWORD });
     expect(tosmLogin.status).toBe(200);
     tosmToken = tosmLogin.body.token;
 

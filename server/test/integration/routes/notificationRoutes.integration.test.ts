@@ -7,6 +7,11 @@ import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import { NotificationDAO } from '@daos/NotificationsDAO';
 import * as bcrypt from 'bcryptjs';
 
+// Test password constants
+const TEST_PASSWORD_CITIZEN = 'citizen'; //NOSONAR
+const TEST_PASSWORD_TEST = 'test'; //NOSONAR
+const TEST_PASSWORD_NEWUSER = 'newuser'; //NOSONAR
+
 // Helper to create test user
 const createTestUser = async (userRepo: any, username: string, password: string) => {
   const salt = await bcrypt.genSalt(10);
@@ -37,7 +42,7 @@ describe('Notification routes integration tests', () => {
     const reportRepo = AppDataSource.getRepository(ReportDAO);
 
     // Create citizen user
-    const citizen = await createTestUser(userRepo, 'citizen', 'citizen');
+    const citizen = await createTestUser(userRepo, 'citizen', TEST_PASSWORD_CITIZEN);
     citizenUser = await userRepo.save(citizen);
 
     // Create category
@@ -61,7 +66,7 @@ describe('Notification routes integration tests', () => {
     // Get citizen token
     const loginRes = await request(app)
       .post('/api/users/login')
-      .send({ username: 'citizen', password: 'citizen' });
+      .send({ username: 'citizen', password: TEST_PASSWORD_CITIZEN });
     citizenToken = loginRes.body.token;
   });
 
@@ -112,7 +117,7 @@ describe('Notification routes integration tests', () => {
       const categoryRepo = AppDataSource.getRepository(CategoryDAO);
       const reportRepo = AppDataSource.getRepository(ReportDAO);
 
-      const user = await createTestUser(userRepo, 'testuser', 'test');
+      const user = await createTestUser(userRepo, 'testuser', TEST_PASSWORD_TEST);
       citizenUser = await userRepo.save(user);
 
       const cat = categoryRepo.create({ name: 'Category' });
@@ -308,7 +313,7 @@ describe('Notification routes integration tests', () => {
       // Get citizen token
       const loginRes = await request(app)
         .post('/api/users/login')
-        .send({ username: 'citizen', password: 'citizen' });
+        .send({ username: 'citizen', password: TEST_PASSWORD_CITIZEN });
       citizenToken = loginRes.body.token;
     });
 
@@ -360,7 +365,7 @@ describe('Notification routes integration tests', () => {
       const reportRepo = AppDataSource.getRepository(ReportDAO);
       const notificationRepo = AppDataSource.getRepository(NotificationDAO);
 
-      const user = await createTestUser(userRepo, 'citizen', 'citizen');
+      const user = await createTestUser(userRepo, 'citizen', TEST_PASSWORD_CITIZEN);
       citizenUser = await userRepo.save(user);
 
       const cat = categoryRepo.create({ name: 'Category' });
@@ -399,7 +404,7 @@ describe('Notification routes integration tests', () => {
       // Get citizen token
       const loginRes = await request(app)
         .post('/api/users/login')
-        .send({ username: 'citizen', password: 'citizen' });
+        .send({ username: 'citizen', password: TEST_PASSWORD_CITIZEN });
       citizenToken = loginRes.body.token;
     });
 
@@ -426,13 +431,13 @@ describe('Notification routes integration tests', () => {
       const { AppDataSource } = await import('@database');
       const userRepo = AppDataSource.getRepository(UserDAO);
 
-      const newUser = await createTestUser(userRepo, 'newuser', 'newuser');
+      const newUser = await createTestUser(userRepo, 'newuser', TEST_PASSWORD_NEWUSER);
       await userRepo.save(newUser);
 
       // Login as new user
       const loginRes = await request(app)
         .post('/api/users/login')
-        .send({ username: 'newuser', password: 'newuser' });
+        .send({ username: 'newuser', password: TEST_PASSWORD_NEWUSER });
       const newUserToken = loginRes.body.token;
 
       const res = await request(app)

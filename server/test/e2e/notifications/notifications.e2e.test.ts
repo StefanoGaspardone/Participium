@@ -9,6 +9,9 @@ import { UserDAO } from "@daos/UserDAO";
 import { CategoryDAO } from "@daos/CategoryDAO";
 import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 
+const USER_PASSWORD = 'user'; //NOSONAR
+const TEST_PASSWORD = 'password123'; //NOSONAR
+
 describe("Notifications e2e tests", () => {
   // e2e DB operations can be slow; increase jest timeout
   jest.setTimeout(30000);
@@ -23,7 +26,7 @@ describe("Notifications e2e tests", () => {
     // Login as the seeded test user (citizen)
     const citizenLoginRes = await request(app)
       .post("/api/users/login")
-      .send({ username: "user", password: "user" });
+      .send({ username: "user", password: USER_PASSWORD });
     expect(citizenLoginRes.status).toBe(200);
     citizenToken = citizenLoginRes.body.token;
 
@@ -341,7 +344,7 @@ describe("Notifications e2e tests", () => {
       // Create another user and their notification
       const newUserRes = await request(app).post("/api/users/signup").send({
         email: "notif-test@example.com",
-        password: "password123",
+        password: TEST_PASSWORD,
         firstName: "Notif",
         lastName: "Test",
         username: "notiftest",
@@ -363,7 +366,7 @@ describe("Notifications e2e tests", () => {
 
       const newUserLoginRes = await request(app)
         .post("/api/users/login")
-        .send({ username: "notiftest", password: "password123" });
+        .send({ username: "notiftest", password: TEST_PASSWORD });
       const newUserToken = newUserLoginRes.body.token;
 
       await request(app)

@@ -4,7 +4,6 @@ import request from 'supertest';
 import { OfficeDAO } from '@daos/OfficeDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
-import { CompanyDAO } from '@daos/CompanyDAO';
 import * as bcrypt from 'bcryptjs';
 
 const TEST_PASSWORD = 'testpass123'; //NOSONAR

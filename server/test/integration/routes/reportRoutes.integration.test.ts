@@ -6,7 +6,22 @@ import { UserDAO, UserType } from '@daos/UserDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import { ChatDAO } from '@daos/ChatsDAO';
+import { NotificationDAO } from '@daos/NotificationsDAO';
 import * as bcrypt from 'bcryptjs';
+
+// Test password constants
+const TEST_PASSWORD_CITIZEN = 'citizen'; //NOSONAR
+const TEST_PASSWORD_PRO = 'pro'; //NOSONAR
+const TEST_PASSWORD_ADMIN = 'admin'; //NOSONAR
+const TEST_PASSWORD_TECH = 'tech'; //NOSONAR
+const TEST_PASSWORD_TECH2 = 'tech2'; //NOSONAR
+const TEST_PASSWORD_TECH3 = 'tech3'; //NOSONAR
+const TEST_PASSWORD_NEWUSER = 'newuser123'; //NOSONAR
+const TEST_PASSWORD_USER1 = 'user1pass'; //NOSONAR
+const TEST_PASSWORD_DETAIL_USER = 'detailuser'; //NOSONAR
+const TEST_PASSWORD_OTHER = 'other123'; //NOSONAR
+const TEST_PASSWORD_OWNER = 'owner456'; //NOSONAR
+const TEST_PASSWORD_DETAILS = 'details123'; //NOSONAR
 
 // Test constants
 const VALID_TURIN_LAT = 45.07;
@@ -73,7 +88,7 @@ describe('Report routes integration tests', () => {
     categoryId = category.id;
 
     const salt = await bcrypt.genSalt(10);
-    const userHash = await bcrypt.hash('citizen', salt);
+    const userHash = await bcrypt.hash(TEST_PASSWORD_CITIZEN, salt);
     const citizen = userRepo.create({
       username: 'citizen_user',
       email: 'citizen_user@gmail.com',
@@ -84,7 +99,7 @@ describe('Report routes integration tests', () => {
     });
     await userRepo.save(citizen);
 
-    const proHash = await bcrypt.hash('pro', salt);
+    const proHash = await bcrypt.hash(TEST_PASSWORD_PRO, salt);
     const proUser = userRepo.create({
       username: 'pro_user',
       email: 'pro@gmail.com',
@@ -95,7 +110,7 @@ describe('Report routes integration tests', () => {
     });
     await userRepo.save(proUser);
 
-    const adminHash = await bcrypt.hash('admin', salt);
+    const adminHash = await bcrypt.hash(TEST_PASSWORD_ADMIN, salt);
     const adminUser = userRepo.create({
       username: 'admin_user',
       email: 'admin@gmail.com',
@@ -107,15 +122,15 @@ describe('Report routes integration tests', () => {
     await userRepo.save(adminUser);
 
     // login once and cache token for tests
-    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: 'citizen' });
+    const login = await request(app).post('/api/users/login').send({ username: 'citizen_user', password: TEST_PASSWORD_CITIZEN });
     expect(login.status).toBe(200);
-    token = login.body.token as string;
+    token = login.body.token;
 
-    const loginPro = await request(app).post('/api/users/login').send({ username: 'pro_user', password: 'pro' });
-    proToken = loginPro.body.token as string;
+    const loginPro = await request(app).post('/api/users/login').send({ username: 'pro_user', password: TEST_PASSWORD_PRO });
+    proToken = loginPro.body.token;
 
-    const loginAdmin = await request(app).post('/api/users/login').send({ username: 'admin_user', password: 'admin' });
-    adminToken = loginAdmin.body.token as string;
+    const loginAdmin = await request(app).post('/api/users/login').send({ username: 'admin_user', password: TEST_PASSWORD_ADMIN });
+    adminToken = loginAdmin.body.token;
   });
 
   afterEach(async () => {
@@ -124,8 +139,13 @@ describe('Report routes integration tests', () => {
     const chatRepo = AppDataSource.getRepository(ChatDAO);
     const reportRepo = AppDataSource.getRepository(ReportDAO);
     const userRepo = AppDataSource.getRepository(UserDAO);
+    const notificationRepo = AppDataSource.getRepository(NotificationDAO);
 
     try {
+      const notifications = await notificationRepo.find();
+      if (notifications.length > 0) {
+        await notificationRepo.remove(notifications);
+      }
       if (createdEntities.chats.length > 0) {
         await chatRepo.remove(createdEntities.chats);
         createdEntities.chats = [];
@@ -138,9 +158,10 @@ describe('Report routes integration tests', () => {
         await userRepo.remove(createdEntities.users);
         createdEntities.users = [];
       }
-    } catch (err) {
-      // Ignore cleanup errors - they may occur if entities were already cleaned up
-      const error = err as Error;
+    } catch (error_) {
+      // Surface teardown issues so tests don't silently skip broken cleanup
+      console.error('Cleanup failure in reportRoutes.integration tests:', error_);
+      throw error_;
     }
   });
 
@@ -495,7 +516,7 @@ describe('Report routes integration tests', () => {
       const savedTech = await userRepo.save(techUser);
       techUserId = savedTech.id;
 
-      const loginTech = await request(app).post('/api/users/login').send({ username: 'tech_assigned_test', password: 'tech' });
+      const loginTech = await request(app).post('/api/users/login').send({ username: 'tech_assigned_test', password: TEST_PASSWORD_TECH });
       techToken = loginTech.body.token as string;
     });
 
@@ -626,7 +647,7 @@ describe('Report routes integration tests', () => {
           title: 'Report for External Assignment',
           description: 'Test external maintainer',
           category: category,
-          images: ['http://img/ext.jpg'],
+          images: ['https://img/ext.jpg'],
           lat: VALID_TURIN_LAT,
           long: VALID_TURIN_LONG,
           anonymous: false,
@@ -649,7 +670,7 @@ describe('Report routes integration tests', () => {
 
         const techLogin = await request(app).post('/api/users/login').send({ 
           username: techUser.username, 
-          password: 'tech' 
+          password: TEST_PASSWORD_TECH 
         });
         const techToken = techLogin.body.token;
 
@@ -691,7 +712,7 @@ describe('Report routes integration tests', () => {
 
         const techLogin = await request(app).post('/api/users/login').send({ 
           username: techUser.username, 
-          password: 'tech2' 
+          password: TEST_PASSWORD_TECH2 
         });
         const techToken = techLogin.body.token;
 
@@ -720,7 +741,7 @@ describe('Report routes integration tests', () => {
           title: 'Status Update Test',
           description: 'Test status update',
           category: category,
-          images: ['http://img/status.jpg'],
+          images: ['https://img/status.jpg'],
           lat: VALID_TURIN_LAT,
           long: VALID_TURIN_LONG,
           anonymous: false,
@@ -733,7 +754,7 @@ describe('Report routes integration tests', () => {
 
         const techLogin = await request(app).post('/api/users/login').send({ 
           username: techUser.username, 
-          password: 'tech3' 
+          password: TEST_PASSWORD_TECH3 
         });
         const techToken = techLogin.body.token;
 
@@ -773,7 +794,7 @@ describe('Report routes integration tests', () => {
 
       const login = await request(app).post('/api/users/login').send({
         username: 'user_no_reports',
-        password: 'newuser123',
+        password: TEST_PASSWORD_NEWUSER,
       });
       const userToken = login.body.token;
 
@@ -864,7 +885,7 @@ describe('Report routes integration tests', () => {
 
       const login = await request(app).post('/api/users/login').send({
         username: 'user_mine_1',
-        password: 'user1pass',
+        password: TEST_PASSWORD_USER1,
       });
       const user1Token = login.body.token;
 
@@ -918,7 +939,7 @@ describe('Report routes integration tests', () => {
 
       const login = await request(app).post('/api/users/login').send({
         username: 'user_with_details',
-        password: 'detailuser',
+        password: TEST_PASSWORD_DETAIL_USER,
       });
       const userToken = login.body.token;
 
@@ -1006,7 +1027,7 @@ describe('Report routes integration tests', () => {
 
       const login = await request(app).post('/api/users/login').send({
         username: 'other_user',
-        password: 'other123',
+        password: TEST_PASSWORD_OTHER,
       });
       const otherToken = login.body.token;
 
@@ -1054,7 +1075,7 @@ describe('Report routes integration tests', () => {
 
       const login = await request(app).post('/api/users/login').send({
         username: 'report_owner_valid',
-        password: 'owner456',
+        password: TEST_PASSWORD_OWNER,
       });
       const ownerToken = login.body.token;
 
@@ -1109,7 +1130,7 @@ describe('Report routes integration tests', () => {
 
       const login = await request(app).post('/api/users/login').send({
         username: 'user_details',
-        password: 'details123',
+        password: TEST_PASSWORD_DETAILS,
       });
       const userToken = login.body.token;
 
