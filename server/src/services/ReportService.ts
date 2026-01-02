@@ -12,10 +12,10 @@ import { InsufficientRightsError } from '@errors/InsufficientRightsError';
 
 export class ReportService {
 
-    private reportRepo: ReportRepository;
-    private categoryRepo: CategoryRepository;
-    private userRepo: UserRepository;
-    private notificationService: NotificationService;
+    private readonly reportRepo: ReportRepository;
+    private readonly categoryRepo: CategoryRepository;
+    private readonly userRepo: UserRepository;
+    private readonly notificationService: NotificationService;
 
     constructor() {
         this.reportRepo = reportRepository;
@@ -93,7 +93,7 @@ export class ReportService {
         const previousStatus = report.status;
         if (newStatus === ReportStatus.Assigned) {
             const office = report.category?.office;
-            if (!office || !office.id) throw new BadRequestError('Report category has no associated office');
+            if (!office?.id) throw new BadRequestError('Report category has no associated office');
 
             const assignee = await this.userRepo.findLeastLoadedStaffForOffice(office.id);
             if (!assignee) throw new BadRequestError('No technical staff member available for this office');
@@ -205,11 +205,6 @@ export class ReportService {
         if(maintainer.userType !== 'EXTERNAL_MAINTAINER'){
             throw new BadRequestError(`User with id ${maintainerId} is not an external maintainer`);
         }
-
-        /*
-        if(!maintainer.company.categories.includes(report.category)){
-            throw new BadRequestError(`Maintainer with id ${maintainerId} is not authorized to maintain reports of category ${report.category.id}`);
-        }*/
 
         report.coAssignedTo = maintainer;
         const updated = await this.reportRepo.save(report);

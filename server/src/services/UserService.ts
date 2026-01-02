@@ -1,4 +1,4 @@
-import {randomInt} from 'crypto';
+import {randomInt} from 'node:crypto';
 import {userRepository, UserRepository} from "@repositories/UserRepository";
 import {CodeConfirmationDAO} from '@daos/CodeConfirmationDAO';
 import {MapUserDAOtoDTO, NewMunicipalityUserDTO, NewUserDTO, UserDTO} from "@dtos/UserDTO";
@@ -17,13 +17,13 @@ import { ReportStatus } from "@daos/ReportDAO";
 
 export class UserService {
 
-    private userRepo: UserRepository;
-    private officeRepo: OfficeRepository;
-    private mailService: MailService;
-    private codeService: CodeConfirmationService;
-    private categoryRepo: CategoryRepository
-    private companyRepository: CompanyRepository;
-    private reportRepo: ReportRepository;
+    private readonly userRepo: UserRepository;
+    private readonly  officeRepo: OfficeRepository;
+    private readonly  mailService: MailService;
+    private readonly  codeService: CodeConfirmationService;
+    private readonly  categoryRepo: CategoryRepository
+    private readonly  companyRepository: CompanyRepository;
+    private readonly  reportRepo: ReportRepository;
 
     constructor() {
         this.userRepo = userRepository;
@@ -146,7 +146,7 @@ export class UserService {
     }
 
 
-    private createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
+    private readonly createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
         const user = await this.userRepo.findUserById(userId);
         if (!user) throw new NotFoundError(`User with id ${userId} not found`);
 

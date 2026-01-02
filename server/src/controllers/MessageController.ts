@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import { messageService, MessageService } from '@services/MessageService';
-import { CreateMessageDTO, MessageDTO } from '@dtos/MessageDTO';
+import { CreateMessageDTO } from '@dtos/MessageDTO';
 import { AuthRequest } from "@middlewares/authenticationMiddleware";
 import { BadRequestError } from "@errors/BadRequestError";
 
@@ -65,7 +65,6 @@ export class MessageController {
                 throw new BadRequestError("Invalid token");
             }
 
-            const userId = req.token.user.id;
             if(req.params.chatId === undefined) {
                 throw new BadRequestError('chat id of the chat desired to retrieve must be specified');
             }
