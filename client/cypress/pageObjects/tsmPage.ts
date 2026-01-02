@@ -53,7 +53,12 @@ const tsmPage = {
   sendMessage: (text: string) => {
     cy.get('.chat-input input').type(text);
     cy.get('.chat-input button').click();
-  }
+  },
+  checkOfficesDisplayed: (offices: string[]) => {
+    offices.forEach((office) => {
+      cy.get('#displayed-office').contains(office).should('be.visible');
+    });
+  },
 };
 
 export { tsmPage };

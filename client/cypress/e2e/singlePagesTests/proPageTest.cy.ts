@@ -95,7 +95,7 @@ describe('6. Test suite for Public Relations Officer page', () => {
         proPage.reportShouldNotExist('Report A');
     });
 
-    it('6.4 Reject a pending report with a reason', () => {
+    it('6.4 Reject a pending report with a reason should remove it from the list', () => {
         performLoginAsPro();
 
         proPage.reportShouldExist('Report A');

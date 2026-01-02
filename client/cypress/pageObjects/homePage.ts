@@ -47,7 +47,51 @@ const homePage = {
     },
     checkFirstMessageInChat: (message: string) => {
         cy.get('[id="message-text"]').first().should('contain.text', message);
+    },
+    insertAddressInSearchbar: (addr: string) => {
+        cy.get('[id="map-search-input"]').focus().type(addr);
+    },
+    clickSearchForAddress: () => {
+        cy.get('[id="map-search-button"]').click();
+    },
+    checkIfNotVisiblePopupOnMap: () => {
+        cy.get('[class="leaflet-popup-content-wrapper"]').should('not.exist');
+    },
+    checkIfVisiblePopupOnMap: () => {
+        cy.get('[class="leaflet-popup-content-wrapper"]').should('be.visible');
+    },
+    // search for the toaster popup when no address is found
+    checkNoAddressFoundPopup: () => {
+        cy.get('[class="go3958317564"]').should('contain.text', 'No address found');
+    },
+    checkNoAddressInsertedPopup: () => {
+        cy.get('[class="go3958317564"]').should('contain.text', 'Please enter an address');
+    },
+    clickLegendaButton: () => {
+        cy.get('[id="map-legend-r0-toggle"]').click();
+    },
+    checkAllLegendItemsNotVisible: () => {
+        cy.get('[id="map-legend-r0-status-assigned"]').should('not.exist');
+        cy.get('[id="map-legend-r0-status-inprogress"]').should('not.exist');
+        cy.get('[id="map-legend-r0-status-suspended"]').should('not.exist');
+        cy.get('[id="map-legend-r0-status-resolved"]').should('not.exist');
+    },
+    checkAllLegendItemsVisible: () => {
+        cy.get('[id="map-legend-r0-status-assigned"]').should('be.visible');
+        cy.get('[id="map-legend-r0-status-inprogress"]').should('be.visible');
+        cy.get('[id="map-legend-r0-status-suspended"]').should('be.visible');
+        cy.get('[id="map-legend-r0-status-resolved"]').should('be.visible');
+    },
+    checkMapNotVisible: () => {
+        cy.get('[id="map-container"]').should('not.exist');    
+    },
+    clickSeeMap : () => {
+        cy.get('[id="see-map"]').click();
+    },
+    checkMapVisible: () => {
+        cy.get('[id="map-container"]').should('be.visible');
     }
+
 }
 
 export { homePage }

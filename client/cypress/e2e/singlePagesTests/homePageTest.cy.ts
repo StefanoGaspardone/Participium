@@ -146,7 +146,7 @@ describe("3. Test suite for home page :", () => {
 		cy.url().should("equal", LOGINPAGE_URL);
 	});
 
-	it("3.3 As a logged user i should be able to click the map and select a location (identified b latitude and longitude)", () => {
+	it("3.3 As a logged user i should be able to click the map and select a location (identified by latitude and longitude)", () => {
 		performLoginAsCitizen();
 
 		cy.wait(['@reportsAssigned', '@reportsInProgress', '@reportsSuspended', '@reportsResolved']);
@@ -220,8 +220,74 @@ describe("3. Test suite for home page :", () => {
 
 		homePage.checkFirstChatOtherMember('Carmine Conte');
 		homePage.selectFirstChat();
-		
-		homePage.checkFirstMessageInChat('Buongiorno citizen');
 
+		homePage.checkFirstMessageInChat('Buongiorno citizen');
 	});
+
+	it('3.12 As a logged user I should be able to search for an address in the search bar', () => {
+		performLoginAsCitizen();
+		homePage.checkIfNotVisiblePopupOnMap();
+		homePage.insertAddressInSearchbar('Piazza Castello');
+		homePage.clickSearchForAddress();
+		homePage.checkIfVisiblePopupOnMap();
+	});
+
+	it('3.13 For logged user : Searching for a not existing address in search bar should lead to error on screen', () => {
+		performLoginAsCitizen();
+		homePage.checkIfNotVisiblePopupOnMap();
+		homePage.insertAddressInSearchbar('dadhjaggadafafaf');
+		homePage.clickSearchForAddress();
+		homePage.checkNoAddressFoundPopup();
+	});
+
+	it('3.14 For logged user : Searching without inserting an address in search bar should lead to error on screen', () => {
+		performLoginAsCitizen();
+		homePage.checkIfNotVisiblePopupOnMap();
+		homePage.clickSearchForAddress();
+		homePage.checkNoAddressInsertedPopup();
+	});
+
+	it('3.15 As a logged user I should be able to click on the legenda button and see the whole legenda', () => {
+		performLoginAsCitizen();
+		homePage.checkAllLegendItemsNotVisible();
+		homePage.clickLegendaButton();
+		homePage.checkAllLegendItemsVisible();
+	});
+
+	it('3.16 As a non logged user I should be able to see the map either way', () => {
+		cy.visit(HOMEPAGE_URL);
+		homePage.checkMapNotVisible();
+		homePage.clickSeeMap();
+		homePage.checkMapVisible();
+	});
+
+	it('3.17 As a non logged user I should be able to search for an address on the map', () => {
+		cy.visit(HOMEPAGE_URL);
+		homePage.checkMapNotVisible();
+		homePage.clickSeeMap();
+		homePage.checkIfNotVisiblePopupOnMap();
+		homePage.insertAddressInSearchbar('Piazza Castello');
+		homePage.clickSearchForAddress();
+		homePage.checkIfVisiblePopupOnMap();
+	});
+
+	it('3.18 For non logged user : Searching for a not existing address in search bar should lead to error on screen ', () => {
+		cy.visit(HOMEPAGE_URL);
+		homePage.checkMapNotVisible();
+		homePage.clickSeeMap();
+		homePage.checkIfNotVisiblePopupOnMap();
+		homePage.insertAddressInSearchbar('dadhjaggadafafaf');
+		homePage.clickSearchForAddress();
+		homePage.checkNoAddressFoundPopup();
+	});
+
+	it('3.19 For non logged user : searching for an address without inserting one should lead to error on screen', () => {
+		cy.visit(HOMEPAGE_URL);
+		homePage.checkMapNotVisible();
+		homePage.clickSeeMap();
+		homePage.checkIfNotVisiblePopupOnMap();
+		homePage.clickSearchForAddress();
+		homePage.checkNoAddressInsertedPopup();
+	});
+
 });

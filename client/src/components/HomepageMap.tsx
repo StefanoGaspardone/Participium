@@ -486,6 +486,7 @@ const SearchBox = ({
       </div>
       <motion.button
         type="submit"
+        id="map-search-button"
         className="map-search-btn"
         disabled={loading}
         whileHover={{ scale: 1.03 }}
