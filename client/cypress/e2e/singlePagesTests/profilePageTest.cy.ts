@@ -243,7 +243,7 @@ describe("9. Test suite for profile page :", () => {
         cy.wait(1000);
         profilePage.checkEmailNotificationsChecked();
     });
-    it.only('9.7 As a logged user i should be able to update my profile picture', () => {
+    it('9.7 As a logged user i should be able to update my profile picture', () => {
         goToProfileAsCitizen();
         profilePage.clickEditProfile();
 
