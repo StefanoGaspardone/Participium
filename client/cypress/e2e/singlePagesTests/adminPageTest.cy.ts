@@ -298,4 +298,72 @@ describe("1. Test suite for the admin page (used to create new municipality user
       "Cannot remove technical staff member from office Roads because they have assigned reports related to this office."
     ).should("exist");
   });
+
+  it('1.11 Create new Municipality User button should be disabled if not all field are correctly inserted', () => {
+    performLoginAsAdmin();
+    stubCreateCompany();
+    stubCreateEmployee();
+
+    adminPage.insertFirstName(generateRandomString(10));
+    adminPage.insertLastName(generateRandomString(10));
+    adminPage.insertUsername(generateRandomString(15));
+    adminPage.insertEmail(`${generateRandomString(12)}@participium.gov`);
+    adminPage.insertPassword("password");
+    adminPage.selectRole(3);
+    adminPage.submitAccountNotClickableCheck();
+  });
+
+  it('1.12 As an Admin I should be able to create a new External company while creating a new External Maintainer', () => {
+    performLoginAsAdmin();
+    stubCreateCompany();
+    stubCreateEmployee();
+
+    adminPage.insertFirstName(generateRandomString(10));
+    adminPage.insertLastName(generateRandomString(10));
+    adminPage.insertUsername(generateRandomString(15));
+    adminPage.insertEmail(`${generateRandomString(12)}@participium.gov`);
+    adminPage.insertPassword("password");
+    adminPage.selectRole(3);
+    adminPage.selectAddNewCompany();
+    const companyName = `Company_${generateRandomString(8)}`;
+    adminPage.insertCompanyName(companyName);
+    adminPage.selectCategoryForCompany();
+    adminPage.submitCreateCompany();
+    cy.wait("@createCompany");
+  });
+
+  it('1.13 Create company button should be disabled if no category is selected', () => {
+    performLoginAsAdmin();
+    stubCreateCompany();
+    stubCreateEmployee();
+
+    adminPage.insertFirstName(generateRandomString(10));
+    adminPage.insertLastName(generateRandomString(10));
+    adminPage.insertUsername(generateRandomString(15));
+    adminPage.insertEmail(`${generateRandomString(12)}@participium.gov`);
+    adminPage.insertPassword("password");
+    adminPage.selectRole(3);
+    adminPage.selectAddNewCompany();
+    const companyName = `Company_${generateRandomString(8)}`;
+    adminPage.insertCompanyName(companyName);
+    adminPage.createCompanyNotClickableCheck();
+  });
+
+  it('1.14 Create company button should be disabled if no name is inserted', () => {
+    performLoginAsAdmin();
+    stubCreateCompany();
+    stubCreateEmployee();
+
+    adminPage.insertFirstName(generateRandomString(10));
+    adminPage.insertLastName(generateRandomString(10));
+    adminPage.insertUsername(generateRandomString(15));
+    adminPage.insertEmail(`${generateRandomString(12)}@participium.gov`);
+    adminPage.insertPassword("password");
+    adminPage.selectRole(3);
+    adminPage.selectAddNewCompany();
+    adminPage.selectCategoryForCompany();
+    adminPage.createCompanyNotClickableCheck();
+  });
+
+
 });
