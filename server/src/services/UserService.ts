@@ -1,4 +1,4 @@
-import {randomInt} from 'crypto';
+import {randomInt} from 'node:crypto';
 import {userRepository, UserRepository} from "@repositories/UserRepository";
 import {CodeConfirmationDAO} from '@daos/CodeConfirmationDAO';
 import {MapUserDAOtoDTO, NewMunicipalityUserDTO, NewUserDTO, UserDTO} from "@dtos/UserDTO";
@@ -13,16 +13,17 @@ import {CodeConfirmationService, codeService} from '@services/CodeConfirmationSe
 import {companyRepository, CompanyRepository} from "@repositories/CompanyRepository";
 import {reportRepository, ReportRepository} from "@repositories/ReportRepository";
 import { OfficeDAO } from "@daos/OfficeDAO";
+import { ReportStatus } from "@daos/ReportDAO";
 
 export class UserService {
 
-    private userRepo: UserRepository;
-    private officeRepo: OfficeRepository;
-    private mailService: MailService;
-    private codeService: CodeConfirmationService;
-    private categoryRepo: CategoryRepository
-    private companyRepository: CompanyRepository;
-    private reportRepo: ReportRepository;
+    private readonly userRepo: UserRepository;
+    private readonly  officeRepo: OfficeRepository;
+    private readonly  mailService: MailService;
+    private readonly  codeService: CodeConfirmationService;
+    private readonly  categoryRepo: CategoryRepository
+    private readonly  companyRepository: CompanyRepository;
+    private readonly  reportRepo: ReportRepository;
 
     constructor() {
         this.userRepo = userRepository;
@@ -145,7 +146,7 @@ export class UserService {
     }
 
 
-    private createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
+    private readonly createCodeConfirmationForUser = async (userId: number): Promise<CodeConfirmationDAO> => {
         const user = await this.userRepo.findUserById(userId);
         if (!user) throw new NotFoundError(`User with id ${userId} not found`);
 
@@ -231,11 +232,14 @@ export class UserService {
             offices.push(office);
         }
 
-        //check that there are no assigned reports to offices that the tsm is no longer assigned to
+        //check that there are no active assigned reports to offices that the tsm is no longer assigned to
         const assignedReports = await this.reportRepo.findReportsAssignedTo(tsm.id);
-        for(const report of assignedReports){
+        const activeStatuses = [ReportStatus.PendingApproval, ReportStatus.Assigned, ReportStatus.InProgress, ReportStatus.Suspended];
+        const activeAssignedReports = assignedReports.filter(report => activeStatuses.includes(report.status));
+        
+        for(const report of activeAssignedReports){
             if(!officeIds.includes(report.category.office.id)){
-                throw new BadRequestError(`Cannot remove technical staff member from office ${report.category.office.name} because they have assigned reports related to this office.`);
+                throw new BadRequestError(`Cannot remove technical staff member from office ${report.category.office.name} because they have active assigned reports related to this office.`);
             }
         }
 

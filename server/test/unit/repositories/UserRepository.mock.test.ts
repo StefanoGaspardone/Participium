@@ -73,8 +73,6 @@ describe("UserRepository (mock)", () => {
   });
 
   it("login should call findOne, compare (wrong) password and fail", async () => {
-    const bcrypt = require("bcryptjs");
-    const hashed = await bcrypt.hash(TEST_PASSWORD, 10);
     const fakeRepo: any = {
       save: jest.fn(),
       find: jest.fn(),

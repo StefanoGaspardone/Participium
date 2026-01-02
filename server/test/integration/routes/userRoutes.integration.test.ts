@@ -123,7 +123,7 @@ describe('User routes integration tests', () => {
   it('POST /api/users/employees => 201 with admin token', async () => {
     const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
     expect(login.status).toBe(200);
-    const token = login.body.token as string;
+    const token = login.body.token;
 
     const payload = {
       email: 'self_muni2@example.com',
@@ -146,7 +146,7 @@ describe('User routes integration tests', () => {
   it('POST /api/users/employees => 409 with admin token when email already exists', async () => {
     const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
     expect(login.status).toBe(200);
-    const token = login.body.token as string;
+    const token = login.body.token;
 
     const payload = {
       email: 'self_user@gmail.com', // already exists
@@ -170,7 +170,7 @@ describe('User routes integration tests', () => {
   it('POST /api/users/employees => 400 when office not found for TECHNICAL_STAFF_MEMBER', async () => {
     const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
     expect(login.status).toBe(200);
-    const token = login.body.token as string;
+    const token = login.body.token;
 
     const payload = {
       email: 'no_office@example.com',
@@ -195,7 +195,7 @@ describe('User routes integration tests', () => {
   it('POST /api/users/employees => 400 with admin token when missing mandatory fields', async () => {
     const login = await request(app).post('/api/users/login').send({ username: 'self_admin', password: TEST_PASSWORD_ADMIN });
     expect(login.status).toBe(200);
-    const token = login.body.token as string;
+    const token = login.body.token;
 
     // missing `username` and `userType` should trigger validation error
     const incomplete = {
@@ -221,7 +221,7 @@ describe('User routes integration tests', () => {
   it('POST /api/users/employees => 403 with non-admin token', async () => {
     const login = await request(app).post('/api/users/login').send({ username: 'self_user', password: TEST_PASSWORD_USER });
     expect(login.status).toBe(200);
-    const token = login.body.token as string;
+    const token = login.body.token;
 
     const payload = {
       email: 'self_muni3@example.com',
@@ -434,7 +434,7 @@ describe('User routes integration tests', () => {
         password: TEST_PASSWORD_ADMIN 
       });
       expect(login.status).toBe(200);
-      adminToken = login.body.token as string;
+      adminToken = login.body.token;
 
       // Create a test company for external maintainers
       const { AppDataSource } = await import('@database');

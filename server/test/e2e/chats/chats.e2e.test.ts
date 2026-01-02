@@ -8,6 +8,10 @@ import { CategoryDAO } from "@daos/CategoryDAO";
 import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 import { ChatType } from "@daos/ChatsDAO";
 
+const TEST_PASSWORD = 'password'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+const TECHSTAFF_PASSWORD = 'techstaff'; //NOSONAR
+
 /**
  * E2E tests for chat management API.
  * 
@@ -46,7 +50,7 @@ describe("Chats E2E tests", () => {
     const extUser = userRepo.create({
       username: "extmaintainer_chat_e2e",
       email: "ext_chat_e2e@test.com",
-      passwordHash: await hash("password", 10),
+      passwordHash: await hash(TEST_PASSWORD, 10),
       firstName: "External",
       lastName: "Maintainer",
       userType: UserType.EXTERNAL_MAINTAINER,
@@ -57,7 +61,7 @@ describe("Chats E2E tests", () => {
     const anotherCitizen = userRepo.create({
       username: "citizen2_chat_e2e",
       email: "citizen2_chat_e2e@test.com",
-      passwordHash: await hash("password", 10),
+      passwordHash: await hash(TEST_PASSWORD, 10),
       firstName: "Another",
       lastName: "Citizen",
       userType: UserType.CITIZEN,
@@ -99,26 +103,26 @@ describe("Chats E2E tests", () => {
     // Login users
     const citizenLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "user", password: "user" });
+      .send({ username: "user", password: USER_PASSWORD });
     expect(citizenLogin.status).toBe(200);
     citizenToken = citizenLogin.body.token;
 
     // Login as TOSM user (seeded as 'techstaff')
     const tosmLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "techstaff", password: "techstaff" });
+      .send({ username: "techstaff", password: TECHSTAFF_PASSWORD });
     expect(tosmLogin.status).toBe(200);
     tosmToken = tosmLogin.body.token;
 
     const extLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "extmaintainer_chat_e2e", password: "password" });
+      .send({ username: "extmaintainer_chat_e2e", password: TEST_PASSWORD });
     expect(extLogin.status).toBe(200);
     extMaintainerToken = extLogin.body.token;
 
     const anotherCitizenLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "citizen2_chat_e2e", password: "password" });
+      .send({ username: "citizen2_chat_e2e", password: TEST_PASSWORD });
     expect(anotherCitizenLogin.status).toBe(200);
     anotherCitizenToken = anotherCitizenLogin.body.token;
   });

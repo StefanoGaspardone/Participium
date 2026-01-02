@@ -6,6 +6,8 @@ import { ReportDAO, ReportStatus } from '@daos/ReportDAO';
 import { ChatDAO } from '@daos/ChatsDAO';
 import * as bcrypt from 'bcryptjs';
 
+const TEST_PASSWORD = 'cpass'; //NOSONAR test password used for hashing fixtures
+
 let reportController: any;
 
 describe('ReportController integration tests', () => {
@@ -32,7 +34,7 @@ describe('ReportController integration tests', () => {
     categoryId = category.id;
 
     const salt = await bcrypt.genSalt(10);
-    const userHash = await bcrypt.hash('cpass', salt);
+    const userHash = await bcrypt.hash(TEST_PASSWORD, salt);
     const citizen = userRepo.create({
       username: 'controller_citizen',
       email: 'controller_citizen@gmail.com',
@@ -71,7 +73,7 @@ describe('ReportController integration tests', () => {
       title: 'Initial Report',
       description: 'Initial Description',
       category: category,
-      images: ['http://img/1.jpg'],
+      images: ['https://img/1.jpg'],
       lat: 45.07,
       long: 7.65,
       anonymous: false,
@@ -96,7 +98,7 @@ describe('ReportController integration tests', () => {
           title: 'Lamp broken',
           description: 'Lamp on 3rd street is out',
           categoryId: categoryId,
-          images: ['http://img/1.jpg'],
+          images: ['https://img/1.jpg'],
           lat: 45.07,
           long: 7.65,
           anonymous: false,
@@ -138,7 +140,7 @@ describe('ReportController integration tests', () => {
           title: 'Missing cat',
           description: 'Category not present',
           categoryId: 999999,
-          images: ['http://img/1.jpg'],
+          images: ['https://img/1.jpg'],
           lat: 45.07,
           long: 7.65,
           anonymous: false,
@@ -306,7 +308,7 @@ describe('ReportController integration tests', () => {
     report.title = 'Assigned to Staff';
     report.description = 'Test';
     report.category = category;
-    report.images = ['http://img/1.jpg'];
+    report.images = ['https://img/1.jpg'];
     report.lat = 45.07;
     report.long = 7.65;
     report.anonymous = false;
@@ -473,7 +475,7 @@ describe('ReportController integration tests', () => {
         title: 'Chat Test Report',
         description: 'Testing chat creation',
         category: category,
-        images: ['http://img/test.jpg'],
+        images: ['https://img/test.jpg'],
         lat: 45.07,
         long: 7.65,
         anonymous: false,
@@ -529,7 +531,7 @@ describe('ReportController integration tests', () => {
         title: 'No Duplicate Chat Test',
         description: 'Testing no duplicate chat',
         category: category,
-        images: ['http://img/test2.jpg'],
+        images: ['https://img/test2.jpg'],
         lat: 45.07,
         long: 7.65,
         anonymous: false,
@@ -592,7 +594,7 @@ describe('ReportController integration tests', () => {
         title: 'Rejected Report Test',
         description: 'Testing no chat on rejection',
         category: category,
-        images: ['http://img/test3.jpg'],
+        images: ['https://img/test3.jpg'],
         lat: 45.07,
         long: 7.65,
         anonymous: false,
@@ -644,7 +646,7 @@ describe('ReportController integration tests', () => {
         title: 'External Maintainer Test',
         description: 'Testing external maintainer assignment',
         category: category,
-        images: ['http://img/ext.jpg'],
+        images: ['https://img/ext.jpg'],
         lat: 45.07,
         long: 7.65,
         anonymous: false,

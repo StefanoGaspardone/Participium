@@ -27,7 +27,7 @@ describe('CategoryService (mock)', () => {
 
 		const res = await service.findAllCategories();
 
-		expect((service as any).categoryRepo.findAllCategories).toHaveBeenCalled();
+		expect((service).categoryRepo.findAllCategories).toHaveBeenCalled();
 		expect(dtosModule.createCategoryDTO).toHaveBeenCalledTimes(2);
 		expect(res).toEqual([{ id: 1, name: 'Water Supply - Drinking Water' }, { id: 2, name: 'Public Lighting' }]);
 	});
@@ -45,7 +45,7 @@ describe('CategoryService (mock)', () => {
 
 		const res = await service.findAllCategories();
 
-		expect((service as any).categoryRepo.findAllCategories).toHaveBeenCalled();
+		expect((service).categoryRepo.findAllCategories).toHaveBeenCalled();
 		expect(res).toEqual([]);
 		expect(spy).not.toHaveBeenCalled();
 	});

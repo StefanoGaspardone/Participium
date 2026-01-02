@@ -3,6 +3,10 @@ import { app } from "@app";
 import request from "supertest";
 import { UserDAO } from "@daos/UserDAO";
 
+const ADMIN_PASSWORD = 'admin'; //NOSONAR
+const TECHSTAFF_PASSWORD = 'techstaff'; //NOSONAR
+const CITIZEN_PASSWORD = 'citizenpass'; //NOSONAR
+
 // E2E tests may take longer than Jest's default timeout
 jest.setTimeout(30000);
 
@@ -20,7 +24,7 @@ describe("Users e2e tests: TSM Multiple Offices", () => {
     // Login as admin (already exists from test-datasource.ts)
     const adminLoginRes = await request(app)
       .post("/api/users/login")
-      .send({ username: "admin", password: "admin" });
+      .send({ username: "admin", password: ADMIN_PASSWORD });
     expect(adminLoginRes.status).toBe(200);
     adminToken = adminLoginRes.body.token;
 
@@ -42,7 +46,7 @@ describe("Users e2e tests: TSM Multiple Offices", () => {
     // Login as existing techstaff user to get token
     const tsmLoginRes = await request(app)
       .post("/api/users/login")
-      .send({ username: "techstaff", password: "techstaff" });
+      .send({ username: "techstaff", password: TECHSTAFF_PASSWORD });
     expect(tsmLoginRes.status).toBe(200);
     tsmToken = tsmLoginRes.body.token;
   });
@@ -197,7 +201,7 @@ describe("Users e2e tests: TSM Multiple Offices", () => {
         .post("/api/users/signup")
         .send({
           email: "e2e_citizen_test@example.com",
-          password: "citizenpass",
+          password: CITIZEN_PASSWORD,
           firstName: "Citizen",
           lastName: "Test",
           username: "e2ecitizen",

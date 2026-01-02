@@ -2,6 +2,13 @@ import * as f from "@test/e2e/lifecycle";
 import { app } from "@app";
 import request from "supertest";
 
+const TEST_PASSWORD = 'password'; //NOSONAR
+const ADMIN_PASSWORD = 'admin'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+const INVALID_PASSWORD = 'notexistent'; //NOSONAR
+const MUNI_PASSWORD = 'munipass'; //NOSONAR
+const EXT_MAINT_PASSWORD = 'extmaintpass'; //NOSONAR
+
 // Some e2e hooks and DB initialization may take longer than Jest's default timeout
 jest.setTimeout(30000);
 
@@ -17,7 +24,7 @@ describe("Users e2e tests : Login and Registration", () => {
   it("/signup test => status 201 (user registered, with all fields)", async () => {
     const newUser = {
       email: "prova@test.e2e",
-      password: "password",
+      password: TEST_PASSWORD,
       firstName: "prova",
       lastName: "test",
       username: "protest",
@@ -32,7 +39,7 @@ describe("Users e2e tests : Login and Registration", () => {
   it("/signup test => status 409 (conflict if email already registered)", async () => {
     const newUser = {
       email: "user@gmail.com",
-      password: "password",
+      password: TEST_PASSWORD,
       firstName: "prova",
       lastName: "test",
       username: "protest",
@@ -47,7 +54,7 @@ describe("Users e2e tests : Login and Registration", () => {
   it("/signup test => status 201 (user registered, without image and tg username)", async () => {
     const newUser = {
       email: "user2@gmail.com",
-      password: "password",
+      password: TEST_PASSWORD,
       firstName: "prova2",
       lastName: "test2",
       username: "protest2",
@@ -60,7 +67,7 @@ describe("Users e2e tests : Login and Registration", () => {
   it("/login test => status 200 (user enters right credentials)", async () => {
     const credentials = {
       username: "user",
-      password: "user",
+      password: USER_PASSWORD,
     };
     const res = await request(app).post("/api/users/login").send(credentials);
     expect(res.status).toBe(200);
@@ -72,7 +79,7 @@ describe("Users e2e tests : Login and Registration", () => {
   it("/login test => status 401 (invalid credentials)", async () => {
     const credentials = {
       username: "wronguser",
-      password: "notexistent",
+      password: INVALID_PASSWORD,
     };
     const res = await request(app).post("/api/users/login").send(credentials);
     expect(res.status).toBe(401);
@@ -81,7 +88,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it("/employees (create municipality user) => 201 with admin token", async () => {
     // login as admin (populated by lifecycle)
-    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: ADMIN_PASSWORD });
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token as string;
 
@@ -94,7 +101,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
     const newMuni = {
       email: 'e2e_muni@example.com',
-      password: 'munipass',
+      password: MUNI_PASSWORD,
       firstName: 'E2E',
       lastName: 'Municipal',
       username: 'e2emuni',
@@ -112,13 +119,13 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it("/employees => 400 when TECHNICAL_STAFF_MEMBER missing officeId (admin token)", async () => {
     // login as admin
-    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: ADMIN_PASSWORD });
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token as string;
 
     const badPayload = {
       email: 'e2e_muni_no_office@example.com',
-      password: 'munipass',
+      password: MUNI_PASSWORD,
       firstName: 'E2E',
       lastName: 'NoOffice',
       username: 'e2emuni_no_office',
@@ -138,7 +145,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it("/employees (create external maintainer) => 201 with admin token and valid companyId", async () => {
     // login as admin
-    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: ADMIN_PASSWORD });
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token as string;
 
@@ -169,7 +176,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
     const newExtMaintainer = {
       email: 'e2e_ext_maint@example.com',
-      password: 'extmaintpass',
+      password: EXT_MAINT_PASSWORD,
       firstName: 'E2E',
       lastName: 'ExtMaintainer',
       username: 'e2eextmaint',
@@ -187,13 +194,13 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it("/employees => 400 when EXTERNAL_MAINTAINER missing companyId (admin token)", async () => {
     // login as admin
-    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: 'admin' });
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'admin', password: ADMIN_PASSWORD });
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token as string;
 
     const badPayload = {
       email: 'e2e_test@example.com',
-      password: 'munipass',
+      password: MUNI_PASSWORD,
       firstName: 'E2E',
       lastName: 'NoOffice',
       username: 'e2emuni_no_office',
@@ -211,7 +218,7 @@ describe("Users e2e tests : Login and Registration", () => {
   });
 
   it('/login for municipality user => 200 and returns token', async () => {
-    const credentials = { username: 'e2emuni', password: 'munipass' };
+    const credentials = { username: 'e2emuni', password: MUNI_PASSWORD };
     const res = await request(app).post('/api/users/login').send(credentials);
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
@@ -241,7 +248,7 @@ describe("Users e2e tests : Login and Registration", () => {
   });
 
   it('/login for external maintainer => 200 and returns token', async () => {
-    const credentials = { username: 'e2eextmaint', password: 'extmaintpass' };
+    const credentials = { username: 'e2eextmaint', password: EXT_MAINT_PASSWORD };
     const res = await request(app).post('/api/users/login').send(credentials);
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
@@ -250,7 +257,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
   it('POST /api/users/employees => 403 with non-admin token (e2e)', async () => {
     // login as normal (non-admin) user from populated test data
-    const loginRes = await request(app).post('/api/users/login').send({ username: 'user', password: 'user' });
+    const loginRes = await request(app).post('/api/users/login').send({ username: 'user', password: USER_PASSWORD });
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token as string;
 
@@ -262,7 +269,7 @@ describe("Users e2e tests : Login and Registration", () => {
 
     const payload = {
       email: 'e2e_nonadmin_attempt@example.com',
-      password: 'munipass',
+      password: MUNI_PASSWORD,
       firstName: 'E2E',
       lastName: 'Attempt',
       username: 'e2e_nonadmin',
@@ -290,7 +297,7 @@ describe("Users e2e tests : Update User Profile", () => {
     // Create a citizen user for update tests
     const newUser = {
       email: "updatetest@test.e2e",
-      password: "password",
+      password: TEST_PASSWORD,
       firstName: "Update",
       lastName: "Test",
       username: "updatetest",
@@ -311,14 +318,14 @@ describe("Users e2e tests : Update User Profile", () => {
     // Login to get token
     const loginRes = await request(app).post('/api/users/login').send({
       username: 'updatetest',
-      password: 'password'
+      password: TEST_PASSWORD
     });
     citizenToken = loginRes.body.token;
 
     // Create another citizen for conflict tests
     const anotherUser = {
       email: "another@test.e2e",
-      password: "password",
+      password: TEST_PASSWORD,
       firstName: "Another",
       lastName: "User",
       username: "anotherupdate",
@@ -479,7 +486,7 @@ describe("Users e2e tests : User Validation and Code Resend", () => {
     testUsername = `testvalidation${Date.now()}`;
     const newUser = {
       email: `${testUsername}@test.e2e`,
-      password: "password",
+      password: TEST_PASSWORD,
       firstName: "Test",
       lastName: "Validation",
       username: testUsername,
@@ -495,7 +502,7 @@ describe("Users e2e tests : User Validation and Code Resend", () => {
       relations: ['codeConfirmation']
     });
 
-    if (user && user.codeConfirmation) {
+    if (user?.codeConfirmation) {
       verificationCode = String(user.codeConfirmation.code);
     }
   });

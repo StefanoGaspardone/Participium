@@ -8,9 +8,16 @@ import { OfficeDAO } from '@daos/OfficeDAO';
 import { ChatDAO, ChatType } from '@daos/ChatsDAO';
 import * as bcrypt from 'bcryptjs';
 
+// Test password constants
+const TEST_PASSWORD_DEFAULT = 'password'; //NOSONAR
+const TEST_PASSWORD_CITIZEN = 'citizen123'; //NOSONAR
+const TEST_PASSWORD_TOSM = 'tosm123'; //NOSONAR
+const TEST_PASSWORD_EXT = 'ext123'; //NOSONAR
+const TEST_PASSWORD_CITIZEN2 = 'citizen456'; //NOSONAR
+
 const NONEXISTENT_ID = 999;
 
-const createUser = async (userRepo: any, username: string, email: string, userType: UserType, password: string = 'password') => {
+const createUser = async (userRepo: any, username: string, email: string, userType: UserType, password: string = TEST_PASSWORD_DEFAULT) => {
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
   const user = userRepo.create({
@@ -71,10 +78,10 @@ describe('Chat routes integration tests', () => {
     await categoryRepo.save(testCategory);
 
     // Create users
-    citizenUser = await createUser(userRepo, 'chatcitizen', 'chatcitizen@test.com', UserType.CITIZEN, 'citizen123');
-    techStaffUser = await createUser(userRepo, 'chattosm', 'chattosm@test.com', UserType.TECHNICAL_STAFF_MEMBER, 'tosm123');
-    extMaintainerUser = await createUser(userRepo, 'chatext', 'chatext@test.com', UserType.EXTERNAL_MAINTAINER, 'ext123');
-    anotherCitizenUser = await createUser(userRepo, 'chatcitizen2', 'chatcitizen2@test.com', UserType.CITIZEN, 'citizen456');
+    citizenUser = await createUser(userRepo, 'chatcitizen', 'chatcitizen@test.com', UserType.CITIZEN, TEST_PASSWORD_CITIZEN);
+    techStaffUser = await createUser(userRepo, 'chattosm', 'chattosm@test.com', UserType.TECHNICAL_STAFF_MEMBER, TEST_PASSWORD_TOSM);
+    extMaintainerUser = await createUser(userRepo, 'chatext', 'chatext@test.com', UserType.EXTERNAL_MAINTAINER, TEST_PASSWORD_EXT);
+    anotherCitizenUser = await createUser(userRepo, 'chatcitizen2', 'chatcitizen2@test.com', UserType.CITIZEN, TEST_PASSWORD_CITIZEN2);
 
     // Create reports
     testReport = await createReport(reportRepo, citizenUser, testCategory, techStaffUser);
@@ -92,22 +99,22 @@ describe('Chat routes integration tests', () => {
     // Get auth tokens
     const citizenLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'chatcitizen', password: 'citizen123' });
+      .send({ username: 'chatcitizen', password: TEST_PASSWORD_CITIZEN });
     citizenToken = citizenLogin.body.token;
 
     const tosmLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'chattosm', password: 'tosm123' });
+      .send({ username: 'chattosm', password: TEST_PASSWORD_TOSM });
     techStaffToken = tosmLogin.body.token;
 
     const extLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'chatext', password: 'ext123' });
+      .send({ username: 'chatext', password: TEST_PASSWORD_EXT });
     extMaintainerToken = extLogin.body.token;
 
     const anotherCitizenLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'chatcitizen2', password: 'citizen456' });
+      .send({ username: 'chatcitizen2', password: TEST_PASSWORD_CITIZEN2 });
     anotherCitizenToken = anotherCitizenLogin.body.token;
   });
 
@@ -279,7 +286,8 @@ describe('Chat routes integration tests', () => {
 
     it('should return 401 without authentication token', async () => {
       const res = await request(app)
-        .get('/api/chats');
+        .get('/api/chats')
+        .set('Authorization', 'Bearer invalid');
 
       expect(res.status).toBe(401);
     });

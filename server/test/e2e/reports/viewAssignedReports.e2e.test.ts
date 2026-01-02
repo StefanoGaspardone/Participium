@@ -8,6 +8,10 @@ import { ReportDAO, ReportStatus } from "@daos/ReportDAO";
 import { UserDAO, UserType } from "@daos/UserDAO";
 import * as bcrypt from "bcryptjs";
 
+const TECH_PASSWORD = 'tech'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+const PRO_PASSWORD = 'pro'; //NOSONAR
+
 /**
  * E2E tests for the "Viewing Assigned Reports" feature
  * Tests the GET /api/reports/assigned endpoint that allows Technical Staff Members
@@ -32,12 +36,12 @@ describe("View Assigned Reports E2E Tests", () => {
     const office = await roleRepo.findOneBy({});
     const categories = await categoryRepo.find({ relations: ["office"], take: 1 });
     const category = categories[0];
-    categoryId = category!.id;
-    officeId = office!.id;
+    categoryId = category?.id ?? 0;
+    officeId = office?.id ?? 0;
 
     // Create Technical Staff Member
     const salt = await bcrypt.genSalt(10);
-    const techHash = await bcrypt.hash("tech", salt);
+    const techHash = await bcrypt.hash(TECH_PASSWORD, salt);
     const techUser = userRepo.create({
       username: "tech_staff",
       email: "tech@test.com",
@@ -51,7 +55,7 @@ describe("View Assigned Reports E2E Tests", () => {
     techUserId = savedTech.id;
 
     // Create PRO user
-    const proHash = await bcrypt.hash("pro", salt);
+    const proHash = await bcrypt.hash(PRO_PASSWORD, salt);
     const proUser = userRepo.create({
       username: "pro_user",
       email: "pro@test.com",
@@ -65,18 +69,17 @@ describe("View Assigned Reports E2E Tests", () => {
     // Login as different users
     const techLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "tech_staff", password: "tech" });
+      .send({ username: "tech_staff", password: TECH_PASSWORD });
     techToken = techLogin.body.token;
 
     const citizenLogin = await request(app)
       .post("/api/users/login")
-      .send({ username: "user", password: "user" });
+      .send({ username: "user", password: USER_PASSWORD });
     citizenToken = citizenLogin.body.token;
 
-    const proLogin = await request(app)
+    await request(app)
       .post("/api/users/login")
-      .send({ username: "pro_user", password: "pro" });
-    proToken = proLogin.body.token;
+      .send({ username: "pro_user", password: PRO_PASSWORD });
   });
 
   afterAll(async () => {

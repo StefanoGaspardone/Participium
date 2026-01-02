@@ -3,7 +3,7 @@ import { categoryRepository, CategoryRepository } from '@repositories/CategoryRe
 
 export class CategoryService {
 
-    private categoryRepo: CategoryRepository;
+    private readonly categoryRepo: CategoryRepository;
 
     constructor() {
         this.categoryRepo = categoryRepository;

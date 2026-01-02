@@ -33,6 +33,7 @@ import Select, {
   type MultiValue,
   type OptionProps,
 } from "react-select";
+import { isApiError } from "../models/models";
 
 type SelectOptionProps = OptionProps<any, false> & {
   idPrefix: string;
@@ -126,6 +127,9 @@ export default function AdminHomepage() {
   const [loadingTsms, setLoadingTsms] = useState<boolean>(true);
   const [selectedTsmId, setSelectedTsmId] = useState<number | null>(null);
   const [tsmOfficeIds, setTsmOfficeIds] = useState<number[]>([]);
+  const [savedTsmOfficeIds, setSavedTsmOfficeIds] = useState<number[] | null>(
+    null
+  );
   const [loadingTsmOffices, setLoadingTsmOffices] = useState<boolean>(false);
   const [isSavingTsm, setIsSavingTsm] = useState(false);
 
@@ -316,24 +320,7 @@ export default function AdminHomepage() {
 
     setLoadingTsmOffices(true);
     try {
-      const fnSingle = getTsmOffices;
-      let officesRes: any[] = [];
-
-      if (typeof fnSingle === "function") {
-        officesRes = await fnSingle(id);
-      } else {
-        // fallback to fetching all TSMs and finding the selected one
-        const fnAll = getTechnicalStaffMembers;
-        if (typeof fnAll !== "function") {
-          toast.error("TSM offices API not implemented yet.");
-          return;
-        }
-        const all = await fnAll();
-        const t = Array.isArray(all)
-          ? all.find((s: any) => Number(s.id) === Number(id))
-          : null;
-        officesRes = t?.offices ?? [];
-      }
+      let officesRes = await getTsmOffices(id);
 
       const ids = Array.isArray(officesRes)
         ? officesRes
@@ -350,6 +337,7 @@ export default function AdminHomepage() {
         : [];
 
       setTsmOfficeIds(ids);
+      setSavedTsmOfficeIds(ids.slice());
     } catch (e) {
       console.error("Failed to fetch TSM offices", e);
       toast.error("Unable to load TSM offices.");
@@ -375,98 +363,122 @@ export default function AdminHomepage() {
 
     // Enforce at least one assigned office
     if (tsmOfficeIds.length === 0) {
-      toast.error("A Technical Staff Member must be assigned at least one office.");
+      toast.error(
+        "A Technical Staff Member must be assigned at least one office."
+      );
       return;
     }
 
-    const fn = updateTsmOffices;
-    if (typeof fn !== "function") {
-      toast.error("Update TSM offices API not implemented yet.");
+    // Avoid no-op saves
+    if (savedTsmOfficeIds && equalSets(savedTsmOfficeIds, tsmOfficeIds)) {
+      toast("No changes to save.");
       return;
     }
 
     setIsSavingTsm(true);
     try {
-      await fn(selectedTsmId, tsmOfficeIds);
-      toast.success("Technical staff offices updated.");
+      const res = await updateTsmOffices(selectedTsmId, tsmOfficeIds);
+      const successMsg = res?.message ?? "Technical staff offices updated.";
+      toast.success(successMsg);
+
+      // Refresh authoritative state from server (this also updates savedTsmOfficeIds)
       await handleSelectTsm(selectedTsmId);
-    } catch (e) {
-      console.error("Failed to update TSM offices", e);
-      toast.error("Failed to update TSM offices.");
+    } catch (err: unknown) {
+      console.error("Failed to update TSM offices", err);
+
+      if (isApiError(err)) {
+        toast.error(err.message);
+      } else if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to update TSM offices.");
+      }
+
+      // Re-fetch to restore UI to server state
+      try {
+        await handleSelectTsm(selectedTsmId);
+      } catch (e) {
+        console.error("Failed to refresh TSM offices after error", e);
+      }
     } finally {
       setIsSavingTsm(false);
     }
   };
 
   // form validity: all required fields must be non-empty (trimmed)
-    const isFormValid =
-      form.firstName.trim() !== "" &&
-      form.lastName.trim() !== "" &&
-      form.username.trim() !== "" &&
-      form.email.trim() !== "" &&
-      form.password.trim() !== "" &&
-      form.userType !== "" &&
-      (form.userType !== "TECHNICAL_STAFF_MEMBER" || form.officeIds.length !== 0) &&
-      (form.userType !== "EXTERNAL_MAINTAINER" || form.companyId !== "");
-  
-    // Extract nested ternary into an independent statement to build the assigned offices content
-    let assignedOfficesContent: React.ReactNode;
-    if (loadingTsmOffices) {
-      assignedOfficesContent = (
-        <div className="text-muted">
-          Loading assigned offices...
-        </div>
-      );
-    } else if (tsmOfficeIds.length === 0) {
-      assignedOfficesContent = (
-        <div className="text-muted">
-          No offices assigned.
-        </div>
-      );
-    } else {
-      assignedOfficesContent = tsmOfficeIds.map((oid) => {
-        const office = offices.find((o) => o.id === oid);
-        return (
-          <motion.div
-            key={oid}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.18 }}
-            className="d-inline-block me-2 mb-2"
+  const isFormValid =
+    form.firstName.trim() !== "" &&
+    form.lastName.trim() !== "" &&
+    form.username.trim() !== "" &&
+    form.email.trim() !== "" &&
+    form.password.trim() !== "" &&
+    form.userType !== "" &&
+    (form.userType !== "TECHNICAL_STAFF_MEMBER" ||
+      form.officeIds.length !== 0) &&
+    (form.userType !== "EXTERNAL_MAINTAINER" || form.companyId !== "");
+
+  // Extract nested ternary into an independent statement to build the assigned offices content
+  let assignedOfficesContent: React.ReactNode;
+  if (loadingTsmOffices) {
+    assignedOfficesContent = (
+      <div className="text-muted">Loading assigned offices...</div>
+    );
+  } else if (tsmOfficeIds.length === 0) {
+    assignedOfficesContent = (
+      <div className="text-muted">No offices assigned.</div>
+    );
+  } else {
+    assignedOfficesContent = tsmOfficeIds.map((oid) => {
+      const office = offices.find((o) => o.id === oid);
+      return (
+        <motion.div
+          key={oid}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18 }}
+          className="d-inline-block me-2 mb-2"
+        >
+          <Badge
+            pill
+            bg="secondary"
+            className="tsm-badge d-inline-flex align-items-center"
+            id={`tsm-office-${oid}`}
           >
-            <Badge
-              pill
-              bg="secondary"
-              className="tsm-badge d-inline-flex align-items-center"
-              id={`tsm-office-${oid}`}
+            <span className="tsm-badge-label">
+              {office ? office.name : `Office ${oid}`}
+            </span>
+            <Button
+              variant="light"
+              size="sm"
+              onClick={() => handleRemoveOffice(oid)}
+              id={`remove-office-${oid}`}
+              className="ms-2 p-0 remove-office-btn d-inline-flex align-items-center justify-content-center"
+              aria-label={`Remove office ${office ? office.name : oid}`}
+              style={{ width: 22, height: 22, borderRadius: 999 }}
             >
-              <span className="tsm-badge-label">{office ? office.name : `Office ${oid}`}</span>
-              <Button
-                variant="light"
-                size="sm"
-                onClick={() => handleRemoveOffice(oid)}
-                id={`remove-office-${oid}`}
-                className="ms-2 p-0 remove-office-btn d-inline-flex align-items-center justify-content-center"
-                aria-label={`Remove office ${office ? office.name : oid}`}
-                style={{ width: 22, height: 22, borderRadius: 999 }}
-              >
-                <XIcon size={12} />
-              </Button>
-            </Badge>
-          </motion.div>
-        );
-      });
-    }
-  
-    // Compute the save button title to avoid a nested ternary in JSX
-    let saveButtonTitle = "Save changes";
-    if (tsmOfficeIds.length === 0) {
-      saveButtonTitle = "Assign at least one office to enable";
-    } else if (isSavingTsm) {
-      saveButtonTitle = "Saving...";
-    }
-  
-    if (user?.userType !== "ADMINISTRATOR") {
+              <XIcon size={12} />
+            </Button>
+          </Badge>
+        </motion.div>
+      );
+    });
+  }
+
+  // Compute whether there are unsaved changes and the save button title
+  const isTsmChanged = !savedTsmOfficeIds
+    ? true
+    : !equalSets(savedTsmOfficeIds, tsmOfficeIds);
+
+  let saveButtonTitle = "Save changes";
+  if (tsmOfficeIds.length === 0) {
+    saveButtonTitle = "Assign at least one office to enable";
+  } else if (isSavingTsm) {
+    saveButtonTitle = "Saving...";
+  } else if (!isTsmChanged) {
+    saveButtonTitle = "No changes to save";
+  }
+
+  if (user?.userType !== "ADMINISTRATOR") {
     return (
       <>
         <CustomNavbar />
@@ -712,10 +724,12 @@ export default function AdminHomepage() {
                                 value={officeOptions.filter((o) =>
                                   form.officeIds.includes(o.value)
                                 )}
-                                onChange={(opts: MultiValue<{
-                                  value: string;
-                                  label: string;
-                                }>) =>
+                                onChange={(
+                                  opts: MultiValue<{
+                                    value: string;
+                                    label: string;
+                                  }>
+                                ) =>
                                   setForm((prev) => ({
                                     ...prev,
                                     officeIds: opts.map((o) => o.value),
@@ -962,7 +976,10 @@ export default function AdminHomepage() {
                                   : null
                               }
                               onChange={(
-                                opt: SingleValue<{ value: string; label: string }>
+                                opt: SingleValue<{
+                                  value: string;
+                                  label: string;
+                                }>
                               ) => {
                                 const id = opt ? Number(opt.value) : null;
                                 handleSelectTsm(id);
@@ -986,9 +1003,7 @@ export default function AdminHomepage() {
                             >
                               <Form.Group className="mb-3">
                                 <Form.Label>Assigned Offices</Form.Label>
-                                <div>
-                                  {assignedOfficesContent}
-                                </div>
+                                <div>{assignedOfficesContent}</div>
                               </Form.Group>
                             </motion.div>
 
@@ -1003,7 +1018,8 @@ export default function AdminHomepage() {
                                   inputId="select-add-office"
                                   instanceId="select-add-office"
                                   options={officeOptions.filter(
-                                    (o) => !tsmOfficeIds.includes(Number(o.value))
+                                    (o) =>
+                                      !tsmOfficeIds.includes(Number(o.value))
                                   )}
                                   value={null}
                                   onChange={(
@@ -1033,17 +1049,20 @@ export default function AdminHomepage() {
                               </Form.Group>
                             </motion.div>
 
-                            {selectedTsmId !== null && !loadingTsmOffices && tsmOfficeIds.length === 0 && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.42, duration: 0.3 }}
-                              >
-                                <div className="text-danger small mb-2">
-                                  A Technical Staff Member must be assigned at least one office.
-                                </div>
-                              </motion.div>
-                            )}
+                            {selectedTsmId !== null &&
+                              !loadingTsmOffices &&
+                              tsmOfficeIds.length === 0 && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: 0.42, duration: 0.3 }}
+                                >
+                                  <div className="text-danger small mb-2">
+                                    A Technical Staff Member must be assigned at
+                                    least one office.
+                                  </div>
+                                </motion.div>
+                              )}
 
                             <motion.div
                               initial={{ opacity: 0, y: 12 }}
@@ -1055,8 +1074,16 @@ export default function AdminHomepage() {
                                 id="save-tsm-offices"
                                 variant="success"
                                 onClick={handleSaveTsmOffices}
-                                disabled={isSavingTsm || tsmOfficeIds.length === 0}
-                                aria-disabled={isSavingTsm || tsmOfficeIds.length === 0}
+                                disabled={
+                                  isSavingTsm ||
+                                  tsmOfficeIds.length === 0 ||
+                                  !isTsmChanged
+                                }
+                                aria-disabled={
+                                  isSavingTsm ||
+                                  tsmOfficeIds.length === 0 ||
+                                  !isTsmChanged
+                                }
                                 title={saveButtonTitle}
                               >
                                 {isSavingTsm ? (
@@ -1082,4 +1109,14 @@ export default function AdminHomepage() {
       </Container>
     </>
   );
+}
+
+function equalSets(a: number[], b: number[]): boolean {
+  const sa = new Set(a);
+  const sb = new Set(b);
+  if (sa.size !== sb.size) return false;
+  for (const v of sa) {
+    if (!sb.has(v)) return false;
+  }
+  return true;
 }

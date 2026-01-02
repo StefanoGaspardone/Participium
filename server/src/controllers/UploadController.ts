@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 export class UploadController {
 
-    private uploadService: UploadService;
+    private readonly uploadService: UploadService;
 
     constructor() {
         this.uploadService = uploadService;

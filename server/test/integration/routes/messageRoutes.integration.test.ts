@@ -8,13 +8,19 @@ import { OfficeDAO } from '@daos/OfficeDAO';
 import { ChatDAO, ChatType } from '@daos/ChatsDAO';
 import * as bcrypt from 'bcryptjs';
 
+// Test password constants
+const TEST_PASSWORD_DEFAULT = 'password'; //NOSONAR
+const TEST_PASSWORD_CITIZEN = 'citizen123'; //NOSONAR
+const TEST_PASSWORD_TOSM = 'tosm123'; //NOSONAR
+const TEST_PASSWORD_EXT = 'ext123'; //NOSONAR
+
 // Tests for chat-based message routes:
 // - POST /api/chats/:chatId/newMessage
 // - GET /api/chats/:chatId/messages
 
 const NONEXISTENT_ID = 999;
 
-const createUser = async (userRepo: any, username: string, email: string, userType: UserType, password: string = 'password') => {
+const createUser = async (userRepo: any, username: string, email: string, userType: UserType, password: string = TEST_PASSWORD_DEFAULT) => {
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
   const user = userRepo.create({
@@ -72,9 +78,9 @@ describe('Message routes integration tests', () => {
     await categoryRepo.save(testCategory);
 
     // Create users
-    citizenUser = await createUser(userRepo, 'routecitizen', 'routecitizen@test.com', UserType.CITIZEN, 'citizen123');
-    techStaffUser = await createUser(userRepo, 'routetosm', 'routetosm@test.com', UserType.TECHNICAL_STAFF_MEMBER, 'tosm123');
-    extMaintainerUser = await createUser(userRepo, 'routeext', 'routeext@test.com', UserType.EXTERNAL_MAINTAINER, 'ext123');
+    citizenUser = await createUser(userRepo, 'routecitizen', 'routecitizen@test.com', UserType.CITIZEN, TEST_PASSWORD_CITIZEN);
+    techStaffUser = await createUser(userRepo, 'routetosm', 'routetosm@test.com', UserType.TECHNICAL_STAFF_MEMBER, TEST_PASSWORD_TOSM);
+    extMaintainerUser = await createUser(userRepo, 'routeext', 'routeext@test.com', UserType.EXTERNAL_MAINTAINER, TEST_PASSWORD_EXT);
 
     // Create report
     testReport = await createReport(reportRepo, citizenUser, testCategory, techStaffUser);
@@ -99,17 +105,17 @@ describe('Message routes integration tests', () => {
     // Get auth tokens
     const citizenLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'routecitizen', password: 'citizen123' });
+      .send({ username: 'routecitizen', password: TEST_PASSWORD_CITIZEN });
     citizenToken = citizenLogin.body.token;
 
     const tosmLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'routetosm', password: 'tosm123' });
+      .send({ username: 'routetosm', password: TEST_PASSWORD_TOSM });
     techStaffToken = tosmLogin.body.token;
 
     const extLogin = await request(app)
       .post('/api/users/login')
-      .send({ username: 'routeext', password: 'ext123' });
+      .send({ username: 'routeext', password: TEST_PASSWORD_EXT });
     extMaintainerToken = extLogin.body.token;
   });
 

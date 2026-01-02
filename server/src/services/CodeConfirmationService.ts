@@ -4,7 +4,7 @@ import { UserDAO } from '@daos/UserDAO';
 
 export class CodeConfirmationService {
 
-    private codeRepo: CodeConfirmationRepository;
+    private readonly codeRepo: CodeConfirmationRepository;
 
     constructor() {
         this.codeRepo = codeRepository;

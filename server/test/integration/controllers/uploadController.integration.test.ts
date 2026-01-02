@@ -2,7 +2,7 @@ import { uploadController } from '@controllers/UploadController'
 
 // Mock the UploadService module used by the controller
 jest.mock('@services/UploadService', () => ({
-	UploadService: class UploadService {},
+	UploadService: class UploadService { sign = jest.fn() },
 	uploadService: {
 		sign: jest.fn(async () => ({
 			cloudName: 'int-cloud',
@@ -31,8 +31,8 @@ describe('UploadController (integration)', () => {
 	})
 
 	it('should call next when uploadService.sign throws', async () => {
-		const { uploadService } = require('@services/UploadService') as any
-		;(uploadService.sign as jest.Mock).mockImplementationOnce(async () => { throw new Error('boom') })
+		const { uploadService }: { uploadService: { sign: jest.Mock }} = require('@services/UploadService')
+		uploadService.sign.mockImplementationOnce(async () => { throw new Error('boom') })
 
 		const req: any = {}
 		const json = jest.fn()
@@ -43,15 +43,15 @@ describe('UploadController (integration)', () => {
 		await uploadController.sign(req, res, next)
 
 		expect(next).toHaveBeenCalled()
-		const err = (next as jest.Mock).mock.calls[0][0]
+		const err = next.mock.calls[0][0]
 		expect(err).toBeInstanceOf(Error)
 		expect(err.message).toBe('boom')
 		expect(status).not.toHaveBeenCalled()
 	})
 
-	it('should forward thrown non-Error values to next', async () => {
-		const { uploadService } = require('@services/UploadService') as any
-		;(uploadService.sign as jest.Mock).mockImplementationOnce(async () => { throw 'string error' })
+	it('should forward thrown errors to next', async () => {
+		const { uploadService }: { uploadService: { sign: jest.Mock }} = require('@services/UploadService')
+		uploadService.sign.mockImplementationOnce(async () => { throw new Error('string error') })
 
 		const req: any = {}
 		const json = jest.fn()
@@ -62,8 +62,9 @@ describe('UploadController (integration)', () => {
 		await uploadController.sign(req, res, next)
 
 		expect(next).toHaveBeenCalled()
-		const err = (next as jest.Mock).mock.calls[0][0]
-		expect(err).toBe('string error')
+		const err = next.mock.calls[0][0]
+		expect(err).toBeInstanceOf(Error)
+		expect(err.message).toBe('string error')
 	})
 })
 

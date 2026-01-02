@@ -194,7 +194,7 @@ describe('UserController integration tests', () => {
   });
 
   it('loginUser => valid credentials returns token', async () => {
-    const req: any = { body: { username: 'user', password: 'user' } };
+    const req: any = { body: { username: 'user', password: TEST_PASSWORD_USER } };
     const res: any = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
@@ -441,7 +441,6 @@ describe('UserController integration tests', () => {
 });
 
 describe('UserController.me integration tests', () => {
-  let testUserId: number;
   let testToken: string;
 
   beforeAll(async () => {
@@ -462,7 +461,6 @@ describe('UserController.me integration tests', () => {
       emailNotificationsEnabled: false,
     });
     const savedUser = await userRepo.save(testUser);
-    testUserId = savedUser.id;
 
     // Login to get a real token
     const jwt = require('jsonwebtoken');
@@ -735,7 +733,7 @@ describe('UserController.updateUser integration tests', () => {
 
 describe('UserController.validateUser integration tests', () => {
   beforeAll(async () => {
-    const AppDataSource = await initializeTestDatasource();
+    await initializeTestDatasource();
     await emptyTestData();
 
     userController = (await import('@controllers/UserController')).userController;
@@ -1070,7 +1068,7 @@ describe('UserController.validateUser integration tests', () => {
 
 describe('UserController.resendCode integration tests', () => {
   beforeAll(async () => {
-    const AppDataSource = await initializeTestDatasource();
+    await initializeTestDatasource();
     await emptyTestData();
 
     userController = (await import('@controllers/UserController')).userController;
@@ -1180,8 +1178,6 @@ describe('UserController.resendCode integration tests', () => {
   it('resendCode => should successfully resend verification code', async () => {
     const { AppDataSource } = await import('@database');
     const userRepo = AppDataSource.getRepository(UserDAO);
-    const { CodeConfirmationDAO } = await import('@daos/CodeConfirmationDAO');
-    const codeRepo = AppDataSource.getRepository(CodeConfirmationDAO);
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(TEST_PASSWORD_GENERIC, salt);
@@ -1282,7 +1278,6 @@ describe('UserController.resendCode integration tests', () => {
 
   describe('findMaintainersByCategory', () => {
     let testCategoryId: number;
-    let testCategoryId2: number;
     let extMaintainerId: number;
     let extMaintainerId2: number;
 
@@ -1309,7 +1304,6 @@ describe('UserController.resendCode integration tests', () => {
       await categoryRepo.save(category1);
       await categoryRepo.save(category2);
       testCategoryId = category1.id;
-      testCategoryId2 = category2.id;
 
       // Create company with category1
       const company1 = companyRepo.create({

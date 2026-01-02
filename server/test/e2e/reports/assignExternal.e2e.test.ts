@@ -7,6 +7,10 @@ import { UserDAO, UserType } from '@daos/UserDAO';
 import { CategoryDAO } from '@daos/CategoryDAO';
 import * as bcrypt from 'bcryptjs';
 
+const TECHSTAFF_PASSWORD = 'techstaff'; //NOSONAR
+const USER_PASSWORD = 'user'; //NOSONAR
+const TEST_PASSWORD = 'TestPassword123!'; //NOSONAR
+
 describe('PUT /:id/assign-external - Assign External Maintainer E2E', () => {
 	let tosmToken: string;
 	let citizenToken: string;
@@ -28,7 +32,7 @@ describe('PUT /:id/assign-external - Assign External Maintainer E2E', () => {
 		// Login as the seeded TOSM user from populate test data
 		const tosmLogin = await request(app)
 			.post('/api/users/login')
-			.send({ username: 'techstaff', password: 'techstaff' });
+			.send({ username: 'techstaff', password: TECHSTAFF_PASSWORD });
 
 		if (tosmLogin.status === 200) {
 			tosmToken = tosmLogin.body.token as string;
@@ -36,31 +40,28 @@ describe('PUT /:id/assign-external - Assign External Maintainer E2E', () => {
 			// Fallback: login as default user and expect it's a TOSM
 			const defaultLogin = await request(app)
 				.post('/api/users/login')
-				.send({ username: 'user', password: 'user' });
+				.send({ username: 'user', password: USER_PASSWORD });
 			tosmToken = defaultLogin.body.token as string;
 		}
 
 		// Get or create a citizen user for authorization tests
-		const testPassword = 'TestPassword123!';
-		const hashedPassword = await bcrypt.hash(testPassword, 10);
+		const hashedPassword = await bcrypt.hash(TEST_PASSWORD, 10);
 
 		let citizenUser = await userRepo.findOneBy({ username: 'citizen_assigned_test' });
-		if (!citizenUser) {
-			citizenUser = await userRepo.save({
-				username: 'citizen_assigned_test',
-				firstName: 'Citizen',
-				lastName: 'User',
-				userType: UserType.CITIZEN,
-				email: 'citizen_assigned@test.it',
-				passwordHash: hashedPassword,
-				isActive: true
-			});
-		}
+		citizenUser ??= await userRepo.save({
+			username: 'citizen_assigned_test',
+			firstName: 'Citizen',
+			lastName: 'User',
+			userType: UserType.CITIZEN,
+			email: 'citizen_assigned@test.it',
+			passwordHash: hashedPassword,
+			isActive: true
+		});
 
 		// Login as citizen for authorization tests
 		const citizenLogin = await request(app)
 			.post('/api/users/login')
-			.send({ username: citizenUser.username, password: testPassword });
+			.send({ username: citizenUser.username, password: TEST_PASSWORD });
 
 		if (citizenLogin.status === 200) {
 			citizenToken = citizenLogin.body.token as string;

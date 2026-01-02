@@ -214,10 +214,22 @@ export const fetchCoordinatesByAddress = async (
       });
 
       if (turinResults.length > 0) {
-        return {
-          lat: Number.parseFloat(turinResults[0].lat),
-          lng: Number.parseFloat(turinResults[0].lon),
-        };
+          const candidate = {
+            lat: Number.parseFloat(turinResults[0].lat),
+            lng: Number.parseFloat(turinResults[0].lon),
+          };
+
+          try {
+            const turinPolys = await fetchAndProcessTurinBoundary();
+            if(turinPolys.length > 0) {
+              const isInside = turinPolys.some(poly => pointInPolygon(candidate.lat, candidate.lng, poly));
+              if(!isInside) return null;
+            }
+          } catch {
+            return null;
+          }
+
+          return candidate;
       }
     }
 
@@ -589,7 +601,6 @@ export default function MapDefault(props: Readonly<BaseProps>) {
           setSelected={setSelected}
           turinPolys={turinPolys}
         />
-        <SearchBox setSelected={setSelected} />
       </MapContainer>
     </div>
   );

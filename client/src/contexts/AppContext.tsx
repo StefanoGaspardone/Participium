@@ -1,4 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-refresh/only-export-components */
+
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback, type ReactNode } from "react";
 import type { User } from "../models/models";
 import { jwtDecode } from "jwt-decode";
 import { me as meApi } from "../api/api";
@@ -30,7 +33,7 @@ export const AppProvider = ({ children }: PropsInterface) => {
 
     const navigate = useNavigate();
 
-    const setUserFromToken = async (token: string | null) => {
+    const setUserFromToken = useCallback(async (token: string | null) => {
         console.log('token: ', token);
 
         if(!token) {
@@ -62,9 +65,9 @@ export const AppProvider = ({ children }: PropsInterface) => {
             localStorage.removeItem("token");
             setUser(null);
         }
-    };
+    }, [navigate]);
 
-    let first = true;
+    const firstRef = useRef(true);
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -82,9 +85,9 @@ export const AppProvider = ({ children }: PropsInterface) => {
             }
         };
 
-        if(first) {
+        if(firstRef.current) {
             fetchUser();
-            first = false;
+            firstRef.current = false;
         }
     }, []);
 
@@ -99,8 +102,10 @@ export const AppProvider = ({ children }: PropsInterface) => {
         else if(user?.userType === 'EXTERNAL_MAINTAINER') navigate('/external');
     }, [user]);
 
+    const value = useMemo(() => ({ user, setUser, setUserFromToken, isLoggedIn, setIsLoggedIn }), [user, setUser, setUserFromToken, isLoggedIn, setIsLoggedIn]);
+
     return (
-        <AppContext.Provider value = {{ user, setUser, setUserFromToken, isLoggedIn, setIsLoggedIn }}>
+        <AppContext.Provider value={value}>
             {children}
         </AppContext.Provider>
     );

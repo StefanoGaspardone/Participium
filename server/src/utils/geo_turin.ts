@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import * as turf from '@turf/turf';
 import type { Feature, Polygon, MultiPolygon, GeoJsonProperties } from 'geojson';
 import { CONFIG } from '@config'; 
