@@ -220,12 +220,14 @@ export const getOffices = async (): Promise<Office[]> => {
     throw new Error("Invalid JSON in /offices response");
   }
 
-  const officesArray =
-    Array.isArray(data)
-      ? data
-      : Array.isArray(data.offices)
-        ? data.offices
-        : [];
+  let officesArray: any[];
+  if (Array.isArray(data)) {
+    officesArray = data as any[];
+  } else if (data && Array.isArray((data as any).offices)) {
+    officesArray = (data as any).offices;
+  } else {
+    officesArray = [];
+  }
 
   if (!Array.isArray(officesArray)) {
     console.error("Unexpected /offices response format:", data);
@@ -481,12 +483,14 @@ export const getUserChats = async (): Promise<Chat[]> => {
     throw new Error("Failed to fetch your chats");
   }
 
-  const chatsArray =
-    Array.isArray(data)
-      ? data
-      : Array.isArray(data.chats)
-        ? data.chats
-        : [];
+  let chatsArray: any[];
+  if (Array.isArray(data)) {
+    chatsArray = data as any[];
+  } else if (data && Array.isArray((data as any).chats)) {
+    chatsArray = (data as any).chats;
+  } else {
+    chatsArray = [];
+  }
 
   return chatsArray;
 }
@@ -581,7 +585,16 @@ export const getAllCompanies = async (): Promise<Company[]> => {
   }
 
   const data = await res.json();
-  const companies: Company[] = Array.isArray(data) ? data : Array.isArray(data?.companies) ? data.companies : [];
+
+  let companies: Company[];
+  if (Array.isArray(data)) {
+    companies = data as Company[];
+  } else if (data && Array.isArray((data as any).companies)) {
+    companies = (data as any).companies;
+  } else {
+    companies = [];
+  }
+
   return companies.filter(company => Number(company?.id) !== 3);
 }
 
