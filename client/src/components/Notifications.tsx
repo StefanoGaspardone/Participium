@@ -13,6 +13,205 @@ import "./Notifications.css";
 import "./AuthForms.css";
 import { REPORT_STATUS_COLORS } from "../constants/reportStatusColors.ts";
 
+const ROLE_LABELS: Record<string, string> = {
+  CITIZEN: "Citizen",
+  TECHNICAL_STAFF_MEMBER: "Technical Staff",
+  EXTERNAL_MAINTAINER: "External Maintainer",
+};
+
+const senderRoleLabel = (role?: string | null): string => {
+  if (!role) return "user";
+  return ROLE_LABELS[role] ?? role;
+};
+
+const formatDate = (dateString: string): string => {
+  const diffMins = Math.floor(
+    (Date.now() - new Date(dateString).getTime()) / 60000
+  );
+  if (diffMins < 1) return "Now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+  return `${Math.floor(diffMins / 1440)}d ago`;
+};
+
+const isMessageNotification = (n: Notification): boolean =>
+  n.type === "MESSAGE" || Boolean(n.message);
+
+const getDestinationPath = (userType?: string): string => {
+  if (userType === "TECHNICAL_STAFF_MEMBER") return "/tech";
+  if (userType === "EXTERNAL_MAINTAINER") return "/external";
+  return "/";
+};
+
+const menuVariants = {
+  hidden: { opacity: 0, scale: 0.92, y: -6 },
+  visible: { opacity: 1, scale: 1, y: 0 },
+};
+
+interface NotificationContentProps {
+  notification: Notification;
+}
+
+function MessageNotificationContent({
+  notification,
+}: NotificationContentProps) {
+  return (
+    <>
+      <div
+        className="notification-status"
+        style={{ fontSize: "0.75rem", color: "#444" }}
+      >
+        <span className="status-label" style={{ fontWeight: 500 }}>
+          New message from{" "}
+          <strong>{senderRoleLabel(notification.message?.senderRole)}</strong>
+        </span>
+        <div
+          style={{
+            fontSize: "0.8rem",
+            color: "#333",
+            marginTop: 4,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {notification.message?.text ?? ""}
+        </div>
+      </div>
+      <NotificationTime createdAt={notification.createdAt} />
+    </>
+  );
+}
+
+function StatusNotificationContent({ notification }: NotificationContentProps) {
+  return (
+    <>
+      <div
+        className="notification-status"
+        style={{ fontSize: "0.75rem", color: "#444" }}
+      >
+        <span className="status-label" style={{ fontWeight: 500 }}>
+          Status:
+        </span>{" "}
+        <span
+          className="status-old"
+          style={{
+            textDecoration: "line-through",
+            opacity: 0.6,
+            color:
+              REPORT_STATUS_COLORS[notification.previousStatus as string] ||
+              "#6B7280",
+          }}
+        >
+          {notification.previousStatus}
+        </span>
+        {" → "}
+        <span
+          className="status-new"
+          style={{
+            fontWeight: 600,
+            color:
+              REPORT_STATUS_COLORS[notification.newStatus as string] ||
+              "#6B7280",
+          }}
+        >
+          {notification.newStatus}
+        </span>
+      </div>
+      <NotificationTime createdAt={notification.createdAt} />
+    </>
+  );
+}
+
+function NotificationTime({ createdAt }: { createdAt: string }) {
+  return (
+    <div
+      className="notification-time"
+      style={{
+        fontSize: "0.65rem",
+        textTransform: "uppercase",
+        letterSpacing: "0.5px",
+        opacity: 0.6,
+      }}
+    >
+      {formatDate(createdAt)}
+    </div>
+  );
+}
+
+function UnreadIndicator() {
+  return (
+    <motion.div
+      className="unread-indicator"
+      initial={{ opacity: 0, scale: 0.6 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.6 }}
+      style={{
+        position: "absolute",
+        top: 8,
+        right: 8,
+        width: 10,
+        height: 10,
+        borderRadius: "50%",
+        background: "#dc3545",
+        boxShadow: "0 0 0 3px rgba(220,53,69,0.25)",
+      }}
+    />
+  );
+}
+
+interface NotificationItemProps {
+  notification: Notification;
+  onClick: (n: Notification) => void;
+}
+
+function NotificationItem({ notification, onClick }: NotificationItemProps) {
+  const isMessage = isMessageNotification(notification);
+
+  return (
+    <motion.div
+      key={notification.id}
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22 }}
+      className={`notification-item ${notification.seen ? "" : "unread"}`}
+      onClick={() => onClick(notification)}
+      role="button"
+      tabIndex={0}
+      style={{
+        background: "#ffffff",
+        border: "1px solid #e6e6e6",
+        borderRadius: 10,
+        padding: "0.55rem 0.75rem 0.55rem 0.85rem",
+        position: "relative",
+        cursor: "pointer",
+        transition: "transform 0.18s, box-shadow 0.18s",
+      }}
+      whileHover={{ scale: 1.015 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <div
+        className="notification-content"
+        style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}
+      >
+        <div
+          className="notification-title"
+          style={{ fontWeight: 600, fontSize: "0.9rem", lineHeight: 1.2 }}
+        >
+          {notification.report.title}
+        </div>
+        {isMessage ? (
+          <MessageNotificationContent notification={notification} />
+        ) : (
+          <StatusNotificationContent notification={notification} />
+        )}
+      </div>
+      {!notification.seen && <UnreadIndicator />}
+    </motion.div>
+  );
+}
+
 export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,7 +219,23 @@ export default function Notifications() {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const navigate = useNavigate();
+  const { user } = useAppContext();
+
   const unreadCount = notifications.filter((n) => !n.seen).length;
+  const messages = notifications.filter(isMessageNotification);
+  const reportUpdates = notifications.filter((n) => !isMessageNotification(n));
+
+  const showReportUpdates = !user || user.userType === "CITIZEN";
+  const showMessages =
+    !user ||
+    ["CITIZEN", "TECHNICAL_STAFF_MEMBER", "EXTERNAL_MAINTAINER"].includes(
+      user.userType
+    );
+
+  const [selectedSection, setSelectedSection] = useState<
+    "REPORTS" | "MESSAGES"
+  >(showReportUpdates ? "REPORTS" : "MESSAGES");
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -41,281 +256,90 @@ export default function Notifications() {
     fetchNotifications();
   }, []);
 
-  const navigate = useNavigate();
-  const { user } = useAppContext();
-
-  const toggleOpen = () => {
-    setOpen((o) => {
-      const newVal = !o;
-      if (newVal) fetchNotifications();
-      return newVal;
-    });
-  };
-
-  const close = () => setOpen(false);
+  useEffect(() => {
+    if (!showReportUpdates) setSelectedSection("MESSAGES");
+  }, [showReportUpdates]);
 
   useEffect(() => {
+    if (!open) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target as Node)) {
-        close();
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
       }
     };
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  const handleNotificationClick = async (notification: Notification) => {
-    // Update local state immediately for visual feedback
+  const toggleOpen = () => {
+    setOpen((prev) => {
+      if (!prev) fetchNotifications();
+      return !prev;
+    });
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === notification.id ? { ...n, seen: true } : n))
     );
 
-    // Call the API in the background (fire-and-forget)
-    const rollbackSeen = (id: number) => {
-      // use current notifications array to avoid deep nested callbacks
-      setNotifications(
-        notifications.map((n) => (n.id === id ? { ...n, seen: false } : n))
-      );
-    };
-
     markNotificationAsSeen(notification.id).catch((err) => {
       console.error("Failed to mark notification as seen:", err);
-      // Rollback in case of error
-      rollbackSeen(notification.id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notification.id ? { ...n, seen: false } : n))
+      );
     });
 
-    // If it's a message notification, navigate to the page that has the Chat panel
-    if (notification.type === "MESSAGE" || notification.message) {
-      const targetUserId = notification.message?.senderId ?? null;
-      let dest = "/";
-      if (user?.userType === "TECHNICAL_STAFF_MEMBER") dest = "/tech";
-      else if (user?.userType === "EXTERNAL_MAINTAINER") dest = "/external";
+    if (!isMessageNotification(notification)) return;
 
-      // Pass the info through location.state so the page can open the chat
-      navigate(dest, {
-        state: {
-          openChat: {
-            report: {
-              id: notification.report.id,
-              title: notification.report.title,
-            },
-            targetUserId,
+    navigate(getDestinationPath(user?.userType), {
+      state: {
+        openChat: {
+          report: {
+            id: notification.report.id,
+            title: notification.report.title,
           },
+          targetUserId: notification.message?.senderId ?? null,
         },
-      });
+      },
+    });
+    setOpen(false);
+  };
 
-      close();
+  const renderNotificationList = (
+    items: Notification[],
+    emptyMessage: string
+  ) => {
+    if (items.length === 0) {
+      return <div className="text-muted small px-2">{emptyMessage}</div>;
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) return "Now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-    return `${Math.floor(diffMins / 1440)}d ago`;
-  };
-
-  const menuVariants = {
-    hidden: { opacity: 0, scale: 0.92, y: -6 },
-    visible: { opacity: 1, scale: 1, y: 0 },
-  };
-
-  const senderRoleLabel = (role?: string | null) => {
-    if (!role) return "user";
-    switch (role) {
-      case "CITIZEN":
-        return "Citizen";
-      case "TECHNICAL_STAFF_MEMBER":
-        return "Technical Staff";
-      case "EXTERNAL_MAINTAINER":
-        return "External Maintainer";
-      default:
-        return role;
-    }
-  };
-
-  // Decide which sections to show based on the logged user type
-  const showReportUpdates = user ? user.userType === "CITIZEN" : true;
-  const showMessages = user
-    ? ["CITIZEN", "TECHNICAL_STAFF_MEMBER", "EXTERNAL_MAINTAINER"].includes(
-        user.userType
-      )
-    : true;
-
-  const messages = notifications.filter(
-    (n) => n.type === "MESSAGE" || n.message
-  );
-  const reportUpdates = notifications.filter(
-    (n) => !(n.type === "MESSAGE" || n.message)
-  );
-
-  // Which section is currently selected (only relevant for citizens)
-  const [selectedSection, setSelectedSection] = useState<
-    "REPORTS" | "MESSAGES"
-  >(showReportUpdates ? "REPORTS" : "MESSAGES");
-
-  useEffect(() => {
-    // if the user type changes and reports are no longer available, switch to messages
-    if (!showReportUpdates) setSelectedSection("MESSAGES");
-  }, [showReportUpdates]);
-
-  const renderNotificationItem = (notification: Notification) => (
-    <motion.div
-      key={notification.id}
-      layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22 }}
-      className={`notification-item ${notification.seen ? "" : "unread"}`}
-      onClick={() => handleNotificationClick(notification)}
-      role="button"
-      tabIndex={0}
-      style={{
-        background: "#ffffff",
-        border: "1px solid #e6e6e6",
-        borderRadius: 10,
-        padding: "0.55rem 0.75rem 0.55rem 0.85rem",
-        position: "relative",
-        cursor: "pointer",
-        transition: "transform 0.18s, box-shadow 0.18s",
-      }}
-      whileHover={{ scale: 1.015 }}
-      whileTap={{ scale: 0.97 }}
-    >
+    return (
       <div
-        className="notification-content"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.2rem",
-        }}
+        className="notifications-list"
+        style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}
       >
-        <div
-          className="notification-title"
-          style={{
-            fontWeight: 600,
-            fontSize: "0.9rem",
-            lineHeight: 1.2,
-          }}
-        >
-          {notification.report.title}
-        </div>
-        {notification.type === "MESSAGE" || notification.message ? (
-          <>
-            <div
-              className="notification-status"
-              style={{ fontSize: "0.75rem", color: "#444" }}
-            >
-              <span className="status-label" style={{ fontWeight: 500 }}>
-                New message from{" "}
-                <strong>
-                  {senderRoleLabel(notification.message?.senderRole)}
-                </strong>
-              </span>
-              <div
-                style={{
-                  fontSize: "0.8rem",
-                  color: "#333",
-                  marginTop: 4,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {notification.message?.text ?? ""}
-              </div>
-            </div>
-            <div
-              className="notification-time"
-              style={{
-                fontSize: "0.65rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                opacity: 0.6,
-              }}
-            >
-              {formatDate(notification.createdAt)}
-            </div>
-          </>
-        ) : (
-          <>
-            <div
-              className="notification-status"
-              style={{ fontSize: "0.75rem", color: "#444" }}
-            >
-              <span className="status-label" style={{ fontWeight: 500 }}>
-                Status:
-              </span>{" "}
-              <span
-                className="status-old"
-                style={{
-                  textDecoration: "line-through",
-                  opacity: 0.6,
-                  color:
-                    REPORT_STATUS_COLORS[
-                      notification.previousStatus as string
-                    ] || "#6B7280",
-                }}
-              >
-                {notification.previousStatus}
-              </span>
-              {" → "}
-              <span
-                className="status-new"
-                style={{
-                  fontWeight: 600,
-                  color:
-                    REPORT_STATUS_COLORS[notification.newStatus as string] ||
-                    "#6B7280",
-                }}
-              >
-                {notification.newStatus}
-              </span>
-            </div>
-            <div
-              className="notification-time"
-              style={{
-                fontSize: "0.65rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                opacity: 0.6,
-              }}
-            >
-              {formatDate(notification.createdAt)}
-            </div>
-          </>
-        )}
+        {items.map((n) => (
+          <NotificationItem
+            key={n.id}
+            notification={n}
+            onClick={handleNotificationClick}
+          />
+        ))}
       </div>
-      {notification.seen ? null : (
-        <motion.div
-          className="unread-indicator"
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.6 }}
-          style={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            width: 10,
-            height: 10,
-            borderRadius: "50%",
-            background: "#dc3545",
-            boxShadow: "0 0 0 3px rgba(220,53,69,0.25)",
-          }}
-        />
-      )}
-    </motion.div>
-  );
+    );
+  };
+
+  const renderSectionContent = () => {
+    if (showReportUpdates) {
+      return selectedSection === "REPORTS"
+        ? renderNotificationList(reportUpdates, "No report updates")
+        : renderNotificationList(messages, "No messages");
+    }
+    return renderNotificationList(messages, "No messages");
+  };
 
   return (
     <div
@@ -473,7 +497,6 @@ export default function Notifications() {
                   <p className="mb-0 small">No notifications</p>
                 </div>
               )}
-
               {!loading && !error && notifications.length > 0 && (
                 <div
                   className="notifications-sections"
@@ -483,62 +506,7 @@ export default function Notifications() {
                     gap: "0.6rem",
                   }}
                 >
-                  {showReportUpdates ? (
-                    // Citizen: show only the selected section
-                    selectedSection === "REPORTS" ? (
-                      reportUpdates.length === 0 ? (
-                        <div className="text-muted small px-2">
-                          No report updates
-                        </div>
-                      ) : (
-                        <div
-                          className="notifications-list"
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "0.35rem",
-                          }}
-                        >
-                          {reportUpdates.map((notification) =>
-                            renderNotificationItem(notification)
-                          )}
-                        </div>
-                      )
-                    ) : selectedSection === "MESSAGES" ? (
-                      messages.length === 0 ? (
-                        <div className="text-muted small px-2">No messages</div>
-                      ) : (
-                        <div
-                          className="notifications-list"
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "0.35rem",
-                          }}
-                        >
-                          {messages.map((notification) =>
-                            renderNotificationItem(notification)
-                          )}
-                        </div>
-                      )
-                    ) : null
-                  ) : // Technical staff or external: only messages
-                  messages.length === 0 ? (
-                    <div className="text-muted small px-2">No messages</div>
-                  ) : (
-                    <div
-                      className="notifications-list"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.35rem",
-                      }}
-                    >
-                      {messages.map((notification) =>
-                        renderNotificationItem(notification)
-                      )}
-                    </div>
-                  )}
+                  {renderSectionContent()}
                 </div>
               )}
             </div>
