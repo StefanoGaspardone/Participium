@@ -155,3 +155,5 @@ export async function firstInitialization() {
         await closeDatabase();
     }
 }
+
+firstInitialization();
