@@ -261,4 +261,9 @@ describe("9. Test suite for Technical Staff Member", () => {
         cy.wait('@getMessagesMaintainerAfterSend');
         cy.contains("Hello maintainer").should('be.visible');
     });
+
+    it('9.8 A Technical Staff Member should see the served offices in the first tab of the page', () => {
+        performLoginAsTsm();
+        tsmPage.checkOfficesDisplayed(tsmUser.offices);
+    });
 });

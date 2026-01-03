@@ -62,7 +62,9 @@ const adminPage = {
   submitAccount: () => {
     cy.get('[id="create-account-button"]').focus().click();
   },
-
+  submitAccountNotClickableCheck: () => {
+    cy.get('[id="create-account-button"]').should('be.disabled');
+  },
   clickHomepage: () => {
     cy.get('[id="to-homepage"]').click();
   },
@@ -103,7 +105,23 @@ const adminPage = {
   removeTwoOffices: () => {
     cy.get('[id="remove-office-1"]').click({ force: true });
     cy.get('[id="remove-office-2"]').click({ force: true });
-  }
+  },
+  selectAddNewCompany: () => {
+    cy.get('[id="add-new-company-button"]').click();
+  },
+  insertCompanyName: (name: string) => {
+    cy.get('[id="new-company-name"]').focus().type(name);
+  },
+  selectCategoryForCompany: () => {
+    cy.get('#new-company-categories').click();
+    cy.get('.rs__menu .rs__option').first().click();
+  },
+  submitCreateCompany: () => {
+    cy.get('[id="create-company-button"]').focus().click();
+  },
+  createCompanyNotClickableCheck: () => {
+    cy.get('[id="create-company-button"]').should('be.disabled');
+  },
 };
 
 export { adminPage };

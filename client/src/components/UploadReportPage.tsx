@@ -98,7 +98,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
     return () => urls.forEach((u) => URL.revokeObjectURL(u));
   }, [images]);
 
-  let first = true;
+  const firstRef = useRef(true);
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -109,9 +109,9 @@ export default function UploadReport({ selected, setSelected }: Props) {
       }
     };
 
-    if (first) {
+    if (firstRef.current) {
       fetchCategories();
-      first = false;
+      firstRef.current = false;
     }
   }, []);
 
@@ -405,7 +405,7 @@ export default function UploadReport({ selected, setSelected }: Props) {
                     <Form.Label>Images (min 1, max 3)</Form.Label>
                     <Row className="g-2">
                       {previews.map((src, index) => (
-                        <Col key={index} xs={12} sm={6} md={4}>
+                        <Col key = { src } xs = { 12 } sm = { 6 } md = { 4 }>
                           <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}

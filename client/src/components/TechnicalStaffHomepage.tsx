@@ -268,6 +268,7 @@ export default function TechnicalStaffHomepage() {
                 {user.offices.map((office) => (
                   <Badge
                     key={office}
+                    id="displayed-office"
                     bg="primary"
                     style={{
                       fontSize: "0.95rem",

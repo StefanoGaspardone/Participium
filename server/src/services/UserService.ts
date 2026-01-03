@@ -192,11 +192,7 @@ export class UserService {
 
         if (String(confirmation.code) !== String(code)) throw new BadRequestError('Invalid verification code');
 
-        try {
-            await this.codeService.deleteById(confirmation.id);
-        } catch (err) {
-            throw err;
-        }
+        await this.codeService.deleteById(confirmation.id);
 
         user.codeConfirmation = undefined as any;
         user.isActive = true;
