@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 
 export class CodeConfirmationRepository {
 
-    private repo: Repository<CodeConfirmationDAO>;
+    private readonly repo: Repository<CodeConfirmationDAO>;
 
     constructor() {
         this.repo = AppDataSource.getRepository(CodeConfirmationDAO);

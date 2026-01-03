@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 export class CategoryController {
 
-    private categoryService: CategoryService;
+    private readonly categoryService: CategoryService;
 
     constructor() {
         this.categoryService = categoryService;

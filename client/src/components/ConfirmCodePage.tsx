@@ -19,6 +19,8 @@ const ConfirmCodePage = () => {
 
     const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
+    const OTP_KEYS = ['otp-0', 'otp-1', 'otp-2', 'otp-3', 'otp-4', 'otp-5'];
+
     const isFormValid = username.trim() !== '' && codeDigits.every(d => d.trim().length === 1);
 
     useEffect(() => {
@@ -46,7 +48,7 @@ const ConfirmCodePage = () => {
     }, [cooldown]);
     
     const handleDigitChange = (index: number, value: string) => {
-        if(!/^[0-9]?$/.test(value)) return;
+        if(!/^\d?$/.test(value)) return;
         
         const next = [...codeDigits];
         next[index] = value;
@@ -160,8 +162,8 @@ const ConfirmCodePage = () => {
                                             <Form.Group className = 'mb-3' controlId = 'formCode'>
                                                 <Form.Label>Code</Form.Label>
                                                 <div id='otp-container' className = 'd-flex justify-content-center' onPaste = { handlePaste }>
-                                                    {Array.from({ length: 6 }).map((_, i) => (
-                                                        <input id={`otp-digit-${i}`} key = { i } ref = { el => { inputsRef.current[i] = el } } className='text-center otp-input' inputMode = 'numeric' pattern = '[0-9]*' maxLength = { 1 } value = { codeDigits[i] } onChange = { e => handleDigitChange(i, e.target.value) } onKeyDown = { e => handleKeyDown(e, i) } aria-label = { `Digit ${i + 1}` }/>
+                                                    {OTP_KEYS.map((keyName, i) => (
+                                                        <input id={`otp-digit-${i}`} key={keyName} ref={el => { inputsRef.current[i] = el }} className='text-center otp-input' inputMode='numeric' pattern='[0-9]*' maxLength={1} value={codeDigits[i]} onChange={e => handleDigitChange(i, e.target.value)} onKeyDown={e => handleKeyDown(e, i)} aria-label={`Digit ${i + 1}`} />
                                                     ))}
                                                 </div>
                                             </Form.Group>

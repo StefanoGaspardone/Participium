@@ -195,6 +195,34 @@ export const fetchAddressByCoordinates = async (
 export const fetchCoordinatesByAddress = async (
   address: string
 ): Promise<{ lat: number; lng: number } | null> => {
+  const extractTurinCandidate = (data: any[]): { lat: number; lng: number } | null => {
+    const turinResults = data.filter((result: any) => {
+      const lat = Number.parseFloat(result.lat);
+      const lng = Number.parseFloat(result.lon);
+      return lat >= 44.9 && lat <= 45.2 && lng >= 7.5 && lng <= 7.8;
+    });
+
+    if (!turinResults.length) return null;
+
+    return {
+      lat: Number.parseFloat(turinResults[0].lat),
+      lng: Number.parseFloat(turinResults[0].lon),
+    };
+  };
+
+  const isWithinTurinBoundary = async (candidate: { lat: number; lng: number }): Promise<boolean> => {
+    try {
+      const turinPolys = await fetchAndProcessTurinBoundary();
+      if (!turinPolys.length) return true;
+
+      return turinPolys.some((poly) =>
+        pointInPolygon(candidate.lat, candidate.lng, poly)
+      );
+    } catch {
+      return false;
+    }
+  };
+
   try {
     const enhancedAddress = `${address}, Turin, Italy`;
     const query = encodeURIComponent(enhancedAddress);
@@ -205,23 +233,15 @@ export const fetchCoordinatesByAddress = async (
     if (!res.ok) return null;
 
     const data = await res.json();
+    if (!Array.isArray(data) || !data.length) return null;
 
-    if (data && data.length > 0) {
-      const turinResults = data.filter((result: any) => {
-        const lat = Number.parseFloat(result.lat);
-        const lng = Number.parseFloat(result.lon);
-        return lat >= 44.9 && lat <= 45.2 && lng >= 7.5 && lng <= 7.8;
-      });
+    const candidate = extractTurinCandidate(data);
+    if (!candidate) return null;
 
-      if (turinResults.length > 0) {
-        return {
-          lat: Number.parseFloat(turinResults[0].lat),
-          lng: Number.parseFloat(turinResults[0].lon),
-        };
-      }
-    }
+    const insideTurin = await isWithinTurinBoundary(candidate);
+    if (!insideTurin) return null;
 
-    return null;
+    return candidate;
   } catch (error) {
     console.error("Error during geocoding:", error);
     return null;

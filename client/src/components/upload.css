@@ -40,7 +40,8 @@
   height: 150px;
   border-radius: 8px;
   border: 2px dashed #bdbdbd;
-  color: #757575;
+  /* Use a darker text color for better contrast against #fafafa */
+  color: #424242;
   background: #fafafa;
   cursor: pointer;
   -webkit-user-select: none;

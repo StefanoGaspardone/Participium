@@ -5,10 +5,8 @@ import { Response, NextFunction, Request } from 'express';
 import type { AuthRequest } from '@middlewares/authenticationMiddleware';
 import { isPointInTurin } from '@utils/geo_turin';
 import { ReportStatus } from '@daos/ReportDAO';
-import { notificationService, NotificationService } from "@services/NotificationService";
 import { ChatService, chatService } from '@services/ChatService';
 import { createChatDTO } from '@dtos/ChatDTO';
-import { pay } from 'telegraf/typings/button';
 
 export class ReportController {
 
@@ -62,7 +60,7 @@ export class ReportController {
                 anonymous: payload.anonymous,
             } as CreateReportDTO;
 
-            const report = await this.reportService.createReport(userId as number, payloadDto);
+            const report = await this.reportService.createReport(userId, payloadDto);
             res.status(201).json({ message: 'Report successfully created', reportId: report.id });
         } catch (error) {
             next(error);
@@ -107,7 +105,7 @@ export class ReportController {
             if (!status || typeof status !== 'string' || !allowed.includes(status as ReportStatus)) {
                 errors.status = `Status must be one of: ${allowed.join(', ')}`;
             }
-            if (status === ReportStatus.Rejected && (!rejectedDescription || !rejectedDescription.trim())) {
+            if (status === ReportStatus.Rejected && !rejectedDescription?.trim()) {
                 errors.rejectedDescription = 'rejectedDescription is required when rejecting a report';
             }
 

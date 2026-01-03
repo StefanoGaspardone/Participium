@@ -8,16 +8,10 @@ import { UnauthorizedError } from "@errors/UnauthorizedError";
 import { ConflictError } from "@errors/ConflictError";
 import { QueryFailedError } from "typeorm";
 import { UserType } from "@daos/UserDAO";
-import { JwtPayload } from "jsonwebtoken";
 import { AuthRequest, UpdateUserRequest } from "@middlewares/authenticationMiddleware";
 
-interface UserPayload extends JwtPayload {
-  userId: number;
-  role: UserType;
-}
-
 export class UserController {
-  private userService: UserService;
+  private readonly userService: UserService;
 
   constructor() {
     this.userService = userService;
@@ -89,9 +83,7 @@ export class UserController {
         req.body.username,
         req.body.password
       );
-      if (!user) {
-        return res.status(401).json({ message: "Invalid username or password" });
-      } else {
+      if (user) {
         const userDto = MapUserDAOtoDTO(user);
         // include full user object inside token under `user` key
         const payload = { user: userDto } as any;
@@ -100,6 +92,8 @@ export class UserController {
         }
         const token = jwt.sign(payload, CONFIG.JWT_SECRET, { expiresIn: "1d" });
         res.status(200).json({ message: "Login successful", token });
+      } else {
+        return res.status(401).json({ message: "Invalid username or password" });
       }
     } catch (error) {
       next(error);
@@ -149,7 +143,8 @@ export class UserController {
       payload.userType = req.body.userType;
       payload.officeIds = req.body.officeIds;
       payload.companyId = req.body.companyId;
-      const user = await this.userService.createMunicipalityUser(payload);
+      
+      await this.userService.createMunicipalityUser(payload);
       res.status(201).json({ message: "Municipality user created" });
     } catch (error) {
       if (
@@ -175,7 +170,7 @@ export class UserController {
       if (!userDto) throw new UnauthorizedError('User not found');
 
       const authHeader = req.headers.authorization;
-      const rawToken = authHeader && authHeader.startsWith('Bearer ')
+      const rawToken = authHeader?.startsWith('Bearer ')
         ? authHeader.split(' ')[1]
         : undefined;
 
@@ -231,8 +226,8 @@ export class UserController {
     try {
       const { categoryId } = req.query;
       if (!categoryId) throw new BadRequestError('categoryId query parameter is required');
-      const id = parseInt(req.query.categoryId, 10);
-      if (isNaN(id)) throw new BadRequestError('Id must be a valid number');
+      const id = Number.parseInt(req.query.categoryId, 10);
+      if (Number.isNaN(id)) throw new BadRequestError('Id must be a valid number');
       const maintainers = await this.userService.findMaintainersByCategory(id);
       res.status(200).json(maintainers);
     } catch (error) {
@@ -245,8 +240,8 @@ export class UserController {
       const { payload } = req.body;
 
       if (!payload) throw new BadRequestError('Payload is missing');
-      if (!payload.username || !payload.username.trim()) throw new BadRequestError('Property \'username\' is missing or invalid');
-      if (!payload.code || !payload.code.trim()) throw new BadRequestError('Property \'code\' is missing or invalid');
+      if (!payload.username?.trim()) throw new BadRequestError('Property \'username\' is missing or invalid');
+      if (!payload.code?.trim()) throw new BadRequestError('Property \'code\' is missing or invalid');
 
       await this.userService.validateUser(payload.username, payload.code);
       return res.status(204).send();
@@ -259,7 +254,7 @@ export class UserController {
     try {
       const { username } = req.body;
 
-      if (!username || !username.trim()) throw new BadRequestError('Property \'username\' is missing or invalid');
+      if (!username?.trim()) throw new BadRequestError('Property \'username\' is missing or invalid');
 
       await this.userService.resendCode(username);
       return res.status(201).send();
@@ -292,11 +287,6 @@ export class UserController {
         next(error);
     }
   }
-}
-
-interface tokenDatas extends JwtPayload {
-  userId: number,
-  role: string
 }
 
 export const userController = new UserController();

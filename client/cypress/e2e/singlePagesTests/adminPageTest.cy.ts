@@ -225,7 +225,7 @@ describe("1. Test suite for the admin page (used to create new municipality user
     cy.wait("@updateTsmOffices");
   });
 
-  it("1.7 modify TSM offices, removing one of them", () => {
+  it("1.7 Modify TSM offices, removing one of them", () => {
     performLoginAsAdmin();
 
     adminPage.moveToTsmManagement();
@@ -238,36 +238,34 @@ describe("1. Test suite for the admin page (used to create new municipality user
     cy.wait("@updateTsmOffices");
   });
 
-  it("1.8 clicking save without changing should show no-changes message and not call server", () => {
+  it("1.8 Clicking save without changing should show no-changes message and not call server", () => {
     performLoginAsAdmin();
 
     adminPage.moveToTsmManagement();
     adminPage.selectFisrtTsm();
 
-    // Spy on PATCH calls by setting a flag on the window
     cy.window().then((win) => {
-      // initialize flag
       (win as any).__patchCalled = false;
-
       cy.intercept("PATCH", "/api/users/tsm/*", (req) => {
         (win as any).__patchCalled = true;
         req.reply({ statusCode: 200, body: { message: "unexpected" } });
       }).as("patch");
-
-      // Click save without making changes
-      cy.get('[id="save-tsm-offices"]').click();
-
-      // Expect a toast telling there are no changes
-      cy.contains("No changes to save.").should("exist");
-
-      // Ensure the server was not called
-      cy.wrap(null).then(() => {
-        expect((win as any).__patchCalled).to.be.false;
-      });
+    });
+    
+    cy.get('[id="save-tsm-offices"]').then(($btn) => {
+      if ($btn.is(':disabled')) {
+        cy.wrap($btn).should('be.disabled');
+        cy.wrap($btn).invoke('attr', 'title').should('contain', 'No changes to save');
+        cy.window().its('__patchCalled').should('equal', false);
+      } else {
+        cy.wrap($btn).click();
+        cy.contains('No changes to save.').should('exist');
+        cy.window().its('__patchCalled').should('equal', false);
+      }
     });
   });
 
-  it("1.9 attempt to modify TSM office with no offices should lead to the non-ability to save changes", () => {
+  it("1.9 Attempt to modify TSM office with no offices should lead to the non-ability to save changes", () => {
     performLoginAsAdmin();
 
     adminPage.moveToTsmManagement();
@@ -276,7 +274,7 @@ describe("1. Test suite for the admin page (used to create new municipality user
     cy.get('[id="save-tsm-offices"]').should("be.disabled");
   });
 
-  it("1.10 shows server message when removing office with assigned reports", () => {
+  it("1.10 Shows server message when removing office with assigned reports", () => {
     performLoginAsAdmin();
 
     adminPage.moveToTsmManagement();

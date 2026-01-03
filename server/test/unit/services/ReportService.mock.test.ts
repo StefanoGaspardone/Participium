@@ -543,14 +543,16 @@ describe('ReportService (mock)', () => {
       const service = new ReportService();
       // @ts-ignore
       service['reportRepo'] = { findReportsAssignedTo: jest.fn().mockResolvedValue([]) };
-        service['userRepo'] = {
-            findUserById: jest.fn().mockImplementation(async (id: number) => {
-                if (id === 123) {
-                    return { id: 123, username: 'tech99', firstName: 'Tech', lastName: 'Staff', userType: UserType.TECHNICAL_STAFF_MEMBER };
-                }
-                return null;
-            })
-        } as any;
+
+      // @ts-ignore
+      service['userRepo'] = {
+          findUserById: jest.fn().mockImplementation(async (id: number) => {
+              if (id === 123) {
+                  return { id: 123, username: 'tech99', firstName: 'Tech', lastName: 'Staff', userType: UserType.TECHNICAL_STAFF_MEMBER };
+              }
+              return null;
+          })
+      } as any;
       const result = await service.listAssignedReports(123);
 
       expect((service as any).reportRepo.findReportsAssignedTo).toHaveBeenCalledWith(123);
@@ -586,6 +588,8 @@ describe('ReportService (mock)', () => {
 
       // @ts-ignore
       service['reportRepo'] = { findReportsAssignedTo: jest.fn().mockResolvedValue(mockReports) };
+
+      // @ts-ignore
       service['userRepo'] = {
           findUserById: jest.fn().mockImplementation(async (id: number) => {
               if (id === 123) {
@@ -625,14 +629,16 @@ describe('ReportService (mock)', () => {
 
       // @ts-ignore
       service['reportRepo'] = { findReportsAssignedTo: jest.fn().mockResolvedValue([mockReport]) };
-        service['userRepo'] = {
-            findUserById: jest.fn().mockImplementation(async (id: number) => {
-                if (id === 99) {
-                    return { id: 99, username: 'tech99', firstName: 'Tech', lastName: 'Staff', userType: UserType.TECHNICAL_STAFF_MEMBER };
-                }
-                return null;
-            })
-        } as any;
+
+      // @ts-ignore
+      service['userRepo'] = {
+          findUserById: jest.fn().mockImplementation(async (id: number) => {
+              if (id === 99) {
+                  return { id: 99, username: 'tech99', firstName: 'Tech', lastName: 'Staff', userType: UserType.TECHNICAL_STAFF_MEMBER };
+              }
+              return null;
+          })
+      } as any;
       const result = await service.listAssignedReports(99);
 
       expect(result).toHaveLength(1);
@@ -667,6 +673,8 @@ describe('ReportService (mock)', () => {
 
       // @ts-ignore
       service['reportRepo'] = { findReportsCoAssignedTo: jest.fn().mockResolvedValue(mockReports) };
+
+      // @ts-ignore
       service['userRepo'] = {
         findUserById: jest.fn().mockImplementation(async (id: number) => {
           if (id === 100) {
@@ -687,6 +695,7 @@ describe('ReportService (mock)', () => {
     it('should throw BadRequestError for non-TSM and non-EM users', async () => {
       const service = new ReportService();
 
+      // @ts-ignore
       service['userRepo'] = {
         findUserById: jest.fn().mockImplementation(async (id: number) => {
           if (id === 200) {

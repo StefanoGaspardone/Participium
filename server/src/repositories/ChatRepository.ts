@@ -1,7 +1,6 @@
 import { ChatDAO } from "@daos/ChatsDAO";
 import { Repository } from "typeorm";
 import { AppDataSource } from "@database";
-import { ReportDAO } from "@daos/ReportDAO";
 
 export class ChatRepository {
   private readonly repository: Repository<ChatDAO>;
