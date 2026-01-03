@@ -59,6 +59,34 @@ const tsmPage = {
       cy.get('#displayed-office').contains(office).should('be.visible');
     });
   },
+  // Image carousel helpers (inline slider + fullscreen lightbox)
+  openReportLightbox: (title: string) => {
+    cy.contains('h4#report-title', title)
+      .closest('.accordion-item')
+      .within(() => {
+        cy.get('button[aria-label="View report image in fullscreen"]').click({ force: true });
+      });
+  },
+  clickInlineNextImage: (title: string) => {
+    cy.contains('h4#report-title', title)
+      .closest('.accordion-item')
+      .within(() => {
+        cy.get('button[aria-label="Next image"]').click({ force: true });
+      });
+  },
+  clickInlinePrevImage: (title: string) => {
+    cy.contains('h4#report-title', title)
+      .closest('.accordion-item')
+      .within(() => {
+        cy.get('button[aria-label="Previous image"]').click({ force: true });
+      });
+  },
+  lightboxShouldBeVisible: () => {
+    cy.get('.yarl__container', { timeout: 10000 }).should('be.visible');
+  },
+  closeLightbox: () => {
+    cy.get('body').type('{esc}');
+  }
 };
 
 export { tsmPage };

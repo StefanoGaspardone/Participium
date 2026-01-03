@@ -41,7 +41,10 @@ const report = {
     createdAt: new Date().toISOString(),
     lat: 45.1,
     long: 7.7,
-    images: [],
+    images: [
+        'https://via.placeholder.com/800x600.png?text=BrokenBench+Image+1',
+        'https://via.placeholder.com/800x600.png?text=BrokenBench+Image+2'
+    ],
     createdBy: { id: 50, username: "citizen" },
     assignedTo: tsmUser, // The TSM who assigned it
     coAssignedTo: mntUser // The maintainer (me)
@@ -156,5 +159,23 @@ describe("5. Test suite for External Maintainer", () => {
         cy.wait('@sendMessage');
         cy.wait('@getMessagesAfterSend');
         cy.contains("On it").should('be.visible');
+    });
+
+    it('5.5 Image carousel for assigned report should open and navigate', () => {
+        performLoginAsMnt();
+        cy.wait('@getAssignedReports');
+
+        mntPage.expandReport(reportTitle);
+        // inline carousel navigation
+        mntPage.clickInlineNextImage(reportTitle);
+        mntPage.clickInlinePrevImage(reportTitle);
+
+        // open fullscreen lightbox from the image
+        mntPage.openReportLightbox(reportTitle);
+        mntPage.lightboxShouldBeVisible();
+
+        // close lightbox and verify it disappears
+        mntPage.closeLightbox();
+        cy.get('.yarl__container', { timeout: 5000 }).should('not.exist');
     });
 });

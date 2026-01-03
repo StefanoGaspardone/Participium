@@ -31,7 +31,10 @@ const sampleReports = [
         title: 'Report A',
         createdAt: new Date().toISOString(),
         category: { id: 1, name: 'Road' },
-        images: [],
+        images: [
+            'https://via.placeholder.com/800x600.png?text=ReportA+Image+1',
+            'https://via.placeholder.com/800x600.png?text=ReportA+Image+2'
+        ],
         lat: '45.0',
         long: '7.0',
     },
@@ -130,5 +133,23 @@ describe('6. Test suite for Public Relations Officer page', () => {
         cy.contains('.rs__option', 'Lighting', { timeout: 5000 }).click({ force: true });
 
         cy.wait('@changeCategory');
+    });
+
+    it('6.6 Image carousel for pending report should open and navigate', () => {
+        performLoginAsPro();
+
+        proPage.reportShouldExist('Report A');
+        proPage.expandReport('Report A');
+        // inline carousel navigation
+        proPage.clickInlineNextImage('Report A');
+        proPage.clickInlinePrevImage('Report A');
+
+        // open fullscreen lightbox from the image
+        proPage.openReportLightbox('Report A');
+        proPage.lightboxShouldBeVisible();
+
+        // close lightbox and verify it disappears
+        proPage.closeLightbox();
+        cy.get('.yarl__container', { timeout: 5000 }).should('not.exist');
     });
 });

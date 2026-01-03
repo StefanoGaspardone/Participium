@@ -38,6 +38,36 @@ const mntPage = {
   sendMessage: (text: string) => {
     cy.get('.chat-input input').type(text);
     cy.get('.chat-input button').click();
+  },
+  // Image carousel helpers matching ExternalPage implementation
+  // Inline prev/next buttons have aria-label="Previous image" / "Next image"
+  // Fullscreen opens when clicking the report image (no aria-label on button)
+  openReportLightbox: (title: string) => {
+    cy.contains('h4#report-title', title)
+      .closest('.accordion-item')
+      .within(() => {
+        cy.get('img[alt^="Report image"]').first().click({ force: true });
+      });
+  },
+  clickInlineNextImage: (title: string) => {
+    cy.contains('h4#report-title', title)
+      .closest('.accordion-item')
+      .within(() => {
+        cy.get('button[aria-label="Next image"]').first().click({ force: true });
+      });
+  },
+  clickInlinePrevImage: (title: string) => {
+    cy.contains('h4#report-title', title)
+      .closest('.accordion-item')
+      .within(() => {
+        cy.get('button[aria-label="Previous image"]').first().click({ force: true });
+      });
+  },
+  lightboxShouldBeVisible: () => {
+    cy.get('.yarl__container', { timeout: 10000 }).should('be.visible');
+  },
+  closeLightbox: () => {
+    cy.get('body').type('{esc}');
   }
 };
 

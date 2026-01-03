@@ -33,7 +33,10 @@ const report = {
     createdAt: new Date().toISOString(),
     lat: 45,
     long: 7.6,
-    images: [],
+    images: [
+        'https://via.placeholder.com/800x600.png?text=Report+Image+1',
+        'https://via.placeholder.com/800x600.png?text=Report+Image+2'
+    ],
     createdBy: { id: 99, username: "citizen", firstName: "John", lastName: "Doe" },
     assignedTo: tsmUser
 };
@@ -265,5 +268,20 @@ describe("9. Test suite for Technical Staff Member", () => {
     it('9.8 A Technical Staff Member should see the served offices in the first tab of the page', () => {
         performLoginAsTsm();
         tsmPage.checkOfficesDisplayed(tsmUser.offices);
+    });
+
+    it('9.9 Image carousel for assigned report should open and navigate', () => {
+        performLoginAsTsm();
+        cy.wait('@getAssignedReports');
+
+        tsmPage.expandReport(reportTitle);
+        tsmPage.clickInlineNextImage(reportTitle);
+        tsmPage.clickInlinePrevImage(reportTitle);
+
+        tsmPage.openReportLightbox(reportTitle);
+        tsmPage.lightboxShouldBeVisible();
+
+        tsmPage.closeLightbox();
+        cy.get('.yarl__container', { timeout: 5000 }).should('not.exist');
     });
 });
