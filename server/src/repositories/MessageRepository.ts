@@ -1,10 +1,9 @@
 import { MessageDAO } from "@daos/MessagesDAO";
 import { Repository } from "typeorm";
 import { AppDataSource } from "@database";
-import { ReportDAO } from "@daos/ReportDAO";
 
 export class MessageRepository {
-  private repository: Repository<MessageDAO>;
+  private readonly repository: Repository<MessageDAO>;
 
   constructor() {
     this.repository = AppDataSource.getRepository(MessageDAO);

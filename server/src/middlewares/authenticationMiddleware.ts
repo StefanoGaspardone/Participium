@@ -28,7 +28,7 @@ export interface UpdateUserRequest extends Request {
 export const authMiddleware = (allowedRoles: string[]) => {
     return (req: AuthRequest, res: Response, next: NextFunction) => {
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        if (!authHeader?.startsWith("Bearer ")) {
             throw new UnauthorizedError("Denied access. Please insert token.");
         }
 
