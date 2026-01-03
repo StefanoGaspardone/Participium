@@ -55,17 +55,17 @@ const homePage = {
         cy.get('[id="map-search-button"]').click();
     },
     checkIfNotVisiblePopupOnMap: () => {
-        cy.get('[class="leaflet-popup-content-wrapper"]').should('not.exist');
+        cy.get('.leaflet-popup-content-wrapper').should('not.exist');
     },
     checkIfVisiblePopupOnMap: () => {
-        cy.get('[class="leaflet-popup-content-wrapper"]').should('be.visible');
+        cy.get('.leaflet-popup-content-wrapper', { timeout: 10000 }).should('be.visible');
     },
     // search for the toaster popup when no address is found
     checkNoAddressFoundPopup: () => {
-        cy.get('[class="go3958317564"]').should('contain.text', 'No address found');
+        cy.contains('No address found').should('be.visible');
     },
     checkNoAddressInsertedPopup: () => {
-        cy.get('[class="go3958317564"]').should('contain.text', 'Please enter an address');
+        cy.contains('Please enter an address').should('be.visible');
     },
     clickLegendaButton: () => {
         cy.get('[id="map-legend-r0-toggle"]').click();
