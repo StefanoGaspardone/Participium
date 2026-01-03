@@ -47,9 +47,9 @@ const tsmPage = {
   chatWithMaintainer: () => {
     cy.get('#chat-redirect-maintainer').filter(':visible').click();
   },
-  verifyChatOpened: () => {
-    cy.get('.chats-popover').should('be.visible');
-  },
+    checkChatsPopoverVisible: () => {
+        cy.get('[id="chat-popover"]').should('be.visible');
+    },
   sendMessage: (text: string) => {
     cy.get('.chat-input input').type(text);
     cy.get('.chat-input button').click();
@@ -86,7 +86,11 @@ const tsmPage = {
   },
   closeLightbox: () => {
     cy.get('body').type('{esc}');
-  }
+  },
+  
+  clickNotifications: () => {
+      cy.get('[id="notifications-toggle"]').first().click({ force: true });
+  },
 };
 
 export { tsmPage };

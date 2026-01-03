@@ -70,7 +70,6 @@ describe("9. Test suite for Technical Staff Member", () => {
         cy.intercept('POST', '/api/users/me', { statusCode: 401, body: { message: 'Unauthorized' } }).as('me');
         cy.intercept('GET', '/api/reports/assigned', { statusCode: 200, body: { reports: [report] } }).as('getAssignedReports');
         cy.intercept('GET', '/api/notifications/my', { statusCode: 200, body: { notifications: [] } }).as('getNotifications');
-        cy.intercept('GET', '/api/chats', { statusCode: 200, body: { chats: [] } }).as('getChats');
     });
 
     it('9.1 Logging in as a Technical Staff Member should lead to Technical Staff Member page', () => {
@@ -180,7 +179,7 @@ describe("9. Test suite for Technical Staff Member", () => {
         tsmPage.expandReport(reportTitle);
 
         tsmPage.chatWithReporter();
-        tsmPage.verifyChatOpened();
+        tsmPage.checkChatsPopoverVisible();
         cy.wait('@getMessagesReporterInitial');
 
         cy.contains("Hello from reporter").should('be.visible');
@@ -239,7 +238,7 @@ describe("9. Test suite for Technical Staff Member", () => {
         tsmPage.expandReport(reportTitle);
 
         tsmPage.chatWithMaintainer();
-        tsmPage.verifyChatOpened();
+        tsmPage.checkChatsPopoverVisible();
         cy.wait('@getMessagesMaintainerInitial');
 
         cy.contains("Hello from maintainer").should('be.visible');
@@ -283,5 +282,78 @@ describe("9. Test suite for Technical Staff Member", () => {
 
         tsmPage.closeLightbox();
         cy.get('.yarl__container', { timeout: 5000 }).should('not.exist');
+    });
+
+    it('9.10 Clicking a message notification should open the corresponding chat on TSM page', () => {
+        const chatWithReporter = {
+            id: 10,
+            report: { id: reportId, title: reportTitle },
+            chatType: 'citizen_tosm',
+            tosm_user: tsmUser,
+            second_user: report.createdBy,
+            messages: []
+        };
+
+        const notificationCreatedAt = new Date().toISOString();
+        const notificationMessageText = 'New message from reporter via notification';
+        const notification = {
+            id: 200,
+            seen: false,
+            type: 'MESSAGE',
+            createdAt: notificationCreatedAt,
+            report: {
+                id: report.id,
+                title: report.title
+            },
+            message: {
+                id: 201,
+                text: notificationMessageText,
+                sentAt: notificationCreatedAt,
+                senderId: report.createdBy.id,
+                senderRole: report.createdBy.userType || 'CITIZEN'
+            }
+        };
+
+        cy.intercept('GET', '/api/notifications/my', {
+            statusCode: 200,
+            body: { notifications: [notification] }
+        }).as('getNotificationsFromMessagesTsm');
+
+        cy.intercept('PATCH', '/api/notifications/seen/*', {
+            statusCode: 200,
+            body: {}
+        }).as('markNotificationSeenTsm');
+
+        const mockMessages = [
+            {
+                id: 300,
+                text: notificationMessageText,
+                sentAt: new Date().toISOString(),
+                sender: report.createdBy,
+                receiver: tsmUser,
+                chat: chatWithReporter
+            }
+        ];
+
+        cy.intercept('GET', '/api/chats', {
+            statusCode: 200,
+            body: { chats: [chatWithReporter] }
+        }).as('getChatsFromNotificationTsm');
+
+        cy.intercept('GET', `/api/chats/${chatWithReporter.id}/messages`, {
+            statusCode: 200,
+            body: { chats: mockMessages }
+        }).as('getMessagesFromNotificationTsm');
+
+        performLoginAsTsm();
+        cy.wait('@getAssignedReports');
+
+        tsmPage.clickNotifications();
+        cy.contains('.notification-item .notification-title', chatWithReporter.report.title).click();
+
+		cy.wait(['@markNotificationSeenTsm', '@getChatsFromNotificationTsm', '@getMessagesFromNotificationTsm']);
+
+		tsmPage.checkChatsPopoverVisible();
+		cy.contains('[id="message-text"]', notificationMessageText).should('be.visible');
     });
 });
