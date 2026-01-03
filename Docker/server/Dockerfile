@@ -12,6 +12,7 @@ COPY server/nodemon.json .
 COPY server/data ./data
 COPY server/docs ./docs
 COPY server/logs ./logs
+COPY server/scripts/populate-db-prod.ts ./scripts/populate-db-prod.ts
 
 RUN npm i
 
@@ -23,4 +24,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 
 # Run the command you requested
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:prod"]

@@ -41,7 +41,10 @@ const report = {
     createdAt: new Date().toISOString(),
     lat: 45.1,
     long: 7.7,
-    images: [],
+    images: [
+        'https://via.placeholder.com/800x600.png?text=BrokenBench+Image+1',
+        'https://via.placeholder.com/800x600.png?text=BrokenBench+Image+2'
+    ],
     createdBy: { id: 50, username: "citizen" },
     assignedTo: tsmUser, // The TSM who assigned it
     coAssignedTo: mntUser // The maintainer (me)
@@ -68,7 +71,6 @@ describe("5. Test suite for External Maintainer", () => {
         cy.intercept('POST', '/api/users/me', { statusCode: 401, body: { message: 'Unauthorized' } }).as('me');
         cy.intercept('GET', '/api/reports/assigned', { statusCode: 200, body: { reports: [report] } }).as('getAssignedReports');
         cy.intercept('GET', '/api/notifications/my', { statusCode: 200, body: { notifications: [] } }).as('getNotifications');
-        cy.intercept('GET', '/api/chats', { statusCode: 200, body: { chats: [] } }).as('getChats');
     });
 
     it('5.1 Logging in as an External Maintainer should lead to External Maintainer page', () => {
@@ -133,7 +135,7 @@ describe("5. Test suite for External Maintainer", () => {
         mntPage.expandReport(reportTitle);
 
         mntPage.chatWithTechnicalStaff();
-        mntPage.verifyChatOpened();
+        mntPage.checkChatsPopoverVisible();
         cy.wait('@getMessagesInitial');
         cy.contains("Please fix this").should('be.visible');
 
@@ -156,5 +158,96 @@ describe("5. Test suite for External Maintainer", () => {
         cy.wait('@sendMessage');
         cy.wait('@getMessagesAfterSend');
         cy.contains("On it").should('be.visible');
+    });
+
+    it('5.5 Image carousel for assigned report should open and navigate', () => {
+        performLoginAsMnt();
+        cy.wait('@getAssignedReports');
+
+        mntPage.expandReport(reportTitle);
+        // inline carousel navigation
+        mntPage.clickInlineNextImage(reportTitle);
+        mntPage.clickInlinePrevImage(reportTitle);
+
+        // open fullscreen lightbox from the image
+        mntPage.openReportLightbox(reportTitle);
+        mntPage.lightboxShouldBeVisible();
+
+        // close lightbox and verify it disappears
+        mntPage.closeLightbox();
+        cy.get('.yarl__container', { timeout: 5000 }).should('not.exist');
+    });
+
+    it('5.6 Clicking a message notification should open the corresponding chat on External Maintainer page', () => {
+        const chatWithTsm = {
+            id: 10,
+            report: { id: reportId, title: reportTitle },
+            chatType: 'citizen_tosm',
+            tosm_user: tsmUser,
+            second_user: mntUser,
+            messages: []
+        };
+
+        const notificationCreatedAt = new Date().toISOString();
+        const notificationMessageText = 'New message from TSM via notification';
+        const notification = {
+            id: 300,
+            seen: false,
+            type: 'MESSAGE',
+            createdAt: notificationCreatedAt,
+            report: {
+                id: report.id,
+                title: report.title
+            },
+            message: {
+                id: 301,
+                text: notificationMessageText,
+                sentAt: notificationCreatedAt,
+                senderId: tsmUser.id,
+                senderRole: tsmUser.userType || 'TECHNICAL_STAFF_MEMBER'
+            }
+        };
+
+        cy.intercept('GET', '/api/notifications/my', {
+            statusCode: 200,
+            body: { notifications: [notification] }
+        }).as('getNotificationsFromMessagesTsm');
+
+        cy.intercept('PATCH', '/api/notifications/seen/*', {
+            statusCode: 200,
+            body: {}
+        }).as('markNotificationSeenTsm');
+
+        const mockMessages = [
+            {
+                id: 300,
+                text: notificationMessageText,
+                sentAt: new Date().toISOString(),
+                sender: report.createdBy,
+                receiver: tsmUser,
+                chat: chatWithTsm
+            }
+        ];
+
+        cy.intercept('GET', '/api/chats', {
+            statusCode: 200,
+            body: { chats: [chatWithTsm] }
+        }).as('getChatsFromNotificationTsm');
+
+        cy.intercept('GET', `/api/chats/${chatWithTsm.id}/messages`, {
+            statusCode: 200,
+            body: { chats: mockMessages }
+        }).as('getMessagesFromNotificationTsm');
+
+        performLoginAsMnt();
+        cy.wait('@getAssignedReports');
+
+        mntPage.clickNotifications();
+        cy.contains('.notification-item .notification-title', chatWithTsm.report.title).click();
+
+		cy.wait(['@markNotificationSeenTsm', '@getChatsFromNotificationTsm', '@getMessagesFromNotificationTsm']);
+
+		mntPage.checkChatsPopoverVisible();
+		cy.contains('[id="message-text"]', notificationMessageText).should('be.visible');
     });
 });

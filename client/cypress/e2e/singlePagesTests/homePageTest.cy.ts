@@ -290,4 +290,70 @@ describe("3. Test suite for home page :", () => {
 		homePage.checkNoAddressInsertedPopup();
 	});
 
+	it('3.20 As a logged citizen, clicking a message notification should open the corresponding chat', () => {
+		performLoginAsCitizen();
+
+		const chat = mockedChatResponse2[0];
+		const notificationCreatedAt = new Date().toISOString();
+		const notificationMessageText = 'New reply from technical staff';
+		const notification = {
+			id: 99,
+			seen: false,
+			type: 'MESSAGE',
+			createdAt: notificationCreatedAt,
+			report: {
+				id: chat.report.id,
+				title: chat.report.title
+			},
+			message: {
+				id: 123,
+				text: notificationMessageText,
+				sentAt: notificationCreatedAt,
+				senderId: chat.tosm_user.id,
+				senderRole: chat.tosm_user.userType
+			}
+		};
+
+		cy.intercept('GET', '/api/notifications/my', {
+			statusCode: 200,
+			body: { notifications: [notification] }
+		}).as('getNotificationsFromMessages');
+
+		cy.intercept('PATCH', '/api/notifications/seen/*', {
+			statusCode: 200,
+			body: {}
+		}).as('markNotificationSeen');
+
+		cy.intercept('GET', '/api/chats', {
+			statusCode: 200,
+			body: { chats: [chat] }
+		}).as('getChatsFromNotification');
+
+		cy.intercept('GET', `/api/chats/${chat.id}/messages`, {
+			statusCode: 200,
+			body: {
+				chats: [
+					{
+						id: 1000,
+						text: notificationMessageText,
+						sentAt: new Date().toISOString(),
+						sender: chat.tosm_user.id,
+						receiver: chat.second_user.id,
+						chat: chat.id
+					}
+				]
+			}
+		}).as('getMessagesFromNotification');
+
+		homePage.clickNotifications();
+		cy.get('[id="section-messages-button"]').click();
+
+		cy.contains('.notification-item .notification-title', chat.report.title).click();
+
+		cy.wait(['@markNotificationSeen', '@getChatsFromNotification', '@getMessagesFromNotification']);
+
+		homePage.checkChatsPopoverVisible();
+		cy.contains('[id="message-text"]', notificationMessageText).should('be.visible');
+	});
+
 });
