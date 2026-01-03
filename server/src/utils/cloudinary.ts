@@ -1,6 +1,6 @@
 import { CONFIG } from '@config';
 import { BadRequestError } from '@errors/BadRequestError';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 export type CloudinaryConfig =  {
     cloudName: string;

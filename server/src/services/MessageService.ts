@@ -2,27 +2,20 @@ import {messageRepository, MessageRepository} from '@repositories/MessageReposit
 import {notificationService} from '@services/NotificationService';
 import { logError } from '@utils/logger';
 import {userRepository, UserRepository} from '@repositories/UserRepository';
-import {reportRepository, ReportRepository} from '@repositories/ReportRepository';
-import {CreateMessageDTO, messageDAOtoDTO, messageDAOtoDTOforChats, MessageDTO, MessageDTOforChats} from '@dtos/MessageDTO';
+import {CreateMessageDTO, messageDAOtoDTOforChats, MessageDTO, MessageDTOforChats} from '@dtos/MessageDTO';
 import { MessageDAO } from '@daos/MessagesDAO';
 import {NotFoundError} from "@errors/NotFoundError";
-import { createReportDTO, ReportDTO } from '@dtos/ReportDTO';
-import { MapUserDAOtoDTO, UserDTO } from '@dtos/UserDTO';
-import { ReportDAO } from '@daos/ReportDAO';
-import { UserDAO } from '@daos/UserDAO';
 import { ChatRepository, chatRepository } from '@repositories/ChatRepository';
 import { BadRequestError } from '@errors/BadRequestError';
 
 export class MessageService {
     private readonly messageRepository: MessageRepository;
     private readonly userRepository: UserRepository;
-    private readonly reportRepository: ReportRepository;
     private readonly chatRepository: ChatRepository;
 
     constructor() {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
-        this.reportRepository = reportRepository;
         this.chatRepository = chatRepository;
     }
 

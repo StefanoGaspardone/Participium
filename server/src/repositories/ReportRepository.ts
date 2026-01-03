@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 
 export class ReportRepository {
 
-    private repo: Repository<ReportDAO>;
+    private readonly repo: Repository<ReportDAO>;
 
     constructor() {
         this.repo = AppDataSource.getRepository(ReportDAO);

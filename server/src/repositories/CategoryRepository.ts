@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 export class CategoryRepository {
 
-    private repo: Repository<CategoryDAO>;
+    private readonly repo: Repository<CategoryDAO>;
 
     constructor() {
         this.repo = AppDataSource.getRepository(CategoryDAO);
