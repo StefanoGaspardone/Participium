@@ -221,9 +221,9 @@ The Participium Telegram bot helps citizens create reports directly from Telegra
 - The bot starts automatically when the backend starts.
 - Make sure to set your Telegram username in Telegram settings (e.g., `@yourusername`).
 
-### Commands
+### Telegram Bot Commands
 
-- `/start`: Shows a welcome message and basic instructions.
+- `/start`: Shows a welcome message and basic instructions. 
 
 - `/connect`: Links your Participium account to your Telegram username.
   - Prerequisites: set your Telegram username in Telegram settings (e.g., `@yourusername`).
@@ -234,10 +234,22 @@ The Participium Telegram bot helps citizens create reports directly from Telegra
 - `/new_report`: Starts a guided, multi‑step flow to submit a new report.
   - Step 1 - Location: send your location (must be inside the Municipality of Turin).
   - Step 2 - Title: send a short title.
-  - Step 3 - Description: send a detailed description of the issue.
+  - Step 3 - Description:  send a detailed description of the issue. 
   - Step 4 - Category: choose from the inline keyboard (categories are loaded from the server).
   - Step 5 - Images: send 1-3 photos. When done, send `/done`.
   - Step 6 - Anonymous: choose Yes/No for anonymous submission, then the bot submits the report, replying with the new created report ID.
+
+- `/done`: Completes the photo submission step during report creation.  Use this command after uploading 1-3 photos in the `/new_report` flow.
+
+- `/my_reports`: View a list of all reports you have submitted, along with their current status (e. g., Pending Approval, Assigned, In Progress, Suspended, Rejected, Resolved). You can click on a report to see more details.
+
+- `/report_status [ID]`: Get detailed information about a specific report by providing its ID number (e.g., `/report_status 123`). This command shows the report's title, description, category, and current status. Works only for reports you have access to.
+
+- `/help`: Display a comprehensive list of all available commands with usage instructions and information about how the bot works.
+
+- `/contact`: Get official contact information for the City of Torino Public Works Department and Participium technical support team, including phone numbers, emails, and office hours.
+
+- `/faq`: Read a list of Frequently Asked Questions covering topics like report types, anonymity, photo uploads, status meanings, resolution times, and more.
 
 ## Test Users
 
