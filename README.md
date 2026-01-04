@@ -221,7 +221,7 @@ The Participium Telegram bot helps citizens create reports directly from Telegra
 - The bot starts automatically when the backend starts.
 - Make sure to set your Telegram username in Telegram settings (e.g., `@yourusername`).
 
-### Telegram Bot Commands
+### Commands
 
 - `/start`: Shows a welcome message and basic instructions. 
 
