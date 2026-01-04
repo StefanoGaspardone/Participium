@@ -99,7 +99,17 @@ jobs:
         run: |
           echo "Waiting for client to start..."
           sleep 10
-          
+        
+      - name: Clean and repopulate database for E2E tests
+        working-directory: ./server
+        run: npm run populate-db
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5445
+          DB_NAME: test_postgres
+          DB_USERNAME: postgres
+          DB_PASSWORD: mysecretpassword  
+      
       - name: Run Cypress E2E tests with coverage
         working-directory: ./client
         run: npm run test:e2e
