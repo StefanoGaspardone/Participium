@@ -6,7 +6,7 @@ import {UserDAO} from "@daos/UserDAO";
 
 export class NotificationRepository {
 
-    private repo: Repository<NotificationDAO>
+    private readonly repo: Repository<NotificationDAO>
 
     constructor() {
         this.repo = AppDataSource.getRepository(NotificationDAO);

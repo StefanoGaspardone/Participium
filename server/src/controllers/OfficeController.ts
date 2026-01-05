@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 export class OfficeController {
 
-    private officeService: OfficeService;
+    private readonly officeService: OfficeService;
 
     constructor() {
         this.officeService = officeService;

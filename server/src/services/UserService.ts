@@ -65,6 +65,7 @@ export class UserService {
 
             await this.createCodeConfirmationForUser(saved.id);
         } catch (error) {
+            console.error('Exception caught during sign up:', error);
             throw error;
         }
     }
@@ -76,6 +77,7 @@ export class UserService {
             if (user && !user.isActive) throw new BadRequestError('Account not activated. Please verify your email before logging in.');
             return user;
         } catch (error) {
+            console.error('Exception caught during login:', error);
             throw error;
         }
     }
@@ -117,6 +119,7 @@ export class UserService {
 
             return this.userRepo.createNewUser(user);
         } catch (error) {
+            console.error('Exception caught during municipality user creation:', error);
             throw error;
         }
     }
@@ -230,8 +233,13 @@ export class UserService {
 
         //check that there are no active assigned reports to offices that the tsm is no longer assigned to
         const assignedReports = await this.reportRepo.findReportsAssignedTo(tsm.id);
-        const activeStatuses = [ReportStatus.PendingApproval, ReportStatus.Assigned, ReportStatus.InProgress, ReportStatus.Suspended];
-        const activeAssignedReports = assignedReports.filter(report => activeStatuses.includes(report.status));
+        const activeStatuses: Set<ReportStatus> = new Set([
+            ReportStatus.PendingApproval,
+            ReportStatus.Assigned,
+            ReportStatus.InProgress,
+            ReportStatus.Suspended,
+        ]);
+        const activeAssignedReports = assignedReports.filter(report => activeStatuses.has(report.status));
         
         for(const report of activeAssignedReports){
             if(!officeIds.includes(report.category.office.id)){

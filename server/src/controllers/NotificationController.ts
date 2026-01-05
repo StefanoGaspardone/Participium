@@ -1,16 +1,13 @@
-// filepath: /Users/fede/Desktop/repos/Participium/server/src/controllers/NotificationController.ts
 import { NextFunction, Request, Response } from 'express';
 import { notificationService, NotificationService } from '@services/NotificationService';
-import {NewUserDTO} from "@dtos/UserDTO";
-import {NewNotificationDTO, NotificationDTO} from "@dtos/NotificationDTO";
+import {NewNotificationDTO} from "@dtos/NotificationDTO";
 import {BadRequestError} from "@errors/BadRequestError";
-import {UserType} from "@daos/UserDAO";
 import {ReportStatus} from "@daos/ReportDAO";
 import {UnauthorizedError} from "@errors/UnauthorizedError";
 import {AuthRequest} from "@middlewares/authenticationMiddleware";
 
 export class NotificationController {
-    private notificationService: NotificationService;
+    private readonly notificationService: NotificationService;
 
     constructor() {
         this.notificationService = notificationService;
@@ -66,8 +63,8 @@ export class NotificationController {
     updateNotificationSeen = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
         try {
             const { id } = req.params;
-            const notificationId = parseInt(id, 10);
-            if (isNaN(notificationId)) {
+            const notificationId = Number.parseInt(id, 10);
+            if (Number.isNaN(notificationId)) {
                 throw new BadRequestError("Invalid notification ID");
             }
             await this.notificationService.updateNotificationSeen(notificationId);
@@ -78,7 +75,7 @@ export class NotificationController {
     }
     getMyNotifications = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
-            if (!req.token || !req.token.user) throw new UnauthorizedError('Token is missing, not authenticated');
+            if (!req.token?.user) throw new UnauthorizedError('Token is missing, not authenticated');
             const userId = req.token.user.id;
 
             const myNotifications = await this.notificationService.findMyNotifications(userId);
