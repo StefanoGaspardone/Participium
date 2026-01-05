@@ -1,4 +1,4 @@
-import { CompanyController, companyController } from "@controllers/CompanyController";
+import { companyController } from "@controllers/CompanyController";
 import { authMiddleware } from '@middlewares/authenticationMiddleware';
 import { Router } from 'express';
 import { UserType } from '@daos/UserDAO';

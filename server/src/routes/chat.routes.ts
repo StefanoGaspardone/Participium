@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { chatController, ChatController } from '@controllers/ChatController';
+import { chatController } from '@controllers/ChatController';
 import { authMiddleware } from '@middlewares/authenticationMiddleware';
 import { UserType } from '@daos/UserDAO';
 import { messageController } from '@controllers/MessageController';

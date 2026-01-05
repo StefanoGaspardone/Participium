@@ -58,7 +58,7 @@ const CategoryOption = (props: OptionProps<any, false>) => {
   );
 };
 
-export default function UploadReport({ selected, setSelected }: Props) {
+export default function UploadReport({ selected, setSelected }: Readonly<Props>) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");

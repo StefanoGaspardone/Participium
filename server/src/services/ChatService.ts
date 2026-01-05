@@ -96,10 +96,10 @@ export class ChatService {
    */
   async findChatById(chatId: number): Promise<ChatDTO> {
     const chat = await this.chatRepository.findChatById(chatId);
-    if(!chat) {
-      throw new NotFoundError("Specified chat was not found");
-    } else {
+    if (chat) {
       return MapChatDAOtoDTO(chat);
+    } else {
+      throw new NotFoundError("Specified chat was not found");
     }
   }
 }

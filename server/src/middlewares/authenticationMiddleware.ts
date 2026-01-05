@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
-import { UserType } from "@daos/UserDAO";
 import { jwtSecret } from "@app";
 import { UnauthorizedError } from "@errors/UnauthorizedError";
 import { InsufficientRightsError } from "@errors/InsufficientRightsError";

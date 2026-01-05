@@ -1,4 +1,3 @@
-import { NotFoundError } from '@errors/NotFoundError';
 import { BadRequestError } from '@errors/BadRequestError';
 import { categoryRepository, CategoryRepository } from '@repositories/CategoryRepository';
 import { CompanyRepository, companyRepository } from '@repositories/CompanyRepository';

@@ -2,9 +2,8 @@ import { CategoryDTO } from "@dtos/CategoryDTO";
 import { CreateCompanyDTO } from "@dtos/CompanyDTO";
 import { BadRequestError } from "@errors/BadRequestError";
 import { AuthRequest } from "@middlewares/authenticationMiddleware";
-import { CategoryService } from "@services/CategoryService";
 import { companyService, CompanyService } from "@services/CompanyService";
-import { Response, NextFunction, Request } from 'express';
+import { Response, NextFunction } from 'express';
 
 
 export class CompanyController {

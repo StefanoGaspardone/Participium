@@ -1,13 +1,11 @@
 // filepath: /Users/fede/Desktop/repos/Participium/server/src/services/NotificationService.ts
 import { notificationRepository, NotificationRepository } from '@repositories/NotificationRepository';
-import { NotificationDAO } from '@daos/NotificationsDAO';
-import {createNotificationDTO, NewNotificationDTO, NotificationDTO} from "@dtos/NotificationDTO";
+import { NotificationDAO, NotificationType } from '@daos/NotificationsDAO';
+import {createNotificationDTO, NewNotificationDTO, NotificationDTO, NewMessageNotificationDTO} from "@dtos/NotificationDTO";
 import {userRepository, UserRepository} from "@repositories/UserRepository";
 import {BadRequestError} from "@errors/BadRequestError";
 import {reportRepository, ReportRepository} from "@repositories/ReportRepository";
 import {messageRepository, MessageRepository} from "@repositories/MessageRepository";
-import {NotificationType} from '@daos/NotificationsDAO';
-import {NewMessageNotificationDTO} from '@dtos/NotificationDTO';
 
 export class NotificationService {
 

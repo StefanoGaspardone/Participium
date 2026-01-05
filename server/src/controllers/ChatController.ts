@@ -1,7 +1,7 @@
 import { chatService, ChatService } from "@services/ChatService";
 import { AuthRequest } from "@middlewares/authenticationMiddleware";
 import { BadRequestError } from "@errors/BadRequestError";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { createChatDTO } from "@dtos/ChatDTO";
 import { UserType } from "@daos/UserDAO";
 

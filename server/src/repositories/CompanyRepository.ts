@@ -1,7 +1,5 @@
 import { AppDataSource } from "@database";
 import { Repository } from "typeorm";
-import { UserDAO, UserType } from "@daos/UserDAO";
-import { CategoryDAO } from "@daos/CategoryDAO";
 import { CompanyDAO } from "@daos/CompanyDAO";
 
 export class CompanyRepository {

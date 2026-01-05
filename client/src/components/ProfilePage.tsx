@@ -196,36 +196,7 @@ export default function ProfilePage() {
                         <div className="profile-info-card">
                             <h2 className="profile-info-title">Personal Information</h2>
 
-                            {!isEditing ? (
-                                <div className="profile-info-grid">
-                                    <div className="profile-info-item">
-                                        <span className="profile-info-label">First Name</span>
-                                        <span id="firstname-current" className="profile-info-value">{user.firstName}</span>
-                                    </div>
-                                    <div className="profile-info-item">
-                                        <span className="profile-info-label">Last Name</span>
-                                        <span id="lastname-current" className="profile-info-value">{user.lastName}</span>
-                                    </div>
-                                    <div className="profile-info-item">
-                                        <span className="profile-info-label">Username</span>
-                                        <span id="username-current" className="profile-info-value">{user.username}</span>
-                                    </div>
-                                    <div className="profile-info-item">
-                                        <span className="profile-info-label">Email</span>
-                                        <span id="email-current" className="profile-info-value">{user.email}</span>
-                                    </div>
-                                    {user.telegramUsername && (
-                                        <div className="profile-info-item">
-                                            <span className="profile-info-label">Telegram — <a href="https://t.me/ParticipiumSE05Bot" target="_blank" rel="noopener noreferrer">Go to bot</a> </span>
-                                            <span id="telegram-current" className="profile-info-value">{user.telegramUsername}</span>
-                                        </div>
-                                    )}
-                                    <div className="profile-info-item">
-                                        <span className="profile-info-label">Receive email notifications</span>
-                                        <span id="email-current" className="profile-info-value">{user.emailNotificationsEnabled? "yes" : "no"}</span>
-                                    </div>
-                                </div>
-                            ) : (
+                            {isEditing ? (
                                 <form onSubmit={handleSubmit} className="profile-edit-form">
                                     <div className="profile-form-group" style={{ marginBottom: '20px' }}>
                                         <label className="profile-form-label" htmlFor="profilePicture">Profile Picture</label>
@@ -330,20 +301,41 @@ export default function ProfilePage() {
                                         </label>
                                     </div>
                                 </form>
+                            ) : (
+                                <div className="profile-info-grid">
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">First Name</span>
+                                        <span id="firstname-current" className="profile-info-value">{user.firstName}</span>
+                                    </div>
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">Last Name</span>
+                                        <span id="lastname-current" className="profile-info-value">{user.lastName}</span>
+                                    </div>
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">Username</span>
+                                        <span id="username-current" className="profile-info-value">{user.username}</span>
+                                    </div>
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">Email</span>
+                                        <span id="email-current" className="profile-info-value">{user.email}</span>
+                                    </div>
+                                    {user.telegramUsername && (
+                                        <div className="profile-info-item">
+                                            <span className="profile-info-label">Telegram — <a href="https://t.me/ParticipiumSE05Bot" target="_blank" rel="noopener noreferrer">Go to bot</a> </span>
+                                            <span id="telegram-current" className="profile-info-value">{user.telegramUsername}</span>
+                                        </div>
+                                    )}
+                                    <div className="profile-info-item">
+                                        <span className="profile-info-label">Receive email notifications</span>
+                                        <span id="email-current" className="profile-info-value">{user.emailNotificationsEnabled? "yes" : "no"}</span>
+                                    </div>
+                                </div>
                             )}
                         </div>
 
                         {/* Actions */}
                         <div className="profile-actions">
-                            {!isEditing ? (
-                                <button
-                                    className="profile-button profile-button-primary"
-                                    id="edit-profile-button"
-                                    onClick={handleEditClick}
-                                >
-                                    Edit Profile
-                                </button>
-                            ) : (
+                            {isEditing ? (
                                 <>
                                     <button
                                         className="profile-button profile-button-primary"
@@ -362,6 +354,14 @@ export default function ProfilePage() {
                                         Cancel
                                     </button>
                                 </>
+                            ) : (
+                                <button
+                                    className="profile-button profile-button-primary"
+                                    id="edit-profile-button"
+                                    onClick={handleEditClick}
+                                >
+                                    Edit Profile
+                                </button>
                             )}
                         </div>
                     </div>

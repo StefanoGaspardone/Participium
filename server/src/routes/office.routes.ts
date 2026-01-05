@@ -1,9 +1,7 @@
-import { authMiddleware } from '@middlewares/authenticationMiddleware';
 import { Router } from 'express';
 import {officeController} from "@controllers/OfficeController";
 
 const router = Router();
 
-router.get('/', officeController.findAllOffices); //TODO add authMiddleware if needed
-
+router.get('/', officeController.findAllOffices);
 export const officeRouter = router;
