@@ -589,8 +589,8 @@ export const getAllCompanies = async (): Promise<Company[]> => {
   let companies: Company[];
   if (Array.isArray(data)) {
     companies = data as Company[];
-  } else if (data && Array.isArray((data as any).companies)) {
-    companies = (data as any).companies;
+  } else if (data && Array.isArray(data.companies)) {
+    companies = data.companies;
   } else {
     companies = [];
   }
