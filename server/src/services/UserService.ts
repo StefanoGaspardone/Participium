@@ -14,7 +14,6 @@ import {companyRepository, CompanyRepository} from "@repositories/CompanyReposit
 import {reportRepository, ReportRepository} from "@repositories/ReportRepository";
 import { OfficeDAO } from "@daos/OfficeDAO";
 import { ReportStatus } from "@daos/ReportDAO";
-import { SimpleConsoleLogger } from 'typeorm';
 
 export class UserService {
 
