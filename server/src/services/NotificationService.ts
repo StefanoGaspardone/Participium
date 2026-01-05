@@ -11,10 +11,10 @@ import {NewMessageNotificationDTO} from '@dtos/NotificationDTO';
 
 export class NotificationService {
 
-    private notificationRepo: NotificationRepository;
-    private userRepo: UserRepository;
-    private reportRepo: ReportRepository;
-    private messageRepo: MessageRepository;
+    private readonly notificationRepo: NotificationRepository;
+    private readonly userRepo: UserRepository;
+    private readonly reportRepo: ReportRepository;
+    private readonly messageRepo: MessageRepository;
 
     constructor() {
         this.notificationRepo = notificationRepository;

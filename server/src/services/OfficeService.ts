@@ -3,7 +3,7 @@ import {mapOfficeDAOtoDTO, OfficeDTO} from "@dtos/OfficeDTO";
 
 export class OfficeService {
 
-    private officeRepo: OfficeRepository;
+    private readonly officeRepo: OfficeRepository;
 
     constructor() {
         this.officeRepo = officeRepository;

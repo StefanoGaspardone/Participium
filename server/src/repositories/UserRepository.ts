@@ -6,7 +6,7 @@ import * as bcrypt from "bcryptjs";
 import { CategoryDAO } from "@daos/CategoryDAO";
 
 export class UserRepository {
-  private repo: Repository<UserDAO>;
+  private readonly repo: Repository<UserDAO>;
 
   constructor() {
     this.repo = AppDataSource.getRepository(UserDAO);

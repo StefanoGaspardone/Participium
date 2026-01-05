@@ -307,6 +307,7 @@ export default function ProfilePage() {
                                     </div>
                                     <div className="profile-form-group profile-notifications-toggle">
                                         <label className="profile-toggle-label" htmlFor="emailNotifications">
+                                            <span className="sr-only">Email Notifications</span>
                                             <div className="profile-toggle-content">
                                                 <div className="profile-toggle-info">
                                                     <span className="profile-toggle-title">Email Notifications</span>
