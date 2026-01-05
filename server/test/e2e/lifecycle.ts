@@ -10,6 +10,8 @@ export default {
 	async beforeAll() {
 		// initialize DB and populate test data
 		await initializeTestDatasource();
+		// Clear any existing data first to avoid duplicates
+		await emptyTestData();
 		await populateTestData();
 	},
 

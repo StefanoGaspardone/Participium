@@ -162,7 +162,14 @@ export async function populateTestData() {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(u.password, salt);
 
-    let user = await userRepo.findOne({ where: { username: trimmedUsername } });
+    // Check for existing user by both username AND email to avoid duplicates
+    let user = await userRepo.findOne({ 
+      where: [
+        { username: trimmedUsername },
+        { email: trimmedEmail }
+      ]
+    });
+    
     if (!user) {
       user = userRepo.create({
         username: trimmedUsername,
@@ -192,7 +199,9 @@ export async function emptyTestData() {
     // ensure DB is initialized
     await initializeTestDatasource();
   }
+  
+  // TRUNCATE CASCADE handles foreign key dependencies properly
   await AppDataSource.query(
-    'TRUNCATE TABLE "reports", "users", "categories", "office_roles", "companies", "company_categories" RESTART IDENTITY CASCADE;'
+    'TRUNCATE TABLE "reports", "users", "categories", "office_roles", "companies", "company_categories", "messages", "notifications" RESTART IDENTITY CASCADE;'
   );
 }
