@@ -31,7 +31,7 @@ const USERS: Array<{ username:string; email:string; password:string; firstName: 
     { username: 'munadm', email: 'munadm@part.se', firstName: 'Giorgio', lastName: 'Turio', password: 'password', userType: UserType.MUNICIPAL_ADMINISTRATOR},
     { username: 'pro', email: 'pro@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.PUBLIC_RELATIONS_OFFICER},
     { username: 'em1', email: 'em1@part.se', firstName: 'Carlo', lastName: 'Ultimo', password: 'password', userType: UserType.EXTERNAL_MAINTAINER, company: 1},
-    { username: 'fake1', email: 'fake@part.se', firstName: 'Fake1', lastName: 'Fake1', password: 'password', userType: UserType.EXTERNAL_MAINTAINER, company: 3},
+    { username: 'fake1', email: 'fake@part.se', firstName: 'Fake1', lastName: 'Fake1', password: 'password', userType: UserType.EXTERNAL_MAINTAINER, company: 3}, // it has to have id 13
 ];
 
 const CATEGORIES: Array<{ name: string; office: string }> = [
@@ -153,89 +153,406 @@ async function upsertReports() {
     const categoryRepo = AppDataSource.getRepository(CategoryDAO);
     const reportRepo = AppDataSource.getRepository(ReportDAO);
 
-    // Choose a creator (prefer 'user')
     const creator = await userRepo.findOne({ where: { username: 'user' } }) || await userRepo.findOne({});
-    if (!creator) {
+    if(!creator) {
         logError('[populate-db] No users found to attach reports to. Skipping reports.');
         return;
     }
 
-    // Prepare a couple of sample reports using existing categories
-    // Try to pick two meaningful categories from the DB (based on CATEGORIES list)
-    const desiredCategoryNames = CATEGORIES.slice(0, 2).map(c => c.name);
-    const categories: Array<any> = [];
-    for (const name of desiredCategoryNames) {
-        const cat = await categoryRepo.findOne({ where: { name } });
-        if (cat) categories.push(cat);
-    }
-
-    if (categories.length === 0) {
+    const allCategories = await categoryRepo.find({ relations: ["office"] });
+    if(!allCategories.length) {
         logError('[populate-db] No categories found to attach reports to. Skipping reports.');
         return;
     }
 
-    const samples = [
+    const categoryByName = new Map<string, CategoryDAO>();
+    for(const c of allCategories) {
+        categoryByName.set(c.name, c);
+    }
+
+    const techStaff = await userRepo.find({
+        where: { userType: UserType.TECHNICAL_STAFF_MEMBER },
+        relations: ["offices"],
+    });
+
+    if(!techStaff.length) {
+        logError('[populate-db] No technical staff members found. Skipping reports.');
+        return;
+    }
+
+    const officeToTechs = new Map<number, UserDAO[]>();
+    for(const u of techStaff) {
+        if(!u.offices) continue;
+        
+        for(const office of u.offices) {
+            const list = officeToTechs.get(office.id) || [];
+            list.push(u);
+            officeToTechs.set(office.id, list);
+        }
+    }
+
+    const officeRoundRobinIndex = new Map<number, number>();
+    const pickAssigneeForOffice = (officeId?: number | null): UserDAO | null => {
+        if(!officeId) return null;
+        
+        const list = officeToTechs.get(officeId);
+        if(!list?.length) return null;
+        
+        const currentIndex = officeRoundRobinIndex.get(officeId) ?? 0;
+        const assignee = list[currentIndex % list.length];
+        officeRoundRobinIndex.set(officeId, (currentIndex + 1) % list.length);
+        
+        return assignee;
+    };
+
+    type SampleReport = {
+        title: string;
+        description: string;
+        categoryName: string;
+        images: string[];
+        lat: number;
+        long: number;
+        anonymous: boolean;
+        status: ReportStatus;
+    };
+
+    const samples: SampleReport[] = [
         {
-            title: 'Pothole near central square',
-            description: 'Large pothole next to the crosswalk causing danger to cyclists.',
-            category: categories[0],
+            title: 'Pothole in via Garibaldi near Piazza Castello',
+            description: 'Deep pothole close to the tram tracks, dangerous for cyclists and scooters.',
+            categoryName: 'Roads and Urban Furnishings',
             images: ['https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Newport_Whitepit_Lane_pot_hole.JPG/330px-Newport_Whitepit_Lane_pot_hole.JPG'],
             lat: 45.0703,
             long: 7.6869,
             anonymous: false,
-            status: ReportStatus.PendingApproval
+            status: ReportStatus.Assigned,
         },
         {
-            title: 'Broken street light on via Roma',
-            description: 'Street light not working for several nights.',
-            category: categories[1] || categories[0],
-            images: ['https://via.placeholder.com/800x600.png?text=streetlight'],
-            lat: 45.0685,
-            long: 7.6939,
+            title: 'Faded pedestrian crossing in via XX Settembre',
+            description: 'Zebra crossing almost invisible, cars do not slow down when approaching the junction.',
+            categoryName: 'Road Signs and Traffic Lights',
+            images: ['https://via.placeholder.com/800x600.png?text=pedestrian+crossing'],
+            lat: 45.0698,
+            long: 7.6882,
             anonymous: false,
-            status: ReportStatus.Assigned
+            status: ReportStatus.InProgress,
         },
         {
-            title: 'Broken street light',
-            description: 'Street light not working for several nights.',
-            category: categories[1] || categories[0],
-            images: ['https://via.placeholder.com/800x600.png?text=streetlight'],
-            lat: 45.10544455769265,
-            long: 7.627810175221917,
+            title: 'Overflowing waste bins in Piazza Castello corner via Po',
+            description: 'Mixed waste bin full since yesterday evening, rubbish on the pavement.',
+            categoryName: 'Waste',
+            images: ['https://via.placeholder.com/800x600.png?text=waste+bin'],
+            lat: 45.071,
+            long: 7.6855,
             anonymous: false,
-            status: ReportStatus.Assigned
+            status: ReportStatus.PendingApproval,
         },
         {
-            title: 'Pothole on main street near Po river',
-            description: 'Large pothole next to the crosswalk causing danger to cyclists and cars.',
-            category: categories[0],
+            title: 'Broken street light in via Madama Cristina',
+            description: 'Lamp post not working for several nights near the pedestrian crossing.',
+            categoryName: 'Public Lighting',
+            images: ['https://via.placeholder.com/800x600.png?text=streetlight+off'],
+            lat: 45.0581,
+            long: 7.6762,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Loose manhole cover in corso Marconi',
+            description: 'Metal cover rattles loudly when cars pass over, possible risk for bicycles.',
+            categoryName: 'Sewer System',
+            images: ['https://via.placeholder.com/800x600.png?text=manhole'],
+            lat: 45.0569,
+            long: 7.6785,
+            anonymous: false,
+            status: ReportStatus.InProgress,
+        },
+        {
+            title: 'Architectural barrier at tram stop Nizza',
+            description: 'High sidewalk edge without ramp, difficult access for wheelchairs and strollers.',
+            categoryName: 'Architectural Barriers',
+            images: ['https://via.placeholder.com/800x600.png?text=barrier+step'],
+            lat: 45.0593,
+            long: 7.6748,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Large pothole in via Plava near park entrance',
+            description: 'Pothole occupies almost an entire lane, vehicles brake suddenly.',
+            categoryName: 'Roads and Urban Furnishings',
             images: ['https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Newport_Whitepit_Lane_pot_hole.JPG/330px-Newport_Whitepit_Lane_pot_hole.JPG'],
-            lat: 45.03383151753928,
-            long: 7.67612830699156,
+            lat: 45.0175,
+            long: 7.6203,
             anonymous: false,
-            status: ReportStatus.Assigned
-        }
+            status: ReportStatus.Suspended,
+        },
+        {
+            title: 'Damaged playground equipment in Parco Colonnetti',
+            description: 'Broken slide and missing protective panels in the kids area.',
+            categoryName: 'Public Green Areas and Playgrounds',
+            images: ['https://via.placeholder.com/800x600.png?text=playground'],
+            lat: 45.019,
+            long: 7.6189,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Missing waste collection in via Artom',
+            description: 'Organic waste container not emptied for two days, strong smell in the courtyard.',
+            categoryName: 'Waste',
+            images: ['https://via.placeholder.com/800x600.png?text=waste+collection'],
+            lat: 45.0158,
+            long: 7.6231,
+            anonymous: false,
+            status: ReportStatus.PendingApproval,
+        },
+        {
+            title: 'Water leak from sidewalk in via Genova',
+            description: 'Continuous trickle of water coming out from below the curb, pavement always wet.',
+            categoryName: 'Water Supply - Drinking Water',
+            images: ['https://via.placeholder.com/800x600.png?text=water+leak'],
+            lat: 45.031,
+            long: 7.652,
+            anonymous: false,
+            status: ReportStatus.InProgress,
+        },
+        {
+            title: 'Street light blinking in corso Unità d\'Italia',
+            description: 'Lamp flickers continuously, disturbing drivers entering the underpass.',
+            categoryName: 'Public Lighting',
+            images: ['https://via.placeholder.com/800x600.png?text=blinking+light'],
+            lat: 45.0334,
+            long: 7.6591,
+            anonymous: false,
+            status: ReportStatus.Resolved,
+        },
+        {
+            title: 'Abandoned bulky waste in via Cigna',
+            description: 'Old mattress and pieces of furniture left next to the waste bins.',
+            categoryName: 'Waste',
+            images: ['https://via.placeholder.com/800x600.png?text=bulky+waste'],
+            lat: 45.091,
+            long: 7.6925,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Unsignalled roadworks in corso Vigevano',
+            description: 'Open excavation with poor signage, lane narrowing without advance warning.',
+            categoryName: 'Roads and Urban Furnishings',
+            images: ['https://via.placeholder.com/800x600.png?text=roadworks'],
+            lat: 45.0827,
+            long: 7.6819,
+            anonymous: false,
+            status: ReportStatus.InProgress,
+        },
+        {
+            title: 'Damaged traffic light casing in piazza Crispi',
+            description: 'Plastic cover broken after a collision, internal cables partially exposed.',
+            categoryName: 'Road Signs and Traffic Lights',
+            images: ['https://via.placeholder.com/800x600.png?text=traffic+light'],
+            lat: 45.0861,
+            long: 7.6938,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Sidewalk tree roots lifting pavement in corso Sebastopoli',
+            description: 'Uneven sidewalk, difficult passage for wheelchairs and prams.',
+            categoryName: 'Architectural Barriers',
+            images: ['https://via.placeholder.com/800x600.png?text=tree+roots'],
+            lat: 45.0451,
+            long: 7.6442,
+            anonymous: false,
+            status: ReportStatus.Suspended,
+        },
+        {
+            title: 'Missing swing chains in Giardino Rignon',
+            description: 'Two swings without chains, area currently unusable for children.',
+            categoryName: 'Public Green Areas and Playgrounds',
+            images: ['https://via.placeholder.com/800x600.png?text=swing'],
+            lat: 45.0513,
+            long: 7.6389,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Water stagnation in underpass of corso Trapani',
+            description: 'After each rainfall, large puddle forms making pedestrian passage difficult.',
+            categoryName: 'Sewer System',
+            images: ['https://via.placeholder.com/800x600.png?text=underpass+water'],
+            lat: 45.0602,
+            long: 7.6475,
+            anonymous: false,
+            status: ReportStatus.InProgress,
+        },
+        {
+            title: 'Noise from ventilation shaft in via Roma courtyard',
+            description: 'Loud humming from a ventilation system during the night.',
+            categoryName: 'Other',
+            images: ['https://via.placeholder.com/800x600.png?text=ventilation'],
+            lat: 45.0682,
+            long: 7.6811,
+            anonymous: true,
+            status: ReportStatus.PendingApproval,
+        },
+        {
+            title: 'Illegal posters on building facade in via Garibaldi',
+            description: 'Several unauthorised posters glued to the historic building walls.',
+            categoryName: 'Other',
+            images: ['https://via.placeholder.com/800x600.png?text=posters'],
+            lat: 45.072,
+            long: 7.6844,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Graffiti on Murazzi embankment wall',
+            description: 'New large graffiti on the river embankment wall, covering previous mural.',
+            categoryName: 'Other',
+            images: ['https://via.placeholder.com/800x600.png?text=graffiti'],
+            lat: 45.0745,
+            long: 7.7002,
+            anonymous: false,
+            status: ReportStatus.PendingApproval,
+        },
+        {
+            title: 'Broken bench in Parco Dora',
+            description: 'Wooden bench with a missing plank near the playground area.',
+            categoryName: 'Public Green Areas and Playgrounds',
+            images: ['https://via.placeholder.com/800x600.png?text=bench'],
+            lat: 45.0921,
+            long: 7.6807,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Standing water near rainwater drain in via Bologna',
+            description: 'After rainfall, water slowly drains and forms a puddle on the corner.',
+            categoryName: 'Sewer System',
+            images: ['https://via.placeholder.com/800x600.png?text=drain'],
+            lat: 45.0809,
+            long: 7.6973,
+            anonymous: false,
+            status: ReportStatus.InProgress,
+        },
+        {
+            title: 'Loose paving stones in via Lamarmora sidewalk',
+            description: 'Several paving stones move underfoot, risk of tripping.',
+            categoryName: 'Architectural Barriers',
+            images: ['https://via.placeholder.com/800x600.png?text=paving+stones'],
+            lat: 45.0574,
+            long: 7.6741,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Intermittent street lighting in corso Re Umberto',
+            description: 'Two consecutive lamp posts turn off and on repeatedly during the night.',
+            categoryName: 'Public Lighting',
+            images: ['https://via.placeholder.com/800x600.png?text=lampposts'],
+            lat: 45.0612,
+            long: 7.6733,
+            anonymous: false,
+            status: ReportStatus.InProgress,
+        },
+        {
+            title: 'Overflowing glass recycling containers in corso San Maurizio',
+            description: 'Glass bottles piled outside the container, risk of broken glass on pavement.',
+            categoryName: 'Waste',
+            images: ['https://via.placeholder.com/800x600.png?text=glass+container'],
+            lat: 45.0709,
+            long: 7.6991,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Damaged road surface near roundabout in corso Belgio',
+            description: 'Series of small holes and cracks just before the pedestrian crossing.',
+            categoryName: 'Roads and Urban Furnishings',
+            images: ['https://via.placeholder.com/800x600.png?text=road+surface'],
+            lat: 45.0728,
+            long: 7.712,
+            anonymous: false,
+            status: ReportStatus.Suspended,
+        },
+        {
+            title: 'Playground gate latch broken in Parco della Tesoriera',
+            description: 'Gate does not close properly, children can easily run out onto the street.',
+            categoryName: 'Public Green Areas and Playgrounds',
+            images: ['https://via.placeholder.com/800x600.png?text=gate'],
+            lat: 45.0786,
+            long: 7.6348,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Water accumulation at bus stop in corso Francia',
+            description: 'Puddle regularly forms in front of the bus shelter after rain.',
+            categoryName: 'Sewer System',
+            images: ['https://via.placeholder.com/800x600.png?text=bus+stop'],
+            lat: 45.0781,
+            long: 7.6489,
+            anonymous: false,
+            status: ReportStatus.InProgress,
+        },
+        {
+            title: 'Flickering pedestrian traffic light in corso Tassoni',
+            description: 'Green figure blinks at irregular intervals, confusing pedestrians.',
+            categoryName: 'Road Signs and Traffic Lights',
+            images: ['https://via.placeholder.com/800x600.png?text=pedestrian+light'],
+            lat: 45.0832,
+            long: 7.6614,
+            anonymous: false,
+            status: ReportStatus.Assigned,
+        },
+        {
+            title: 'Leaking water hydrant in via Cibrario',
+            description: 'Small constant leak from the base of a street hydrant.',
+            categoryName: 'Water Supply - Drinking Water',
+            images: ['https://via.placeholder.com/800x600.png?text=hydrant'],
+            lat: 45.0803,
+            long: 7.6649,
+            anonymous: false,
+            status: ReportStatus.InProgress,
+        },
     ];
 
-    for (const s of samples) {
+    for(const s of samples) {
         try {
             const existing = await reportRepo.findOne({ where: { title: s.title } });
-            if (existing) {
+            if(existing) {
                 logInfo(`[populate-db] Report already exists: ${s.title} (id=${existing.id})`);
                 continue;
+            }
+
+            const category = categoryByName.get(s.categoryName);
+            if(!category) {
+                logError(`[populate-db] Skipping report '${s.title}': category '${s.categoryName}' not found.`);
+                continue;
+            }
+
+            let assignedTo: UserDAO | null = null;
+            if(s.status !== ReportStatus.PendingApproval && category.office) {
+                assignedTo = pickAssigneeForOffice(category.office.id);
+                if(!assignedTo) {
+                    logError(`[populate-db] No technical staff found for office id='${category.office.id}' when creating report '${s.title}'.`);
+                }
             }
 
             const r = reportRepo.create({
                 title: s.title,
                 description: s.description,
-                category: s.category,
+                category,
                 images: s.images,
                 lat: s.lat,
                 long: s.long,
                 anonymous: s.anonymous,
                 status: s.status,
                 createdAt: new Date(),
-                createdBy: creator
+                createdBy: creator,
+                assignedTo: assignedTo || undefined,
             });
 
             const saved = await reportRepo.save(r);
@@ -315,21 +632,21 @@ async function upsertCompanies() {
     const companies = [
         { name: 'Iren', categoryNames: ['Water Supply - Drinking Water', 'Sewer System'] },
         { name: 'Enel', categoryNames: ['Public Lighting', 'Road Signs and Traffic Lights'] },
-        { name: 'Fake', categoryNames: ['Water Supply - Drinking Water', 'Architectural Barriers', 'Sewer System', 'Public Lighting', 'Waste', 'Road Signs and Traffic Lights', 'Roads and Urban Furnishings', 'Public Green Areas and Playgrounds', 'Other'] }
+        { name: 'Fake', categoryNames: ['Water Supply - Drinking Water', 'Architectural Barriers', 'Sewer System', 'Public Lighting', 'Waste', 'Road Signs and Traffic Lights', 'Roads and Urban Furnishings', 'Public Green Areas and Playgrounds', 'Other'] } // it has to have id 3
     ];
 
-    for (const { name, categoryNames } of companies) {
+    for(const { name, categoryNames } of companies) {
         const trimmedName = name.trim();
-        if (!trimmedName) continue;
+        if(!trimmedName) continue;
 
         let company = await repo.findOne({ where: { name: trimmedName } });
-        if (company) {
+        if(company) {
             logInfo(`[populate-db] Company already exists: ${trimmedName} (id=${company.id})`);
         } else {
             const categories: CategoryDAO[] = [];
-            for (const catName of categoryNames) {
+            for(const catName of categoryNames) {
                 const cat = await categoryRepo.findOne({ where: { name: catName } });
-                if (cat) categories.push(cat);
+                if(cat) categories.push(cat);
             }
 
             company = repo.create({ name: trimmedName, categories });
@@ -342,9 +659,10 @@ async function upsertCompanies() {
 
 async function deleteActualState() {
     const tables = ['users', 'reports', 'office_roles', 'categories', 'notifications', 'messages', 'chats', 'companies', 'company_categories'];
-    for (const t of tables) {
+    for(const t of tables) {
         const sql = "TRUNCATE TABLE " + t + " RESTART IDENTITY CASCADE";
         await AppDataSource.query(sql);
+        
         console.log("Cleaned table *" + t +"*");
     }
 }
@@ -364,7 +682,7 @@ async function main() {
         await upsertNotifications();
 
         logInfo('[populate-db] Done.');
-    } catch (err) {
+    } catch(err) {
         logError('[populate-db] Failed:', err);
         process.exitCode = 1;
     } finally {
