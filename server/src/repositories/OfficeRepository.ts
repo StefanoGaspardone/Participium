@@ -4,7 +4,7 @@ import {OfficeDAO} from "@daos/OfficeDAO";
 
 export class OfficeRepository {
 
-    private repo: Repository<OfficeDAO>;
+    private readonly repo: Repository<OfficeDAO>;
 
     constructor() {
         this.repo = AppDataSource.getRepository(OfficeDAO);
