@@ -244,7 +244,7 @@ export class ReportController {
             // IF an external maintainer is assigned to a report, the chat between him and the tosm who assigned it is created
 
             // we check if 1 exists, bc it's the one created when "acceptin + assigning" the report
-            if (updatedReport.assignedTo && updatedReport.coAssignedTo) {
+            if (updatedReport.assignedTo && updatedReport.coAssignedTo && updatedReport.coAssignedTo.id !== 13) {
                 const chats = await chatService.findByReportId(updatedReport.id);
                 if (chats.length === 1) {
                     const payload = {} as createChatDTO;
