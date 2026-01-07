@@ -138,6 +138,15 @@ const USERS: Array<{
     userType: UserType.MUNICIPAL_ADMINISTRATOR,
   },
   {
+    username: "fake1",
+    email: "fake@part.se",
+    firstName: "Fake1",
+    lastName: "Fake1",
+    password: "password",
+    userType: UserType.EXTERNAL_MAINTAINER,
+    company: 3,
+  }, // it has to have id 13
+  {
     username: "pro",
     email: "pro@part.se",
     firstName: "Carlo",
@@ -154,15 +163,6 @@ const USERS: Array<{
     userType: UserType.EXTERNAL_MAINTAINER,
     company: 1,
   },
-  {
-    username: "fake1",
-    email: "fake@part.se",
-    firstName: "Fake1",
-    lastName: "Fake1",
-    password: "password",
-    userType: UserType.EXTERNAL_MAINTAINER,
-    company: 3,
-  }, // it has to have id 13
 ];
 
 const CATEGORIES: Array<{ name: string; office: string }> = [
