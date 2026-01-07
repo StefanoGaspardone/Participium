@@ -52,7 +52,7 @@ export class TelegramBot {
         this.bot.use(session.middleware());
 
         this.bot.use(async (ctx, next) => {
-            ctx.session.auth = { awaitingPassword: false, user: null, valid: false, token: null };
+            if(!ctx.session.auth) ctx.session.auth = { awaitingPassword: false, user: null, valid: false, token: null };
             return next();
         });
     }
@@ -69,7 +69,15 @@ export class TelegramBot {
             handler.register(this.bot);
         });
 
-        this.bot.start(ctx => ctx.reply('Welcome to the Participium telegram bot!\nTo get started, run */connect* to associate your account.\nRun */help* to see available commands.', { parse_mode: 'Markdown' }));
+        this.bot.start((ctx) => {
+            ctx.session.auth =  {
+                awaitingPassword: false,
+                user: null,
+                valid: false,
+                token: null,
+            };
+            ctx.reply('Welcome to the Participium telegram bot!\nTo get started, run */connect* to associate your account.\nRun */help* to see available commands.', { parse_mode: 'Markdown' });
+        });
     }
 
     public initializeBot = async (): Promise<void> => {
