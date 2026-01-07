@@ -4,7 +4,7 @@ import { CONFIG } from '../config/index';
 import LocalSession from 'telegraf-session-local';
 import { logError, logInfo, logWarn } from '@utils/logger';
 import { Auth } from '@telegram/commands/auth';
-import fs from 'fs';
+import fs from 'node:fs';
 import { NewReport } from './commands/new_report';
 import { HelpAssistance } from './commands/help_assistance';
 import { Reports } from './commands/reports';
@@ -30,7 +30,7 @@ interface BotHandler {
 }
 
 export class TelegramBot {
-    private bot: Telegraf<CustomContext>;
+    private readonly bot: Telegraf<CustomContext>;
 
     private pollingActive = false;
     private disabledReason?: string;
@@ -43,7 +43,7 @@ export class TelegramBot {
         this.bot = new Telegraf<CustomContext>(CONFIG.TELEGRAM.BOT_API_TOKEN);
     }
 
-    private loadMiddlewares = (): void => {
+    private readonly loadMiddlewares = (): void => {
         try {
             fs.writeFileSync(CONFIG.TELEGRAM.SESSION_JSON_PATH, '{}', { encoding: 'utf-8' });
         } catch {}
@@ -52,12 +52,12 @@ export class TelegramBot {
         this.bot.use(session.middleware());
 
         this.bot.use(async (ctx, next) => {
-            if(!ctx.session.auth) ctx.session.auth = { awaitingPassword: false, user: null, valid: false, token: null };
+            ctx.session.auth = { awaitingPassword: false, user: null, valid: false, token: null };
             return next();
         });
     }
 
-    private loadCommands = (): void => {
+    private readonly loadCommands = (): void => {
         const handlers: BotHandler[] = [
             new Auth(),
             new NewReport(),
@@ -69,7 +69,7 @@ export class TelegramBot {
             handler.register(this.bot);
         });
 
-        this.bot.start((ctx) => ctx.reply('Welcome to the Participium telegram bot!\nTo get started, run */connect* to associate your account.', { parse_mode: 'Markdown' }));
+        this.bot.start(ctx => ctx.reply('Welcome to the Participium telegram bot!\nTo get started, run */connect* to associate your account.', { parse_mode: 'Markdown' }));
     }
 
     public initializeBot = async (): Promise<void> => {
