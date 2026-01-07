@@ -50,6 +50,9 @@ CHECK CAREFULLY FOR THOSE LINES, IF THEY ARE NOT PRESENT IT MEANS THAT THE APPLI
 <img src="./images/right.png" alt="App correctly initialized" width="600" />
 <img src="./images/wrong.png" alt="App not ready yet" width="600" />
 
+## Use the application
+To check if the application is working properly, you can open your web browser and go to the address `http://localhost:5173` and start using it!!
+
 ## Stop the application
 
 If you want to stop the application, you have to execute the following commands in the `working` folder :
