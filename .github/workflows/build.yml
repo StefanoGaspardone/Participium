@@ -102,7 +102,7 @@ jobs:
       
       - name: Run Cypress E2E tests with coverage
         working-directory: ./client
-        run: npm run test:e2e
+        run: npm run test:e2e -- --browser chrome
       
       - name: Stop servers
         if: always()
