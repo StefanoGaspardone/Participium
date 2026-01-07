@@ -252,6 +252,9 @@ const Chats = ({
                 <div id="message-text" >{msg.text}</div>
                 <div className={`small mt-1 ${timeClass} text-muted`}>
                   {new Date(msg.sentAt).toLocaleTimeString([], {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
