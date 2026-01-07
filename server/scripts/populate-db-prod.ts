@@ -6,6 +6,7 @@ import { CategoryDAO } from '@daos/CategoryDAO';
 import { UserDAO, UserType } from '@daos/UserDAO';
 import { logInfo, logError } from '@utils/logger';
 import * as bcrypt from "bcryptjs";
+import { env } from 'process';
 
 const OFFICES: string[] = [
     'Organization',
@@ -17,7 +18,7 @@ const OFFICES: string[] = [
 ];
 
 const USERS: Array<{ username:string; email:string; password:string; firstName: string; lastName:string; userType:UserType; offices?: number[] }> = [
-    { username: 'admin', email: 'admin@gmail.com', firstName: 'Stefano', lastName: 'Lo Russo', password: 'admin', userType: UserType.ADMINISTRATOR },
+    { username: 'admin', email: 'admin@gmail.com', firstName: 'Stefano', lastName: 'Lo Russo', password: process.env.ADMIN_PASSWORD!, userType: UserType.ADMINISTRATOR },
     { username: 'user', email: 'user@gmail.com', firstName: 'Francesco', lastName: 'Totti', password: 'user', userType: UserType.CITIZEN },
 ];
 

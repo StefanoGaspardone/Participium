@@ -24,56 +24,64 @@ import type { Coord, Report } from "../models/models";
 import { REPORT_STATUS_COLORS } from "../constants/reportStatusColors";
 import { ChevronUp } from "lucide-react";
 import { toast } from "react-hot-toast";
+import torinoBoundary from "../assets/torino.geo.json";
 
-type PolygonCoords = number[][][];
-type MultiPolygonCoords = number[][][][];
+type GeoJsonPoint = [number, number]; // [lng, lat]
+type GeoJsonRing = GeoJsonPoint[];
+type GeoJsonPolygonCoords = GeoJsonRing[];
+type GeoJsonMultiPolygonCoords = GeoJsonPolygonCoords[];
 
-interface NominatimResult {
-  geojson?:
-    | { type: "Polygon"; coordinates: PolygonCoords }
-    | { type: "MultiPolygon"; coordinates: MultiPolygonCoords };
-}
+type TorinoGeoJson = {
+  type: "FeatureCollection";
+  features: Array<{
+    geometry?:
+      | { type: "Polygon"; coordinates: GeoJsonPolygonCoords }
+      | { type: "MultiPolygon"; coordinates: GeoJsonMultiPolygonCoords };
+  }>;
+};
 
-const processGeoJsonBoundary = (results: NominatimResult[]): L.LatLng[][] => {
-  const feature = results.find(
+let turinPolysCache: L.LatLng[][] | null = null;
+
+const getTurinBoundaryFromAsset = (): L.LatLng[][] => {
+  if (turinPolysCache) return turinPolysCache;
+
+  const data = torinoBoundary as unknown as TorinoGeoJson;
+  const feature = data.features.find(
     (f) =>
-      f.geojson &&
-      (f.geojson.type === "Polygon" || f.geojson.type === "MultiPolygon")
+      f.geometry &&
+      (f.geometry.type === "Polygon" || f.geometry.type === "MultiPolygon")
   );
-  if (!feature?.geojson) return [];
 
-  const gj = feature.geojson;
-  const polys: L.LatLng[][] = [];
-
-  const convertToLatLng = (rawCoords: number[][]) =>
-    rawCoords.map((pair) => L.latLng(pair[1], pair[0]));
-
-  if (gj.type === "Polygon") {
-    const rawOuter = gj.coordinates[0];
-    polys.push(convertToLatLng(rawOuter));
-  } else if (gj.type === "MultiPolygon") {
-    const rawMulti = gj.coordinates;
-    rawMulti.forEach((poly) => {
-      const rawOuter = poly[0];
-      polys.push(convertToLatLng(rawOuter));
-    });
+  if (!feature?.geometry) {
+    turinPolysCache = [];
+    return turinPolysCache;
   }
 
-  return polys;
+  const toLatLngRing = (ring: GeoJsonRing) =>
+    ring.map(([lng, lat]) => L.latLng(lat, lng));
+
+  const polys: L.LatLng[][] = [];
+  const geom = feature.geometry;
+
+  if (geom.type === "Polygon") {
+    const outerRing = geom.coordinates[0];
+    if (outerRing?.length) polys.push(toLatLngRing(outerRing));
+  } else {
+    for (const poly of geom.coordinates) {
+      const outerRing = poly[0];
+      if (outerRing?.length) polys.push(toLatLngRing(outerRing));
+    }
+  }
+
+  turinPolysCache = polys;
+  return turinPolysCache;
 };
 
 const fetchAndProcessTurinBoundary = async (): Promise<L.LatLng[][]> => {
-  const nominatimUrl =
-    "https://nominatim.openstreetmap.org/search.php?q=Turin%2C+Italy&polygon_geojson=1&format=jsonv2";
-
   try {
-    const response = await fetch(nominatimUrl);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-    const results: NominatimResult[] = await response.json();
-    return processGeoJsonBoundary(results);
+    return getTurinBoundaryFromAsset();
   } catch (err) {
-    console.error("Failed to load Turin boundary:", err);
+    console.error("Failed to load Turin boundary from local asset:", err);
     return [];
   }
 };

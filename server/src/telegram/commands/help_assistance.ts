@@ -9,7 +9,7 @@ export class HelpAssistance {
         // here i have to insert the "commands" allowed to the
         // users and associate a handler function to each one
 
-        bot.command('help', requireAppUser, this.helpResponse);
+        bot.command('help', this.helpResponse);
         bot.command('contact', requireAppUser, this.contactResponse);
         bot.command('faq', requireAppUser, this.faqResponse);
     }
