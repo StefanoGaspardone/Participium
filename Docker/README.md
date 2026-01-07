@@ -40,9 +40,15 @@ Windows environments :
     [<date and hour>] INFO: [APP INIT] Swagger UI available at http://localhost:3000/api/docs
     [<date and hour>] INFO: [TELEGRAM BOT INIT] Telegram bot initialized and running on https://t.me/ParticipiumSE05Bot
 
-> you can check it by inspecting the logs of the server executing the command :
+you can check it by inspecting the logs of the server executing the command :
 
-    docker logs -f participium_server
+    docker compose -f ./docker-compose.prod.yaml logs --follow server
+
+CHECK CAREFULLY FOR THOSE LINES, IF THEY ARE NOT PRESENT IT MEANS THAT THE APPLICATION IS NOT YET WORKING PROPERLY.  
+(below there are 2 images to help you identify the 2 situations, the first one is when the application is correctly started, the second one when it is not yet started)
+
+<img src="./images/right.png" alt="App correctly initialized" width="600" />
+<img src="./images/wrong.png" alt="App not ready yet" width="600" />
 
 ## Stop the application
 
