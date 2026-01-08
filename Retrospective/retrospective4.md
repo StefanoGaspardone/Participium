@@ -100,7 +100,7 @@ sections:
 
 - What lessons did you learn (both positive and negative) in this sprint?
 
-  >  Negative: Deployment and Demo Prepation could have been anticipated.
+  >  Negative: Deployment and Demo Preparation could have been anticipated.
   
   >  Positive: We improved in UI tests and solved major TD issues.
 
