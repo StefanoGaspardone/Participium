@@ -44,16 +44,16 @@ sections:
   
 |            | Mean  | StDev |
 | ---------- |------ |-------|
-| Estimation | |  |
-| Actual     | |  |
+| Estimation | 1h 31m | 3h 21m |
+| Actual     | 1h 29m | 3h 29m |
 
 - Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1: 
 
-  $$\frac{\sum_i estimation_{task_i}}{\sum_i spent_{task_i}} - 1$$ = 
+  $$\frac{\sum_i estimation_{task_i}}{\sum_i spent_{task_i}} - 1$$ = 0.0207 (2.07%)
  
 - Absolute relative task estimation error: sum( abs( spent-task-i / estimation-task-i - 1))/n:
 
-  $$\frac{1}{n}\sum_i^n \left| \frac{spent_{task_i}}{estimation_task_i}-1 \right| $$ =  
+  $$\frac{1}{n}\sum_i^n \left| \frac{spent_{task_i}}{estimation_task_i}-1 \right| $$ = 0.1839 (18.39%) 
 
 ## QUALITY MEASURES
 
@@ -114,11 +114,12 @@ sections:
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
   
-  > Resolve duplication issues on Sonarcloud for Quality Gate.
+  > Resolve duplication issues on Sonarcloud for Quality Gate.  
   > Improve telegram bot experience.
 
 - One thing you are proud of as a Team!!
 
-  > We are Powerpuff Girls! We overcome all problems that arise without blaming anyone and help each other!
+  > We are Powerpuff Girls!  
+  > We overcome all problems that arise without blaming anyone and help each other!
   
     ![Powerpuff Girls](./powerpuff_girls.jpg)
