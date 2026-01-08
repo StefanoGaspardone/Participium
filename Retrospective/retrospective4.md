@@ -44,8 +44,8 @@ sections:
   
 |            | Mean  | StDev |
 | ---------- |------ |-------|
-| Estimation | 1h 31m | 3h 21m |
-| Actual     | 1h 29m | 3h 29m |
+| Estimation | 1h 30m | 2h 47m |
+| Actual     | 1h 28m | 2h 44m |
 
 - Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1: 
 
