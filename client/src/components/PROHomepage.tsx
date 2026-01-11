@@ -217,7 +217,7 @@ export default function PROHomepage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          Public relations officer Dashboard
+          Public Relations Officer Dashboard
         </motion.h2>
 
         <AnimatePresence mode="wait">
