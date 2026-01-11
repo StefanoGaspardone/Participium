@@ -319,7 +319,11 @@ export default function UploadReport({ selected, setSelected }: Readonly<Props>)
                       ref={titleRef}
                       isInvalid={Boolean(fieldErrors.title)}
                       className="auth-input"
+                      maxLength={60}
                     />
+                    <Form.Text className="text-muted" style={{ fontSize: '0.875rem' }}>
+                      {title.length}/60 characters
+                    </Form.Text>
                     {fieldErrors.title && (
                       <Form.Control.Feedback type="invalid">
                         {Array.isArray(fieldErrors.title)

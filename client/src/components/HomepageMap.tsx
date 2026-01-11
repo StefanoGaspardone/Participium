@@ -755,12 +755,6 @@ export function HomepageMap({
                           fontSize: "12px",
                           color: "#555",
                           lineHeight: 1.4,
-                          maxHeight: "50px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
                           border: "2px solid #d3dae6",
                           padding: "8px 10px",
                           borderRadius: "6px",
@@ -768,7 +762,9 @@ export function HomepageMap({
                           overflowWrap: "break-word",
                         }}
                       >
-                        {report.description}
+                        {report.description.length > 100
+                          ? report.description.substring(0, 100) + "..."
+                          : report.description}
                       </p>
                     </div>
                   )}
