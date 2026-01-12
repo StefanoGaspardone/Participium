@@ -272,8 +272,16 @@ export default function PROHomepage() {
                     onClick={() => handleToggle(r.id)}
                   >
                     <div className="d-flex w-100 align-items-center justify-content-between">
-                      <h4 id={"report-title-" + r.title} className="mb-0 fw-bold" style={{ color: '#00205B', fontSize: '1.5rem' }}>{r.title}</h4>
-                      <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem', marginRight: '0.5rem' }}>
+                      <h4 id={"report-title-" + r.title} className="mb-0 fw-bold" style={{
+                        color: '#00205B',
+                        fontSize: '1.5rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: '70%',
+                        flex: '1 1 auto'
+                      }}>{r.title}</h4>
+                      <small className="text-muted" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', marginLeft: '1rem', marginRight: '0.5rem', flex: '0 0 auto' }}>
                         {new Date(r.createdAt).toLocaleString()}
                       </small>
                     </div>
@@ -348,7 +356,17 @@ export default function PROHomepage() {
                           )}
                         </div>
                         <div className="mt-2" style={{ marginLeft: '10px' }}>
-                          <h5 style={{ color: '#00205B', fontWeight: 400 }}>{r.description}</h5>
+                          <h5 style={{
+                            color: '#00205B',
+                            fontWeight: 400,
+                            maxHeight: '4.5em',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                            wordBreak: 'break-word'
+                          }}>{r.description}</h5>
                         </div>
                       </Col>
                       <Col md={6}>

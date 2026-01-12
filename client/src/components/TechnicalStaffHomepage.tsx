@@ -369,7 +369,15 @@ export default function TechnicalStaffHomepage() {
                         <h4
                           id="report-title"
                           className="mb-0 fw-bold"
-                          style={{ color: "#00205B", fontSize: "1.5rem" }}
+                          style={{
+                            color: "#00205B",
+                            fontSize: "1.5rem",
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '70%',
+                            flex: '1 1 auto'
+                          }}
                         >
                           {r.title}
                         </h4>
@@ -380,6 +388,7 @@ export default function TechnicalStaffHomepage() {
                             whiteSpace: "nowrap",
                             marginLeft: "1rem",
                             marginRight: "0.5rem",
+                            flex: '0 0 auto'
                           }}
                         >
                           <span
@@ -535,7 +544,17 @@ export default function TechnicalStaffHomepage() {
                               display: "flex",
                             }}
                           >
-                            <h5 style={{ color: "#00205B", fontWeight: 350 }}>
+                            <h5 style={{
+                              color: "#00205B",
+                              fontWeight: 350,
+                              maxHeight: '4.5em',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 3,
+                              WebkitBoxOrient: 'vertical',
+                              wordBreak: 'break-word'
+                            }}>
                               {r.description}
                             </h5>
                           </div>
