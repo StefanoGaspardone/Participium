@@ -335,9 +335,10 @@ const LocationMarker = ({
           >
             {selected.address || "Not available"}
           </p>
-          {showNewReportButton && (
+          {showNewReportButton && isLoggedIn && (
             <button
               onClick={goNewReport}
+              id="new-report-from-map-btn"
               style={{
                 background: "linear-gradient(135deg, #0057A0, #0066bb)",
                 color: "white",
