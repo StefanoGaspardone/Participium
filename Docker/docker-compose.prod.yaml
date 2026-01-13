@@ -17,7 +17,7 @@ services:
     restart: always
 
   server:
-    image: omarsimone/participium-server:v1.0.0
+    image: omarsimone/participium-server:latest
     container_name: participium_server
     env_file:
       - ./prod.env
@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
 
   client:
-    image: omarsimone/participium-client:v1.0.0
+    image: omarsimone/participium-client:latest
     container_name: participium_client
     env_file:
       - ./prod.env
