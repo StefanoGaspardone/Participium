@@ -49,6 +49,8 @@
 
 .leaflet-popup-content {
   margin: 12px 14px;
+  min-width: 200px;
+  max-width: 280px;
 }
 
 .leaflet-popup-tip {
@@ -84,12 +86,12 @@
   );
   backdrop-filter: blur(12px) saturate(150%);
   -webkit-backdrop-filter: blur(12px) saturate(150%);
-  border-radius: 18px;
+  border-radius: 14px;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35), 0 4px 10px rgba(0, 0, 0, 0.15);
-  padding: 14px 16px;
-  width: 230px;
+  padding: 10px 12px;
+  width: 190px;
   max-width: calc(100% - 32px);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   z-index: 1100;
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: box-shadow 0.35s ease, transform 0.35s ease;
@@ -108,8 +110,8 @@
   border: none;
   color: inherit;
   cursor: pointer;
-  padding: 4px 2px;
-  gap: 12px;
+  padding: 2px 0;
+  gap: 6px;
   text-align: left;
   border-radius: 10px;
   transition: background 0.25s ease;
@@ -131,10 +133,11 @@
 }
 
 .map-legend-title {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 700;
   letter-spacing: 0em;
   color: white;
+  white-space: nowrap;
 }
 
 .map-legend-subtitle {
@@ -143,16 +146,17 @@
 }
 
 .map-legend-caret {
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.15);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   color: white;
   transition: background 0.3s ease, transform 0.3s ease;
+  flex-shrink: 0;
 }
 
 .map-legend-toggle:hover .map-legend-caret {
@@ -161,7 +165,7 @@
 
 .map-legend-body {
   overflow: hidden;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .map-legend-list {
@@ -170,15 +174,15 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .map-legend-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 14px;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   transition: background 0.25s ease, transform 0.25s ease,
@@ -192,10 +196,10 @@
 }
 
 .map-legend-color {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
-  border: 2.5px solid rgba(255, 255, 255, 0.45);
+  border: 2px solid rgba(255, 255, 255, 0.45);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
     inset 0 2px 4px rgba(255, 255, 255, 0.2);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -214,8 +218,9 @@
 }
 
 .map-legend-status {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  color: #ffffff;
 }
 
 @media (max-width: 600px) {

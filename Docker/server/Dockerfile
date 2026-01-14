@@ -12,7 +12,7 @@ COPY server/nodemon.json .
 COPY server/data ./data
 COPY server/docs ./docs
 COPY server/logs ./logs
-COPY server/scripts/populate-db-prod.ts ./scripts/populate-db-prod.ts
+COPY server/scripts/populate-db.ts ./scripts/populate-db.ts
 
 RUN npm i
 

@@ -321,7 +321,7 @@ const LocationMarker = ({
   return selected === null ? null : (
     <Marker position={[selected.lat, selected.lng]} ref={markerRef}>
       <Popup>
-        <div style={{ textAlign: "center", padding: "4px 0" }}>
+        <div style={{ textAlign: "center", padding: "4px 24px 4px 0" }}>
           <p
             style={{
               margin: "0 0 8px 0",
@@ -329,13 +329,16 @@ const LocationMarker = ({
               color: "#1e2a37",
               fontSize: "14px",
               lineHeight: 1.4,
+              wordWrap: "break-word",
+              overflowWrap: "break-word",
             }}
           >
             {selected.address || "Not available"}
           </p>
-          {showNewReportButton && (
+          {showNewReportButton && isLoggedIn && (
             <button
               onClick={goNewReport}
+              id="new-report-from-map-btn"
               style={{
                 background: "linear-gradient(135deg, #0057A0, #0066bb)",
                 color: "white",
@@ -630,6 +633,7 @@ export function HomepageMap({
 }: Readonly<HomepageMapProps>) {
   const center = { lat: 45.06985, lng: 7.68228 };
   const zoom = 13;
+  const [viewingImage, setViewingImage] = useState<{ images: string[]; index: number } | null>(null);
 
   const [turinPolys, setTurinPolys] = useState<L.LatLng[][]>([]);
   const [legendOpen, setLegendOpen] = useState(false);
@@ -694,33 +698,155 @@ export function HomepageMap({
               icon={createReportIcon(report.status)}
             >
               <Popup>
-                <div style={{ textAlign: "center", padding: "4px 0" }}>
-                  <p
-                    style={{
-                      margin: "0 0 6px 0",
-                      fontWeight: 600,
-                      color: "#1e2a37",
-                      fontSize: "14px",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {report.title}
-                  </p>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "12px",
-                      color: "#6c7a89",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Issued by:{" "}
-                    <span style={{ color: "#0057A0" }}>
-                      {report.anonymous
-                        ? "Anonymous"
-                        : `@${report.createdBy?.username || "Unknown"}`}
+                <div style={{ padding: "0 24px 0 0", maxWidth: "320px" }}>
+                  {/* Title */}
+                  <div style={{ position: "relative", marginBottom: "16px" }}>
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "-9px",
+                        left: "10px",
+                        backgroundColor: "white",
+                        padding: "0 4px",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        color: "#004692",
+                      }}
+                    >
+                      Title
                     </span>
-                  </p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontWeight: 700,
+                        color: "#424446",
+                        fontSize: "13px",
+                        lineHeight: 1.3,
+                        border: "2px solid #d3dae6",
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        wordWrap: "break-word",
+                        overflowWrap: "break-word",
+                      }}
+                    >
+                      {report.title}
+                    </p>
+                  </div>
+
+                  {/* Description - limited text */}
+                  {report.description && (
+                    <div style={{ position: "relative", marginBottom: "16px" }}>
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "-9px",
+                          left: "10px",
+                          backgroundColor: "white",
+                          padding: "0 4px",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          color: "#004692",
+                        }}
+                      >
+                        Description
+                      </span>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: "12px",
+                          color: "#555",
+                          lineHeight: 1.4,
+                          border: "2px solid #d3dae6",
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          wordWrap: "break-word",
+                          overflowWrap: "break-word",
+                        }}
+                      >
+                        {report.description.length > 100
+                          ? report.description.substring(0, 100) + "..."
+                          : report.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Photos */}
+                  {report.images && report.images.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "6px",
+                        marginBottom: "12px",
+                        overflow: "auto",
+                        maxWidth: "100%",
+                      }}
+                    >
+                      {report.images.slice(0, 3).map((image, idx) => (
+                        <img
+                          key={idx}
+                          src={image}
+                          alt={`Report ${idx}`}
+                          onClick={() => setViewingImage({ images: report.images, index: idx })}
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "6px",
+                            objectFit: "cover",
+                            flexShrink: 0,
+                            cursor: "pointer",
+                            transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "scale(1.1)";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 87, 160, 0.4)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "scale(1)";
+                            e.currentTarget.style.boxShadow = "none";
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Issued by & Category */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "11px",
+                        color: "#6c7a89",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Issued by:{" "}
+                      <span style={{ color: "#0057A0" }}>
+                        {report.anonymous
+                          ? "Anonymous"
+                          : `@${report.createdBy?.username || "Unknown"}`}
+                      </span>
+                    </p>
+                    {report.category && (
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: "11px",
+                          color: "#6c7a89",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Category:{" "}
+                        <span
+                          style={{
+                            color: "#0057A0",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {report.category.name}
+                        </span>
+                      </p>
+                    )}
+                  </div>
                 </div>
               </Popup>
             </Marker>
@@ -804,6 +930,162 @@ export function HomepageMap({
           )}
         </AnimatePresence>
       </motion.div>
+
+      {/* Image Viewer Modal */}
+      <AnimatePresence>
+        {viewingImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setViewingImage(null)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.9)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2000,
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "relative",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              {/* Main Image */}
+              <img
+                src={viewingImage.images[viewingImage.index]}
+                alt="Viewed"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "80vh",
+                  objectFit: "contain",
+                  borderRadius: "8px",
+                }}
+              />
+
+              {/* Navigation */}
+              {viewingImage.images.length > 1 && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "16px",
+                    marginTop: "16px",
+                    justifyContent: "center",
+                  }}
+                >
+                  <button
+                    onClick={() =>
+                      setViewingImage({
+                        ...viewingImage,
+                        index:
+                          viewingImage.index === 0
+                            ? viewingImage.images.length - 1
+                            : viewingImage.index - 1,
+                      })
+                    }
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      border: "1px solid rgba(255, 255, 255, 0.3)",
+                      color: "white",
+                      padding: "8px 16px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.5)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.3)";
+                    }}
+                  >
+                    ← Previous
+                  </button>
+                  <span
+                    style={{
+                      color: "white",
+                      alignSelf: "center",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {viewingImage.index + 1} / {viewingImage.images.length}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setViewingImage({
+                        ...viewingImage,
+                        index:
+                          viewingImage.index === viewingImage.images.length - 1
+                            ? 0
+                            : viewingImage.index + 1,
+                      })
+                    }
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      border: "1px solid rgba(255, 255, 255, 0.3)",
+                      color: "white",
+                      padding: "8px 16px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.5)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.3)";
+                    }}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+
+              {/* Close Button */}
+              <button
+                onClick={() => setViewingImage(null)}
+                style={{
+                  position: "absolute",
+                  top: "-40px",
+                  right: "0",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  color: "white",
+                  fontSize: "28px",
+                  cursor: "pointer",
+                  fontWeight: 300,
+                }}
+              >
+                ✕
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

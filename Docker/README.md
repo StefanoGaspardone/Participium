@@ -12,13 +12,6 @@ You now have to insert the file provided to you (`docker-compose.prod.yaml` and 
 > [!WARNING]
 > The `prod.env` has to be kept and exchanged in a secure way because it contains sensitive information (e.g., passwords, secret keys, etc.)
 
-## Create the `admin` profile
-
-In order to create the `admin` profile, you have to modify the `prod.env` file previously moved into the `working` folder, by setting the variable `ADMIN_PASSWORD` with the password you want to use for the `admin` profile.
-The `admin` profile is necessary to create new municipality users (such as Technical Office Staff Members, External Maintainers, Public Relations Officers etc...).  
-The `admin` username is `admin`, it is fixed and cannot be changed.
-
-
 ## Execute the application
 
 Now that everything you need is in the right place, you have to execute the following commands INSIDE of the `working` folder :
@@ -67,11 +60,27 @@ Windows environments :
 
 ## INFO
 
-The application starts with 2 pre-defined users :
-- An administrator with username `admin` and as password, the one defined in the `prod.env` file under the variable name `ADMIN_PASSWORD`
-- A citizen user with username `user` and password `user`
-
-The administrator needs to exist in order to create new municipality users (such as Technical Office Staff Members, External Mainatiners, Public Relations Officers etc...), the user is there just to give the possibility to go around the application as a normal citizen, so that the customer can see how the application works from a citizen point of view without the need to create a new user by himself.
+The application starts with some pre-defined users :
+- An administrator with username `admin` and password `admin`
+- A citizen user with username `user1` and password `user1`
+- A Public Relations Officer with username `pro` and password `password`
+- 6 Technical Staff Members :
+    - `tsm1` with password `password` 
+        - serving the offices : `Organization`, `Public Services Division`
+    - `tsm2` with password `password`
+        - serving the offices : `Public Services Division`, `Environmental Quality Division`
+    - `tsm3` with password `password`
+        - serving the office : `Environmental Quality Division`
+    - `tsm4` with password `password`
+        - serving the office : `Green Areas, Parks and Animal Welfare Division`
+    - `tsm5` with password `password`
+        - serving the office : `Infrastructure Division`
+    - `tsm6` with password `password`
+        - serving the office : `General Services Division`
+- 2 External Companies :
+    - `Iren` serving the categories : `Water Supply - Drinking Water`, `Sewer System`
+    - `Enel` serving the categories : `Public Lighting`, `Road Signs and Traffic Lights`
+- An External Maintainer with username `em1` and password `password` which is associated to the company `Iren`
 
 The served `offices` are the following :
 - `Organization`  

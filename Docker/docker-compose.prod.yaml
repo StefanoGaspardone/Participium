@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
 
   client:
-    image: omarsimone/participium-client
+    image: omarsimone/participium-client:v1.0.0
     container_name: participium_client
     env_file:
       - ./prod.env

@@ -150,6 +150,11 @@
   z-index: 1;
 }
 
+.chat-right-header img {
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
   .chat-right-header {
     flex-wrap: wrap;

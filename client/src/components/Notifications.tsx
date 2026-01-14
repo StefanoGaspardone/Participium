@@ -73,6 +73,7 @@ function MessageNotificationContent({
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
+            maxWidth: "250px",
           }}
         >
           {notification.message?.text ?? ""}
