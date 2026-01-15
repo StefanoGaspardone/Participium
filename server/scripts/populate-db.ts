@@ -455,7 +455,7 @@ async function upsertReports() {
         "Deep pothole close to the tram tracks, dangerous for cyclists and scooters.",
       categoryName: "Roads and Urban Furnishings",
       images: [
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Newport_Whitepit_Lane_pot_hole.JPG/330px-Newport_Whitepit_Lane_pot_hole.JPG",
+        "https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/dunjk5u5aikbsir2r4xz.jpg",
       ],
       lat: 45.0703,
       long: 7.6869,
@@ -468,7 +468,7 @@ async function upsertReports() {
         "Zebra crossing almost invisible, cars do not slow down when approaching the junction.",
       categoryName: "Road Signs and Traffic Lights",
       images: [
-        "https://via.placeholder.com/800x600.png?text=pedestrian+crossing",
+        "https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508641/n4k7sij3yojvkymgoh3r.jpg",
       ],
       lat: 45.0698,
       long: 7.6882,
@@ -481,8 +481,7 @@ async function upsertReports() {
         "Mixed waste bin full since yesterday evening, rubbish on the pavement.",
       categoryName: "Waste",
       images: [
-        "https://www.terzobinario.it/wp-content/uploads/2023/06/IMG_3372.jpg",
-        "https://www.ilmessaggero.it/photos/MED_HIGH/38/41/5143841_0944_rifiuti.jpg",
+        "https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/m5ysjc4barlgrjcd4brb.jpg"
       ],
       lat: 45.071,
       long: 7.6855,
@@ -494,29 +493,29 @@ async function upsertReports() {
       description:
         "Lamp post not working for several nights near the pedestrian crossing.",
       categoryName: "Public Lighting",
-      images: ["https://via.placeholder.com/800x600.png?text=streetlight+off"],
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/zewyrmaztlb5r8ocyfww.jpg"],
       lat: 45.0581,
       long: 7.6762,
       anonymous: false,
       status: ReportStatus.Assigned,
     },
     {
-      title: "Loose manhole cover in corso Marconi",
+      title: "Faded Disabled Parking Sign in Via Corso Marconi",
       description:
-        "Metal cover rattles loudly when cars pass over, possible risk for bicycles.",
-      categoryName: "Sewer System",
-      images: ["https://via.placeholder.com/800x600.png?text=manhole"],
+        "The disabled parking sign is heavily faded and needs repainting for better visibility.",
+      categoryName: "Waste",
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508641/epz6t9eoilsd1uoowmfh.jpg"],
       lat: 45.0569,
       long: 7.6785,
       anonymous: false,
       status: ReportStatus.InProgress,
     },
     {
-      title: "Architectural barrier at tram stop Nizza",
+      title: "Manhole not correctly positioned",
       description:
-        "High sidewalk edge without ramp, difficult access for wheelchairs and strollers.",
-      categoryName: "Architectural Barriers",
-      images: ["https://via.placeholder.com/800x600.png?text=barrier+step"],
+        "There is a step of about 10 cm on the sidewalk due to a misaligned manhole cover.",
+      categoryName: "Roads and Urban Furnishings",
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768509130/rddyx218ufecdqsfos21.jpg"],
       lat: 45.0593,
       long: 7.6748,
       anonymous: false,
@@ -528,7 +527,7 @@ async function upsertReports() {
         "Pothole occupies almost an entire lane, vehicles brake suddenly.",
       categoryName: "Roads and Urban Furnishings",
       images: [
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Newport_Whitepit_Lane_pot_hole.JPG/330px-Newport_Whitepit_Lane_pot_hole.JPG",
+        "https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/dunjk5u5aikbsir2r4xz.jpg",
       ],
       lat: 45.0175,
       long: 7.6203,
@@ -540,7 +539,7 @@ async function upsertReports() {
       description:
         "Broken slide and missing protective panels in the kids area.",
       categoryName: "Public Green Areas and Playgrounds",
-      images: ["https://via.placeholder.com/800x600.png?text=playground"],
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/wjgxemf78fmbc2p5b8kz.jpg"],
       lat: 45.019,
       long: 7.6189,
       anonymous: false,
@@ -552,8 +551,7 @@ async function upsertReports() {
         "Organic waste container not emptied for two days, strong smell in the courtyard.",
       categoryName: "Waste",
       images: [
-        "https://th.bing.com/th/id/OIP.-8RT2HmbCBCH3ROy3fJXowHaLH?w=122&h=183&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
-        "https://th.bing.com/th/id/OIP.niINUwXnY4NmhTSbYo4bOgHaE8?w=256&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
+        "https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/m5ysjc4barlgrjcd4brb.jpg",
       ],
       lat: 45.0158,
       long: 7.6231,
@@ -565,7 +563,7 @@ async function upsertReports() {
       description:
         "Continuous trickle of water coming out from below the curb, pavement always wet.",
       categoryName: "Water Supply - Drinking Water",
-      images: ["https://via.placeholder.com/800x600.png?text=water+leak"],
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508217/yn4ing2igtffni1idkwf.jpg"],
       lat: 45.031,
       long: 7.652,
       anonymous: false,
@@ -576,7 +574,7 @@ async function upsertReports() {
       description:
         "Lamp flickers continuously, disturbing drivers entering the underpass.",
       categoryName: "Public Lighting",
-      images: ["https://via.placeholder.com/800x600.png?text=blinking+light"],
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/zewyrmaztlb5r8ocyfww.jpg"],
       lat: 45.0334,
       long: 7.6591,
       anonymous: false,
@@ -609,7 +607,7 @@ async function upsertReports() {
       description:
         "Plastic cover broken after a collision, internal cables partially exposed.",
       categoryName: "Road Signs and Traffic Lights",
-      images: ["https://via.placeholder.com/800x600.png?text=traffic+light"],
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/zewyrmaztlb5r8ocyfww.jpg"],
       lat: 45.0861,
       long: 7.6938,
       anonymous: false,
@@ -677,7 +675,7 @@ async function upsertReports() {
         "New large graffiti on the river embankment wall, covering previous mural.",
       categoryName: "Other",
       images: [
-        "https://thumbs.dreamstime.com/b/colorful-graffity-wall-donau-river-embankment-wien-colorful-graffity-wall-big-city-colorful-street-art-grafity-265676683.jpg",
+        "https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508609/m9ve23l006brhbnosee0.jpg",
       ],
       lat: 45.0745,
       long: 7.7002,
@@ -721,7 +719,7 @@ async function upsertReports() {
       description:
         "Two consecutive lamp posts turn off and on repeatedly during the night.",
       categoryName: "Public Lighting",
-      images: ["https://via.placeholder.com/800x600.png?text=lampposts"],
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508216/zewyrmaztlb5r8ocyfww.jpg"],
       lat: 45.0612,
       long: 7.6733,
       anonymous: false,
@@ -732,85 +730,18 @@ async function upsertReports() {
       description:
         "Glass bottles piled outside the container, risk of broken glass on pavement.",
       categoryName: "Waste",
-      images: ["https://via.placeholder.com/800x600.png?text=glass+container"],
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768508905/iffo1dgshmnltlwsc3a9.jpg"],
       lat: 45.0709,
       long: 7.6991,
       anonymous: false,
       status: ReportStatus.Assigned,
     },
     {
-      title: "Damaged road surface near roundabout in corso Belgio",
-      description:
-        "Series of small holes and cracks just before the pedestrian crossing.",
-      categoryName: "Roads and Urban Furnishings",
-      images: ["https://via.placeholder.com/800x600.png?text=road+surface"],
-      lat: 45.0728,
-      long: 7.712,
-      anonymous: false,
-      status: ReportStatus.Suspended,
-    },
-    {
-      title: "Playground gate latch broken in Parco della Tesoriera",
-      description:
-        "Gate does not close properly, children can easily run out onto the street.",
-      categoryName: "Public Green Areas and Playgrounds",
-      images: ["https://via.placeholder.com/800x600.png?text=gate"],
-      lat: 45.0786,
-      long: 7.6348,
-      anonymous: false,
-      status: ReportStatus.Assigned,
-    },
-    {
-      title: "Water accumulation at bus stop in corso Francia",
-      description:
-        "Puddle regularly forms in front of the bus shelter after rain.",
-      categoryName: "Sewer System",
-      images: ["https://via.placeholder.com/800x600.png?text=bus+stop"],
-      lat: 45.0781,
-      long: 7.6489,
-      anonymous: false,
-      status: ReportStatus.InProgress,
-    },
-    {
-      title: "Flickering pedestrian traffic light in corso Tassoni",
-      description:
-        "Green figure blinks at irregular intervals, confusing pedestrians.",
-      categoryName: "Road Signs and Traffic Lights",
-      images: ["https://via.placeholder.com/800x600.png?text=pedestrian+light"],
-      lat: 45.0832,
-      long: 7.6614,
-      anonymous: false,
-      status: ReportStatus.Assigned,
-    },
-    {
-      title: "Leaking water hydrant in via Cibrario",
-      description: "Small constant leak from the base of a street hydrant.",
-      categoryName: "Water Supply - Drinking Water",
-      images: ["https://via.placeholder.com/800x600.png?text=hydrant"],
-      lat: 45.0803,
-      long: 7.6649,
-      anonymous: false,
-      status: ReportStatus.InProgress,
-    },
-    {
-      title: "Potholes and uneven pavement near Via Germagnano 47",
-      description:
-        "Several large potholes and uneven paving, causing dangerous conditions for cyclists and pedestrians.",
-      categoryName: "Roads and Urban Furnishings",
-      images: [
-        "https://via.placeholder.com/800x600.png?text=pothole+germagnano",
-      ],
-      lat: 45.119,
-      long: 7.6928,
-      anonymous: false,
-      status: ReportStatus.Suspended,
-    },
-    {
       title: "Blocked drainage in via Damiano Chiesa 35",
       description: "Storm drain clogged causing water to pool after rainfalls.",
       categoryName: "Sewer System",
       images: [
-        "https://via.placeholder.com/800x600.png?text=drain+damiano+chiesa",
+        "https://res.cloudinary.com/dhzr4djkx/image/upload/v1768509571/ccjxwvied3tlng1br5ol.jpg",
       ],
       lat: 45.1019,
       long: 7.7275667,
@@ -822,7 +753,7 @@ async function upsertReports() {
       description:
         "Cracked and uneven sidewalk slabs, causing tripping hazards for pedestrians.",
       categoryName: "Architectural Barriers",
-      images: ["https://via.placeholder.com/800x600.png?text=sidewalk+chieri"],
+      images: ["https://res.cloudinary.com/dhzr4djkx/image/upload/v1768509047/ymetnymajhytu5ejaok9.jpg"],
       lat: 45.0604356,
       long: 7.7408194,
       anonymous: false,
