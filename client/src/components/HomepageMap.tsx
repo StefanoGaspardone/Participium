@@ -949,7 +949,7 @@ export function HomepageMap({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 2000,
+              zIndex: 10000,
               backdropFilter: "blur(4px)",
             }}
           >
